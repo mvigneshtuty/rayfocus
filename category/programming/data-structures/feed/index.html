@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Data Structures &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/category/programming/data-structures/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Sat, 13 Jun 2020 14:47:53 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Introduction to Stack Data Structure in Java</title>
+		<link>https://blogs.rayfocus.com/introduction-to-stack-data-structure-in-java/</link>
+					<comments>https://blogs.rayfocus.com/introduction-to-stack-data-structure-in-java/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Tue, 19 Feb 2019 05:08:05 +0000</pubDate>
+				<category><![CDATA[Data Structures]]></category>
+		<category><![CDATA[Programming]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=993</guid>
+
+					<description><![CDATA[<p>Stack is an abstract data type. Stack can be implemented using Linked List or Array. It follows LIFO principle (Last In First Out) and supports push(), pop() and peek() operations. Stack operations For this explanation, let&#8217;s consider that we implement the stack using LinkedList. push() In stack, the push operation<a class="moretag" href="https://blogs.rayfocus.com/introduction-to-stack-data-structure-in-java/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/introduction-to-stack-data-structure-in-java/">Introduction to Stack Data Structure in Java</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Stack is an abstract data type. Stack can be implemented using Linked List or Array. It follows LIFO principle (Last In First Out) and supports push(), pop() and peek() operations.</p>
+<h5><strong>Stack operations</strong></h5>
+<p>For this explanation, let&#8217;s consider that we implement the stack using LinkedList.</p>
+<p><strong>push()</strong></p>
+<p>In stack, the push operation will always insert a new item as the top node of the LinkedList. The complexity is O(1) and it is very fast.</p><pre class="crayon-plain-tag">// Push new item to the top of Stack
+	// O(1) Complexity
+	public void push(T data) {
+		if(root == null) {
+			root = new StackNode&lt;&gt;();
+			root.setData(data);
+			root.setNextNode(null);
+		}
+		else {
+			StackNode&lt;T&gt; newNode = new StackNode&lt;&gt;();
+			newNode.setNextNode(root);
+			newNode.setData(data);
+			this.root = newNode;
+		}
+		size++;
+	}</pre><p><strong>pop()</strong></p>
+<p>The pop operation always removes the item from the top most node of the LinkedList. This operation is also O(1) complexity.</p><pre class="crayon-plain-tag">// Pop the top most item from Stack
+	// O(1) Complexity
+	public T pop() {
+		if(root == null) {
+			return null;
+		}
+		T data = root.getData();
+		this.root = this.root.getNextNode();
+		size--;
+		return data;
+	}</pre><p><strong>peek()</strong></p>
+<p>The peek operation is same as pop, except that it doesn&#8217;t removes the item. The peek returns the value of the top most node which the stack is currently pointing to and the complexity is O(1).</p><pre class="crayon-plain-tag">// Peek the top most item from Stack; This won't reduce the size of the Stack
+	// O(1) Complexity
+	public T peek() {
+		if(root == null) {
+			return null;
+		}
+		T data = root.getData();
+		return data;
+	}</pre><p></p>
+<h5><strong>Stack Applications</strong></h5>
+<p>1. Stack is used most importantly in Call Stack</p>
+<ul>
+<li>Stack is used in many programming languages to store information about methods, functions of a computer program.</li>
+<li>The local variables of a function are stored in Stack.</li>
+<li>After the function call returns, the local variables are freed up from the stack memory.</li>
+<li>Stack memory is part of RAM and is limited in size. It is very fast for accessing the value.</li>
+</ul>
+<p>2. In Graph algorithms, for example in depth-first search</p>
+<h5><strong>Stack implementation using LinkedList</strong></h5>
+<p>First let&#8217;s define the Stack Node which have two attributes &#8211; data and a reference to next node.</p><pre class="crayon-plain-tag">package com.rayfocus.datastructures.stack;
+
+public class StackNode&lt;T&gt; {
+	private T data;
+	private StackNode&lt;T&gt; nextNode;
+	
+	public T getData() {
+		return data;
+	}
+	public StackNode&lt;T&gt; getNextNode() {
+		return nextNode;
+	}
+	public void setData(T data) {
+		this.data = data;
+	}
+	public void setNextNode(StackNode&lt;T&gt; nextNode) {
+		this.nextNode = nextNode;
+	}
+		
+}</pre><p>Then, the implementation of Stack to support push, pop, peek, size and isEmpty operations. All the operations are very fast and is O(1) complexity.</p><pre class="crayon-plain-tag">package com.rayfocus.datastructures.stack;
+
+public class Stack&lt;T extends Comparable&lt;T&gt;&gt; {
+
+	private int size;
+	private StackNode&lt;T&gt; root;
+	
+	// Push new item to the top of Stack
+	// O(1) Complexity
+	public void push(T data) {
+		if(root == null) {
+			root = new StackNode&lt;&gt;();
+			root.setData(data);
+			root.setNextNode(null);
+		}
+		else {
+			StackNode&lt;T&gt; newNode = new StackNode&lt;&gt;();
+			newNode.setNextNode(root);
+			newNode.setData(data);
+			this.root = newNode;
+		}
+		size++;
+	}
+	
+	// Pop the top most item from Stack
+	// O(1) Complexity
+	public T pop() {
+		if(root == null) {
+			return null;
+		}
+		T data = root.getData();
+		this.root = this.root.getNextNode();
+		size--;
+		return data;
+	}
+	
+	// Peek the top most item from Stack; This won't reduce the size of the Stack
+	// O(1) Complexity
+	public T peek() {
+		if(root == null) {
+			return null;
+		}
+		T data = root.getData();
+		return data;
+	}
+	
+	// Returns the size of the Stack
+	// O(1) Complexity
+	public int size() {
+		return this.size;
+	}
+	
+	// Checks if the Stack is Empty
+	// O(1) Complexity
+	public boolean isEmpty() {
+		return (this.root==null);
+	}
+}</pre><p>Finally, test the Stack implementation.</p><pre class="crayon-plain-tag">package com.rayfocus.datastructures.stack;
+
+public class StackTest {
+
+	public static void main(String[] args) {
+		Stack&lt;String&gt; stack = new Stack&lt;&gt;();
+		stack.push("A");
+		stack.push("B");
+		stack.push("C");
+		
+		System.out.println("Stack size : "+stack.size());
+		
+		System.out.println(stack.pop());
+		System.out.println(stack.pop());
+		
+		System.out.println("Peek at Stack value : "+stack.peek());
+		
+		System.out.println(stack.pop());
+		
+		System.out.println("Stack isEmpty? : "+stack.isEmpty());
+	}
+}</pre><p></p>
+<h5><strong>Summary</strong></h5>
+<ul>
+<li>Stack is an abstract data type and can be implemented using LinkedList or Array in Java.</li>
+<li>It is used in many programming languages to keep information of the active subroutines, function and method calls.</li>
+<li>There is always a trade-off between memory and run-time when choosing a data structure for Stack implementation. So, use LinkedList when memory is not a concern. Otherwise all the operations are very fast.</li>
+<li>Use Array to implement Stack when memory is of important concern. But the operations are not so efficient because we have to resize the Array internally.</li>
+</ul>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<ul></ul>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/introduction-to-stack-data-structure-in-java/">Introduction to Stack Data Structure in Java</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/introduction-to-stack-data-structure-in-java/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>ArrayList in Java</title>
+		<link>https://blogs.rayfocus.com/arraylist-in-java/</link>
+					<comments>https://blogs.rayfocus.com/arraylist-in-java/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sun, 06 Jan 2019 05:22:02 +0000</pubDate>
+				<category><![CDATA[Data Structures]]></category>
+		<category><![CDATA[Programming]]></category>
+		<category><![CDATA[ArrayList]]></category>
+		<category><![CDATA[Java]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=976</guid>
+
+					<description><![CDATA[<p>ArrayList is one of the implementation of the List interface. It is internally a resizable-array under the hood. ArrayList is equivalent to Vector but the only difference is it is not synchronized. ArrayList uses Array internally to store the data. Hence as like Array, random access is possible and it<a class="moretag" href="https://blogs.rayfocus.com/arraylist-in-java/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/arraylist-in-java/">ArrayList in Java</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>ArrayList is one of the implementation of the List interface. It is internally a resizable-array under the hood. ArrayList is equivalent to Vector but the only difference is it is not synchronized.</p>
+<p><img fetchpriority="high" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2019/01/06043317/java-arraylist.png" alt="" width="284" height="177" class="aligncenter size-full wp-image-981" /></p>
+<ul>
+<li>ArrayList uses Array internally to store the data. Hence as like Array, random access is possible and it is very fast. The operation is O(1) constant time complexity.</li>
+<li>Other operations like add, remove is O(N) linear time complexity approximately.</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">List&lt;String&gt; names = new ArrayList&lt;String&gt;(3);
+
+// Add elements to list
+names.add("Kidzee");
+names.add("funKids");
+names.add("KidsPlay");</pre><p></p>
+<ul>
+<li>For remove operation, ArrayList is not so efficient since the elements has to be shifted in this case. For example, if the 1st element in the list is removed then all other elements has to be shifted by one position and this operation is O(N) complexity. Hence if there is a need for lot of remove operations, LinkedList is better suited for this purpose.</li>
+<li>ArrayList supports other operations like size(), isEmpty(), sort(), toArray().</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">package com.rayfocus.datastructures.arraylist;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ArrayListDS {
+
+	public static void main(String[] args) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+		
+		// Initializing the ArrayList; If number of elements known before then provide it during initialization
+		List&lt;String&gt; names = new ArrayList&lt;String&gt;(3);
+
+		// Add elements to list
+	    names.add("Kidzee");
+		names.add("funKids");
+		names.add("KidsPlay");
+		
+		// Iterate the values in the list
+		for(String val: names) {
+			System.out.println("name : "+val);
+		}
+		
+		// Element retrieval using random index - Very fast O(1) complexity
+		System.out.println("Element at index (0) is "+names.get(0));
+		
+		// Remove values from list
+		// Not so efficient since the elements has to shifted internally in the array.
+		// LinkedList serves better for this purpose
+		System.out.println("Remove element at index (1)");
+		names.remove(1);
+		System.out.println("After remove, now the name in index (1) is : "+names.get(1)); // will print out "KidsPlay"
+		
+		// Size of ArrayList
+		System.out.println("Size : "+names.size());
+		// Check isEmpty
+		System.out.println("List isEmpty? "+names.isEmpty());
+		
+	}
+}</pre><p></p>
+<h5><strong>Capacity re-allocation when adding elements</strong></h5>
+<p>Since ArrayList is a re-sizable array, if the capacity of the Array reaches the maximum a new Array is created and elements are copied to new Array. So in general, if the number of elements to be stored is known ahead it&#8217;s better to initialize the ArrayList using the size itself.</p>
+<p>For example, if 200 items to be stored in list, then</p>
+<p><code>List&lt;String&gt; names = new ArrayList&lt;String&gt;(200);</code><br />
+so that an Array is created with initial capacity of 200.</p>
+<h5><strong>Summary</strong></h5>
+<p>ArrayList is a good choice, when</p>
+<ul>
+<li>The elements are going to be added and retrieved using the random index value. It is O(1) complexity.</li>
+<li>The applications don&#8217;t need to remove the elements which are added.</li>
+<li>You have to avoid the hassle of creating a new Array and copy the elements into it.</li>
+</ul>
+<p>ArrayList is not so efficient, when</p>
+<ul>
+<li>There is lot of remove operations to be performed. This operation is O(N) time complexity.</li>
+<li>There is a need to synchronize the operations for concurrent access. Since ArrayList is not designed to be thread safe.</li>
+</ul>
+<p>&nbsp;</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/arraylist-in-java/">ArrayList in Java</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/arraylist-in-java/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Array Data Structure in Java</title>
+		<link>https://blogs.rayfocus.com/array-data-structure-in-java/</link>
+					<comments>https://blogs.rayfocus.com/array-data-structure-in-java/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Wed, 26 Dec 2018 19:48:26 +0000</pubDate>
+				<category><![CDATA[Data Structures]]></category>
+		<category><![CDATA[Programming]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=934</guid>
+
+					<description><![CDATA[<p>An Array is a data structure to store elements of same type. Each element can be accessed by index. Hence random access is possible using Array. Arrays can be of any dimensions. Single and two dimensional arrays are commonly used. Two dimensional arrays are used for mathematical calculations (for example,<a class="moretag" href="https://blogs.rayfocus.com/array-data-structure-in-java/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/array-data-structure-in-java/">Array Data Structure in Java</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[
+<p>An Array is a data structure to store elements of same type. Each element can be accessed by index. Hence random access is possible using Array.</p>
+
+
+
+<div class="wp-block-image">
+<figure class="aligncenter">
+<div id="attachment_937" style="width: 345px" class="wp-caption aligncenter"><img decoding="async" aria-describedby="caption-attachment-937" src="https://static.rayfocus.com/wp-content/uploads/2018/12/26181842/Array-Representation.gif" alt="" class="wp-image-937" width="335" height="124" /><p id="caption-attachment-937" class="wp-caption-text">An array of 10 elements with index starting at 0</p></div>
+</figure>
+</div>
+
+<p>Arrays can be of any dimensions. Single and two dimensional arrays are commonly used. Two dimensional arrays are used for mathematical calculations (for example, Matrix).</p>
+
+<p>Several abstract data structures like <code>Hashtable</code>, <code>ArrayList</code> uses arrays as the underlying data structure.</p>
+<h5><strong>Working with Arrays</strong> </h5>
+<p>To initialize an array the size has to be given up front.</p>
+<p>Elements can be added to an array using the numeric index.</p>
+<pre class="crayon-plain-tag">int[] numArr = new int[5];
+
+for(int i=0; i &lt; numArr.length; i++)
+{
+  numArr[i] = i;
+}</pre>
+<p>Accessing the arrays can done using the random index. Hence the operation is very fast and is <code>O(1) complexity</code>. However searching for a specific element in an array is not going to be so efficient. The elements has to iterated over to complete the search. Hence it is <code>O(N) linear time complexity</code>.</p>
+<pre class="crayon-plain-tag">int val = numArr[3];
+System.out.println("Val retrieved: "+val);
+		
+for(int i=0; i &lt; numArr.length; i++) {
+   if(numArr[i] == 4) {
+	System.out.println("Searched value found at index : "+i);
+   }
+}</pre>
+<p>Similarly, copying elements of an array to an another array is also going to be O(N) Linear time complexity. Since entire array has to iterated over and copy each element to new array.</p>
+<pre class="crayon-plain-tag">package com.rayfocus.datastructures;
+
+public class ArrayDS {
+
+	
+	public static void main(String args[]) {
+		int[] numArr = new int[5]; // Array has to initialized
+		
+		// add items to Array
+		for(int i=0; i &lt; numArr.length; i++) {
+			numArr[i] = i;
+		}
+		
+		// Accessing the Array using index value
+		// O(1) Complexity; Very fast
+		int val = numArr[3];
+		System.out.println("Val retrieved: "+val);
+		
+		// Search for an element in Array
+		// O(N) Linear time Complexity;
+		for(int i=0; i &lt; numArr.length; i++) {
+			if(numArr[i] == 4) {
+				System.out.println("Searched value found at index : "+i);
+			}
+		}
+		
+		// Copying elements of Array to another Array
+		// It is O(N) linear time complexity
+		int[] numArrCopy = new int[10];
+		for(int i=0; i &lt; numArr.length; i++) {
+			numArrCopy[i] = numArr[i]; // Need to iterate and copy values to new Array
+		}
+	}
+}</pre>
+<h5><strong>Summary</strong></h5>
+<p>Array data structure is a good choice when,</p>
+<ul>
+<li>The number of elements to be added is well known.</li>
+<li>Only the same data type has to be stored together.</li>
+<li>The elements are going to be added and retrieved using the random index value. It is O(1) complexity.</li>
+</ul>
+<p>Array is not so efficient when,</p>
+<ul>
+<li>The number of elements to be added is not known.</li>
+<li>There is a need to create array of bigger size. Each value has to be copied one by one.</li>
+<li>Constructing a new array from an existing one is O(N) operation.</li>
+<li>Specific element has to searched. Search operation in Array is O(N) complexity.</li>
+</ul>
+<h5><strong style="font-size: 23px;">References</strong></h5>
+<p>Array representation image : <a href="https://docs.oracle.com/javase/tutorial/figures/java/objects-tenElementArray.gif" target="_blank" rel="noopener">https://docs.oracle.com/javase/tutorial/figures/java/objects-tenElementArray.gif</a></p>
+<p>&nbsp;</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/array-data-structure-in-java/">Array Data Structure in Java</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/array-data-structure-in-java/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

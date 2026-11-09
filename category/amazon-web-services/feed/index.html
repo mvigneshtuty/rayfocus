@@ -1,0 +1,1817 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Amazon Web Services &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/category/amazon-web-services/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Mon, 16 Nov 2020 13:46:58 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Asynchronous pattern using Amazon SQS</title>
+		<link>https://blogs.rayfocus.com/asynchronous-pattern-using-amazon-sqs/</link>
+					<comments>https://blogs.rayfocus.com/asynchronous-pattern-using-amazon-sqs/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Mon, 16 Nov 2020 13:46:58 +0000</pubDate>
+				<category><![CDATA[Amazon SQS]]></category>
+		<category><![CDATA[Amazon Web Services]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=991</guid>
+
+					<description><![CDATA[<p>HTTP (HyperText Transfer Protocol),the underlying protocol in the world of web is commonly used for synchronous communications. However there are some use cases which needs the activities to be done in asynchronous way. Message brokers can help to integrate systems using asynchronous pattern. In this post, let see how Amazon<a class="moretag" href="https://blogs.rayfocus.com/asynchronous-pattern-using-amazon-sqs/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/asynchronous-pattern-using-amazon-sqs/">Asynchronous pattern using Amazon SQS</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>HTTP (HyperText Transfer Protocol),the underlying protocol in the world of web is commonly used for synchronous communications. However there are some use cases which needs the activities to be done in asynchronous way. Message brokers can help to integrate systems using asynchronous pattern. In this post, let see how Amazon SQS services provided by AWS(Amazon Web Services) can be used to design the asynchronous pattern.</p>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2020/08/17044553/amazon-sqs-300x123.png" alt="" class="aligncenter size-medium wp-image-1028" width="300" height="123" srcset="https://static.rayfocus.com/wp-content/uploads/2020/08/17044553/amazon-sqs-300x123.png 300w, https://static.rayfocus.com/wp-content/uploads/2020/08/17044553/amazon-sqs.png 351w" sizes="(max-width: 300px) 100vw, 300px" /></p>
+<h4>Synchronous pattern</h4>
+<p>Let&#8217;s see a simple example of synchronous communication using HTTP.</p>
+<p><img fetchpriority="high" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2020/09/06045912/sync-comm-traditional-02-1024x576.png" alt="" class="aligncenter size-large wp-image-1034" width="750" height="422" srcset="https://static.rayfocus.com/wp-content/uploads/2020/09/06045912/sync-comm-traditional-02-1024x576.png 1024w, https://static.rayfocus.com/wp-content/uploads/2020/09/06045912/sync-comm-traditional-02-300x169.png 300w, https://static.rayfocus.com/wp-content/uploads/2020/09/06045912/sync-comm-traditional-02-768x432.png 768w, https://static.rayfocus.com/wp-content/uploads/2020/09/06045912/sync-comm-traditional-02.png 1152w" sizes="(max-width: 750px) 100vw, 750px" /></p>
+<ul>
+<li>Client sends request to server.</li>
+<li>Server persists the data from request into database.</li>
+<li>Until the time server process the request and persist the data, client waits for the response from server.</li>
+</ul>
+<p>As we can see, the synchronous communication is simple and straight forward. But when there are heavy burst of requests, both client and server will have tremendous load. When server goes down with maximum load, there is a potential of message loss and requests getting timed out.</p>
+<h4>Asynchronous pattern</h4>
+<p>Let&#8217;s introduce Amazon SQS into the above synchronous pattern.</p>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2020/09/06050804/async-comm-using-sqs-01-1024x482.png" alt="" class="aligncenter size-large wp-image-1036" width="750" height="353" srcset="https://static.rayfocus.com/wp-content/uploads/2020/09/06050804/async-comm-using-sqs-01-1024x482.png 1024w, https://static.rayfocus.com/wp-content/uploads/2020/09/06050804/async-comm-using-sqs-01-300x141.png 300w, https://static.rayfocus.com/wp-content/uploads/2020/09/06050804/async-comm-using-sqs-01-768x361.png 768w, https://static.rayfocus.com/wp-content/uploads/2020/09/06050804/async-comm-using-sqs-01.png 1377w" sizes="(max-width: 750px) 100vw, 750px" /></p>
+<ul>
+<li>Client sends request to server.</li>
+<li>Server put the message into SQS queue.</li>
+<li>The server returns the acknowledgement response(&#8220;Your request has been submitted successfully for processing&#8221;) to client immediately.</li>
+<li>The consumer applications then pulls the message from SQS queue to do further computation.</li>
+</ul>
+<h4>Why Amazon SQS?</h4>
+<p>Alright! After taking a quick look into both synchronous and asynchronous patterns, let&#8217;s acknowledge that having message queues into our designs will help for distributed architectures. But why to choose Amazon SQS in particular?</p>
+<ul>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="1" data-aria-level="1"><span data-usefontface="false" data-contrast="none"><span>Amazon SQS is a fully managed message queuing service.</span></span><span>​</span></li>
+<li><span data-usefontface="false" data-contrast="none" class="TextRun SCXP235531703 BCX2" xml:lang="EN-US" lang="EN-US"><span class="NormalTextRun SCXP235531703 BCX2">Easy to scale and highly distributed without any administrative overhead.</span></span></li>
+<li><span data-usefontface="false" data-contrast="none" class="TextRun SCXP131604856 BCX2" xml:lang="EN-US" lang="EN-US"><span class="NormalTextRun SCXP131604856 BCX2">Integrates seamlessly </span></span><span data-usefontface="false" data-contrast="none" class="TextRun SCXP131604856 BCX2" xml:lang="EN-US" lang="EN-US"><span class="NormalTextRun SCXP131604856 BCX2">with Amazon Lambda. (</span></span>If the entire architecture stack is decided to be hosted in AWS cloud offering)</li>
+<li><span data-usefontface="false" data-contrast="none" class="TextRun SCXP234147282 BCX2" xml:lang="EN-US" lang="EN-US"><span class="NormalTextRun SCXP234147282 BCX2">SQS operations can be performed via AWS console, SDK of choice, Command line interface.</span></span></li>
+</ul>
+<h4>SQS &#8211; Visibility Timeout</h4>
+<p>One of the important concept to consider when choosing SQS is visibility timeout.</p>
+<p><img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2020/11/16111811/sqs-visibility-timeout-diagram.png" alt="" class="aligncenter size-full wp-image-1040" width="650" height="216" srcset="https://static.rayfocus.com/wp-content/uploads/2020/11/16111811/sqs-visibility-timeout-diagram.png 650w, https://static.rayfocus.com/wp-content/uploads/2020/11/16111811/sqs-visibility-timeout-diagram-300x100.png 300w" sizes="(max-width: 650px) 100vw, 650px" /></p>
+<ul>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="1" data-aria-level="1"><span data-usefontface="false" data-contrast="none"><span>Visibility timeout is the period for which the </span></span><span data-usefontface="false" data-contrast="none"><span>messages will be hidden from consumers.</span></span><span>​</span></li>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="2" data-aria-level="1"><span data-usefontface="false" data-contrast="none"><span>Once the message is consumed for first time, </span></span><span data-usefontface="false" data-contrast="none"><span>the visibility timeout starts. Default is 30 </span></span><span data-usefontface="false" data-contrast="none"><span>seconds. Maximum is 12 hours.</span></span><span>​</span></li>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="3" data-aria-level="1"><span data-usefontface="false" data-contrast="none"><span>Consumers of message have to explicitly </span></span><span data-usefontface="false" data-contrast="none"><span>delete the message after receiving.</span></span><span>​</span></li>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="4" data-aria-level="1"><span data-usefontface="false" data-contrast="none"><span>It&#8217;s good to have visibility timeout period to be </span></span><span data-usefontface="false" data-contrast="none"><span>configured with value more than the time </span></span><span data-usefontface="false" data-contrast="none"><span>consumer needed for processing the message.</span></span></li>
+</ul>
+<h4>Amazon SQS &#8211; Examples</h4>
+<p>Let&#8217;s see some examples to create queue, put messages to queue, consume messages from queue using AWS SDK for Java.</p><pre class="crayon-plain-tag">/* Create New Queue */
+    public void createQueueWithName(String queueName){
+        AmazonSQS sqsClient = SQSClientProvider.getForProfile("sqs_demo");
+        CreateQueueRequest create_queue_request = new CreateQueueRequest()
+                .withQueueName(queueName);
+               sqsClient.createQueue(create_queue_request);
+        System.out.println("Queue created with name :: "+queueName);
+    }</pre><p>Send messages to Queue</p><pre class="crayon-plain-tag">/* Send messages to Queue */
+    public void sendMessageTo(String queueName){
+        AmazonSQS sqsClient = SQSClientProvider.getForProfile("sqs_demo");
+        String queueUrl = SQSUtil.getQueueUrlFor(queueName);
+        String message = SQSUtil.getSimpleTextMessage();
+        sqsClient.sendMessage(queueUrl, message);
+        System.out.println("Message sent :: "+message);
+    }</pre><p>Send Batch messages to Queue</p><pre class="crayon-plain-tag">/* Send batch messages to Queue */
+    public void sendBatchMessages(String queueName){
+        AmazonSQS sqsClient = SQSClientProvider.getForProfile("sqs_demo");
+        String queueUrl = SQSUtil.getQueueUrlFor(queueName);
+        int numOfMessages = 0;
+        int numOfMessagesToAdd = 0;
+        int maxMessages = MAX_MESSAGES;
+        while(numOfMessages &lt; maxMessages){
+            if((numOfMessages + BATCH_COUNT) &lt; maxMessages){
+                numOfMessagesToAdd = BATCH_COUNT;
+            }else{
+                numOfMessagesToAdd = maxMessages - numOfMessages;
+            }
+
+            List&lt;SendMessageBatchRequestEntry&gt; batchMessages = SQSUtil.getBatchMessages(numOfMessages, numOfMessagesToAdd);
+            if(!batchMessages.isEmpty()){
+                SendMessageBatchRequest sendMessageBatchRequest =
+                        new SendMessageBatchRequest(queueUrl, batchMessages);
+                sqsClient.sendMessageBatch(sendMessageBatchRequest);
+                numOfMessages = numOfMessages+numOfMessagesToAdd;
+                System.out.println(numOfMessagesToAdd+" messages sent, Total messages in Queue: "+numOfMessages);
+            }
+        }
+    }</pre><p>SQS client provider</p><pre class="crayon-plain-tag">public class SQSClientProvider {
+
+    private static AmazonSQS sqsClient = null;
+
+    private SQSClientProvider(){
+        // Private constructor
+    }
+
+    public static AmazonSQS get(){
+        if(sqsClient == null){
+            sqsClient = AmazonSQSClientBuilder.standard()
+                    .withRegion(Regions.US_WEST_2).build();
+        }
+        return sqsClient;
+    }
+
+    public static AmazonSQS getForProfile(String profile){
+        if(sqsClient == null){
+            sqsClient = AmazonSQSClientBuilder.standard()
+                    .withCredentials(new ProfileCredentialsProvider(profile))
+                    .withRegion(Regions.US_WEST_2).build();
+        }
+        return sqsClient;
+    }
+}</pre><p>Util methods to build input messages</p><pre class="crayon-plain-tag">public static String getSimpleTextMessage(){
+        return "{\"id\":1, \"data\": \"Simple Text Message\" }";
+    }
+
+    public static List&lt;SendMessageBatchRequestEntry&gt; getBatchMessages(int startIndex, int batchCount){
+        List&lt;SendMessageBatchRequestEntry&gt; batchMessageEntries = new ArrayList&lt;&gt;();
+        SendMessageBatchRequestEntry batchMessage = null;
+        String messageBody = null;
+        for(int id=startIndex+1; id&lt;=(startIndex+batchCount); id++){
+            messageBody = "{\"id\": "+id+", \"data\": \"Batch Message number "+id+"\" }";
+            batchMessage = new SendMessageBatchRequestEntry("id"+Integer.toString(id), messageBody);
+            batchMessageEntries.add(batchMessage);
+        }
+        return batchMessageEntries;
+    }</pre><p>Consume messages from Queue</p><pre class="crayon-plain-tag">/* Receive messages from Queue */
+    public void receiveMessagesFrom(String queueName){
+        AmazonSQS sqsClient = SQSClientProvider.getForProfile("sqs_demo");
+        String queueUrl = SQSUtil.getQueueUrlFor(queueName);
+        System.out.println("Start - receive messages");
+        ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl)
+                .withMaxNumberOfMessages(3);
+        ReceiveMessageResult receiveMessageResult = sqsClient.receiveMessage(receiveMessageRequest);
+        List&lt;Message&gt; messages = receiveMessageResult.getMessages();
+        if(messages.isEmpty()){
+            System.out.println("No messages available");
+        }
+        for(Message msg: messages){
+            System.out.println(msg.getBody());
+            // From here message can be sent further to external systems
+        }
+    }</pre><p>Consume multiple messages from Queue. Poll for messages in a loop as a standalone consumer.</p><pre class="crayon-plain-tag">/* Receive multiple messages from Queue */
+    public void receiveBatchMessages(String queueName){
+        AmazonSQS sqsClient = SQSClientProvider.getForProfile("sqs_demo");
+        String queueUrl = SQSUtil.getQueueUrlFor(queueName);
+        System.out.println("Start - receive messages");
+        int pollcount = 1;
+        while(true){
+            System.out.println("\n*************Polling attempt************* on "+new Date()+"\n");
+            ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl)
+                    .withMaxNumberOfMessages(2)
+                    .withWaitTimeSeconds(5);
+            ReceiveMessageResult receiveMessageResult = sqsClient.receiveMessage(receiveMessageRequest);
+            List&lt;Message&gt; messages = receiveMessageResult.getMessages();
+            if(messages.isEmpty()){
+                System.out.println("No messages available");
+            }else{
+                for(Message msg: messages){
+                    // From here message can be sent further to external systems
+                    // Or persist messages to database
+                    // But the messages needs to be deleted after consumption
+                   // System.out.println(msg.getBody());
+
+                    DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(queueUrl, msg.getReceiptHandle());
+                    sqsClient.deleteMessage(deleteMessageRequest);
+                    System.out.println(msg.getBody() +" (Processed and deleted)");
+                }
+            }
+        }
+    }</pre><p></p>
+<h4>Amazon Lambda as event listener for SQS Queues</h4>
+<ul>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="6" data-aria-level="1"><span data-usefontface="false" data-contrast="none">SQS event can be made as a trigger for Amazon Lambda.</span><span>​</span></li>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="7" data-aria-level="1"><span data-usefontface="false" data-contrast="none">Based on the messages coming into SQS, Lambda can increase or decrease polling frequency.</span><span>​</span></li>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="8" data-aria-level="1"><span data-usefontface="false" data-contrast="none">Very helpful in reducing usage cost of SQS since we don&#8217;t have to keep on polling the queue all </span><span data-usefontface="false" data-contrast="none">the time.</span></li>
+</ul>
+<p>If Lambda is configured as event listener for SQS queues, then the event can be handled as below:</p>
+<p>To illustrate sending error messages to Dead Letter Queue(DLQ), message with id=3 is moved to DLQ.</p><pre class="crayon-plain-tag">/**
+     * Handles a Lambda Function request for SQS event
+     *
+     * @param input   The Lambda Function input
+     * @param context The Lambda execution environment context object.
+     * @return The Lambda Function output
+     */
+    @Override
+    public Void handleRequest(SQSEvent input, Context context) {
+        System.out.println("SQS event message ::"+input);
+        System.out.println("\n*************Receiving messages in Lambda event*************\n");
+        for(SQSEvent.SQSMessage msg : input.getRecords()){
+            String messageBody = msg.getBody();
+            // Parse message object
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                Message messageObj = objectMapper.readValue(messageBody, Message.class);
+                System.out.println("Message number ==&gt; "+messageObj.getId());
+                if(messageObj.getId() == 3){
+                    // For Test, if messageId == 3 move it to DLQ
+                    moveToDLQ(messageBody, msg.getReceiptHandle());
+                }else{
+                    System.out.println(messageBody +" (processed)");
+                }
+            } catch (IOException e) {
+                // Move the exceptional messages to DLQ
+                System.out.println("Exception while processing..moving to DLQ");
+                moveToDLQ(messageBody, msg.getReceiptHandle());
+            }
+        }
+        return null;
+    }
+
+    private void moveToDLQ(String messageBody, String receiptHandle ){
+        System.out.println("Sending message to DLQ");
+        SQSClientProvider.get().sendMessage("SQS_INPUT_DLQ",messageBody);
+        DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(SQSUtil.getQueueUrlFor("SQS_INPUTQ"),
+                receiptHandle);
+        SQSClientProvider.get().deleteMessage(deleteMessageRequest);
+    }</pre><p></p>
+<h4>Dead Letter Queue(DLQ)</h4>
+<p>DLQ is yet another SQS queue. It can be configured to receive messages which are not consumed after certain attempts or to send any error messages explicitly.</p>
+<p>When creating SQS queue, we can configure it&#8217;s DLQ as below:</p><pre class="crayon-plain-tag">public static CreateQueueRequest configureDLQ(CreateQueueRequest create_queue_request, String dlqName){
+        String queueUrl = getQueueUrlFor(dlqName);
+        GetQueueAttributesRequest getQueueAttributesRequest = new GetQueueAttributesRequest(queueUrl)
+                .withAttributeNames("QueueArn");
+        GetQueueAttributesResult queueAttributesResult = SQSClientProvider.getForProfile("sqs_demo").getQueueAttributes(getQueueAttributesRequest);
+        String dlqARN = "";
+        if(queueAttributesResult.getAttributes().keySet().contains("QueueArn")){
+            dlqARN = queueAttributesResult.getAttributes().get("QueueArn");
+        }
+        String redrivePolicyVal = "{\"deadLetterTargetArn\":\"".concat(dlqARN).concat("\",\"maxReceiveCount\":20}");
+        create_queue_request.addAttributesEntry("RedrivePolicy",redrivePolicyVal);
+        return create_queue_request;
+    }</pre><p></p>
+<h4>Alternatives to SQS</h4>
+<p>Other message brokers as an alternative to SQS are:</p>
+<ul>
+<li>Amazon MQ &#8211; <span data-usefontface="false" data-contrast="none"><span>Managed service provided by AWS based on Active MQ</span></span><span>​</span></li>
+<li>Apache Active MQ &#8211; Open source alternative</li>
+<li>Rabbit MQ &#8211; Open source alternative</li>
+<li>IBM MQ</li>
+</ul>
+<h4>Conclusion</h4>
+<p>We have looked into the details of SQS service from Amazon offering. SQS service helps to build a scalable message queueing architectures. But that&#8217;s not the only option. If our architecture stack is not based on AWS, then open source alternatives like Active MQ and Rabbit MQ provides a reliable messaging solution.</p>
+<h4>Downloads</h4>
+<p>The source code examples can be downloaded from below location:</p>
+<p><a href="http://downloads.rayfocus.com/code-samples/simple-sqs-demo.zip" target="_blank" rel="noopener noreferrer">simple-sqs-demo.zip</a></p>
+<h4>References</h4>
+<ol>
+<li><a href="https://www.manning.com/books/spring-microservices-in-action" target="_blank" rel="noopener noreferrer"></a><a href="https://docs.aws.amazon.com/sqs/index.html" target="_blank" rel="noopener noreferrer">Amazon SQS documentation</a></li>
+<li><a href="https://tools.ietf.org/html/rfc6749" target="_blank" rel="noopener noreferrer"></a><a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html" target="_blank" rel="noopener noreferrer">Amazon SQS developer guide</a></li>
+</ol>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/asynchronous-pattern-using-amazon-sqs/">Asynchronous pattern using Amazon SQS</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/asynchronous-pattern-using-amazon-sqs/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Automate your Amazon EBS Snapshot Creation and Deletion using EBS Lifecycle Manager</title>
+		<link>https://blogs.rayfocus.com/automate-your-amazon-ebs-snapshot-creation-and-deletion-using-ebs-lifecycle-manager/</link>
+					<comments>https://blogs.rayfocus.com/automate-your-amazon-ebs-snapshot-creation-and-deletion-using-ebs-lifecycle-manager/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sat, 22 Dec 2018 08:52:55 +0000</pubDate>
+				<category><![CDATA[Amazon EBS]]></category>
+		<category><![CDATA[Amazon Web Services]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=731</guid>
+
+					<description><![CDATA[<p>AWS provides an option to take snapshots of the EBS volume. EBS snapshots come handy when we want to recover our EBS volumes from any unforeseen disasters or failures. It would be even nice if you can automate your Amazon EBS snapshot creation and deletion. It&#8217;s quite simple using the<a class="moretag" href="https://blogs.rayfocus.com/automate-your-amazon-ebs-snapshot-creation-and-deletion-using-ebs-lifecycle-manager/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/automate-your-amazon-ebs-snapshot-creation-and-deletion-using-ebs-lifecycle-manager/">Automate your Amazon EBS Snapshot Creation and Deletion using EBS Lifecycle Manager</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>AWS provides an option to take snapshots of the EBS volume. EBS snapshots come handy when we want to recover our EBS volumes from any unforeseen disasters or failures. It would be even nice if you can automate your Amazon EBS snapshot creation and deletion. It&#8217;s quite simple using the EBS Lifecycle Manager service provided by AWS.</p>
+<p><img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/12/22093101/amazon_ebs.png" alt="" width="404" height="254" class="aligncenter wp-image-925 size-full" srcset="https://static.rayfocus.com/wp-content/uploads/2018/12/22093101/amazon_ebs.png 404w, https://static.rayfocus.com/wp-content/uploads/2018/12/22093101/amazon_ebs-300x189.png 300w" sizes="(max-width: 404px) 100vw, 404px" /></p>
+<h4><strong>Create the Snapshot Lifecycle Policy</strong></h4>
+<ul>
+<li>Go to EC2 console and access the <strong>Lifecycle Manager</strong> under the section Elastic Block Storage in the left navigation pane.</li>
+<li>You should get a page similar to the image below.</li>
+</ul>
+<p><img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/12/22082826/rayfocus_ebs_snapshots.png" alt="" width="833" height="660" class="aligncenter wp-image-921 size-full" srcset="https://static.rayfocus.com/wp-content/uploads/2018/12/22082826/rayfocus_ebs_snapshots.png 833w, https://static.rayfocus.com/wp-content/uploads/2018/12/22082826/rayfocus_ebs_snapshots-300x238.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/12/22082826/rayfocus_ebs_snapshots-768x608.png 768w" sizes="(max-width: 833px) 100vw, 833px" /></p>
+<ul>
+<li>For the volumes to be targeted for taking snapshots, the tags associated with the volumes can be used.</li>
+<li>For example, in the example shown above volumes with tag <code>Identifier: ebs_prod_rayfocus</code> will be considered for snapshot creation as per the configuration.</li>
+<li>Input the details for the duration between each snapshot creation. Currently the snapshots can be configured to be taken every 12 or 24 hours.</li>
+<li>Then, the snapshot creation time in UTC.</li>
+<li>Another useful option is the ability to configure the number of snapshots to retain as a whole. This can vary per the use case and the need.</li>
+<li>You have to attach the IAM policy which gives the necessary permissions to access the EC2 resources and to manage the snapshots.</li>
+<li>The IAM role can also be generated automatically using the Lifecycle rule. AWS automatically creates one and uses it to manage the snapshots.</li>
+</ul>
+<p><img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/12/22083856/addnl_config_ebs_snapshots.png" alt="" width="961" height="678" class="aligncenter wp-image-922 size-full" srcset="https://static.rayfocus.com/wp-content/uploads/2018/12/22083856/addnl_config_ebs_snapshots.png 961w, https://static.rayfocus.com/wp-content/uploads/2018/12/22083856/addnl_config_ebs_snapshots-300x212.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/12/22083856/addnl_config_ebs_snapshots-768x542.png 768w" sizes="(max-width: 961px) 100vw, 961px" /></p>
+<ul>
+<li>Just hit the <code>Create Policy</code> and it&#8217;s all set for managing the EBS snapshots.</li>
+<li>The IAM default role created should be similar to the one shown below.</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateSnapshot",
+                "ec2:DeleteSnapshot",
+                "ec2:DescribeVolumes",
+                "ec2:DescribeSnapshots"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateTags"
+            ],
+            "Resource": "arn:aws:ec2:*::snapshot/*"
+        }
+    ]
+}</pre><p></p>
+<h4><strong>Conclusion</strong></h4>
+<p>Before the introduction of the EBS Lifecycle Manager service by AWS, we have to write custom tools to manage the EBS snapshots. But now it&#8217;s lot more easier and simple to manage EBS snapshots without any hassle. If you are using any other approaches to manage the snapshots please let know in the comments section.</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/automate-your-amazon-ebs-snapshot-creation-and-deletion-using-ebs-lifecycle-manager/">Automate your Amazon EBS Snapshot Creation and Deletion using EBS Lifecycle Manager</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/automate-your-amazon-ebs-snapshot-creation-and-deletion-using-ebs-lifecycle-manager/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Integrate Spring Boot With Amazon DynamoDB</title>
+		<link>https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/</link>
+					<comments>https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Mon, 11 Jun 2018 19:39:15 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[Spring framework]]></category>
+		<category><![CDATA[Amazon DynamoDB]]></category>
+		<category><![CDATA[Spring Boot]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=770</guid>
+
+					<description><![CDATA[<p>In this post, let&#8217;s see how to integrate Spring Boot with Amazon DynamoDB. I have been exploring the option of creating the REST API using Spring Boot backed by DynamoDB. I will share the information that I have learned during the development process with a simple project named Tasklet API.<a class="moretag" href="https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/">Integrate Spring Boot With Amazon DynamoDB</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, let&#8217;s see how to integrate Spring Boot with Amazon DynamoDB. I have been exploring the option of creating the REST API using Spring Boot backed by DynamoDB. I will share the information that I have learned during the development process with a simple project named Tasklet API.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-775" src="https://static.rayfocus.com/wp-content/uploads/2018/05/31181051/springboot-dynamodb.png" alt="" width="494" height="222" srcset="https://static.rayfocus.com/wp-content/uploads/2018/05/31181051/springboot-dynamodb.png 494w, https://static.rayfocus.com/wp-content/uploads/2018/05/31181051/springboot-dynamodb-300x135.png 300w" sizes="(max-width: 494px) 100vw, 494px" /></p>
+<p>Let&#8217;s build our project on top of the example we have used in the <a href="https://blogs.rayfocus.com/spring-boot-hello-world-example/" target="_blank" rel="noopener">spring boot starter post</a>. The complete project we are going to develop in this post can be downloaded from <a href="http://downloads.rayfocus.com/code-samples/spring-boot-with-dynamodb.zip" target="_blank" rel="noopener">here</a> or from the downloads section available at the end of this post.</p>
+<h4>Prerequisite tools</h4>
+<ol>
+<li style="list-style-type: none;">
+<ol>
+<li>Java 1.8 or higher</li>
+<li>Eclipse IDE</li>
+<li>Maven</li>
+</ol>
+</li>
+</ol>
+<h4>DynamoDB library for Java</h4>
+<p>To make the integration between Spring based applications and DynamoDB easier, we can make use of the community module <a href="https://github.com/derjust/spring-data-dynamodb" target="_blank" rel="noopener">Spring Data DynamoDB</a>. I assume that you have imported the <a href="http://downloads.rayfocus.com/code-samples/rayfocus-api.tasklet.zip" target="_blank" rel="noopener">project</a> used in the spring boot starter post.</p>
+<p>Add the below dependency for <code>spring-data-dynamodb</code> in pom.xml</p><pre class="crayon-plain-tag">&lt;dependency&gt;
+	&lt;groupId&gt;com.github.derjust&lt;/groupId&gt;
+	&lt;artifactId&gt;spring-data-dynamodb&lt;/artifactId&gt;
+	&lt;version&gt;5.0.2&lt;/version&gt;
+&lt;/dependency&gt;</pre><p>Using the Tasklet API, users should be able to add, read, edit and delete the <code>Tasks.</code>  As next step we need to create the data model class which represent the Task itself.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.model;
+
+import java.util.List;
+
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@DynamoDBTable(tableName = "Tasks")
+public class Task {
+
+	private String taskId;
+	private String taskName;
+	private String taskStatus;
+	private List&lt;SubTask&gt; taskContent;
+	private String userId;
+	private String createdOn;
+
+	@JsonCreator
+	public Task(@JsonProperty("task_id") String taskId, @JsonProperty("task_name") String taskName,
+			@JsonProperty("task_status") String taskStatus, @JsonProperty("task_content") List&lt;SubTask&gt; taskContent,
+			@JsonProperty("user_id") String userId, @JsonProperty("created_on") String createdOn) {
+		this.taskId = taskId;
+		this.taskName = taskName;
+		this.taskStatus = taskStatus;
+		this.taskContent = taskContent;
+		this.userId = userId;
+		this.createdOn = createdOn;
+	}
+
+	public Task() 
+	{
+		// default constructor
+	}
+
+	/** Getters */
+	@DynamoDBHashKey(attributeName = "task_id")
+	public String getTaskId() {
+		return taskId;
+	}
+
+	@DynamoDBAttribute(attributeName = "task_name")
+	public String getTaskName() {
+		return taskName;
+	}
+	
+	@DynamoDBAttribute(attributeName = "task_status")
+	public String getTaskStatus() {
+		return taskStatus;
+	}
+
+	@DynamoDBAttribute(attributeName = "task_content")
+	public List&lt;SubTask&gt; getTaskContent() {
+		return taskContent;
+	}
+
+	@DynamoDBAttribute(attributeName = "user_id")
+	public String getUserId() {
+		return userId;
+	}
+
+	@DynamoDBAttribute(attributeName = "created_on")
+	public String getCreatedOn() {
+		return createdOn;
+	}
+
+	/** Setters */
+	public void setTaskId(String taskId) {
+		this.taskId = taskId;
+	}
+
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
+	}
+
+	public void setTaskStatus(String taskStatus) {
+		this.taskStatus = taskStatus;
+	}
+
+	public void setTaskContent(List&lt;SubTask&gt; taskContent) {
+		this.taskContent = taskContent;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public void setCreatedOn(String createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	
+	@Override
+	public String toString() {
+		return "Task [taskId=" + taskId + ", taskName=" + taskName + ", taskStatus=" + taskStatus + ", taskContent="
+				+ taskContent + ", userId=" + userId + ", createdOn=" + createdOn + "]";
+	}
+
+}</pre><p>We have to represent the sub tasks as well for which another Model class <code>SubTask</code> to be defined.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.model;
+
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBDocument;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@DynamoDBDocument
+public class SubTask {
+	
+	private String taskItem;
+	private String status;
+
+	@JsonCreator
+	public SubTask(@JsonProperty("task_item") String taskItem, 
+			       @JsonProperty("status") String status) {
+		this.taskItem = taskItem;
+		this.status = status;
+	}
+
+	public SubTask() 
+	{
+		// default constructor
+	}
+	
+	/** Getters */
+	@DynamoDBAttribute(attributeName = "task_item")
+	public String getTaskItem() {
+		return taskItem;
+	}
+
+	@DynamoDBAttribute(attributeName = "status")
+	public String getStatus() {
+		return status;
+	}
+
+	/** Setters */
+	public void setTaskItem(String taskItem) {
+		this.taskItem = taskItem;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+}</pre><p><strong>DynamoDB Config</strong></p>
+<p>To access the DynamoDB from Spring Boot application, we need to create and register Spring beans for DynamoDB client.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.db.config;
+
+import org.socialsignin.spring.data.dynamodb.repository.config.EnableDynamoDBRepositories;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+
+@Configuration
+@EnableDynamoDBRepositories(basePackages = "com.rayfocus.api.tasklet.db.repository")
+public class DynamoDBConfig {
+
+	@Value("${amazon.aws.accesskey}")
+	private String awsAccessKey;
+
+	@Value("${amazon.aws.secretkey}")
+	private String awsSecretKey;
+
+	@Bean
+	public AmazonDynamoDB amazonDynamoDB(AWSCredentials awsCredentials) {
+		@SuppressWarnings("deprecation")
+		AmazonDynamoDB amazonDynamoDB = new AmazonDynamoDBClient(awsCredentials);
+		return amazonDynamoDB;
+	}
+
+	@Bean
+	public AWSCredentials awsCredentials() {
+		return new BasicAWSCredentials(awsAccessKey, awsSecretKey);
+	}
+
+}</pre><p>To complete the configuration, add the entries for AWS access key and secret key in the <code>application.properties</code>.</p><pre class="crayon-plain-tag">amazon.aws.accesskey=[AWS_ACCESS_KEY]
+amazon.aws.secretkey=[AWS_SECRET_KEY]</pre><p><strong>Note:</strong>  When deploying the application into Amazon EC2 instance or Amazon ECS, we can make use of the IAM roles to access the other AWS services like DynamoDB or S3, instead of storing credentials in properties file. At this point of time, to develop this project let&#8217;s make use of credentials.</p>
+<h4>IAM Policy for accessing DynamoDB</h4>
+<p>For this project, I have created a IAM user named TaskletAPI and attached the below custom IAM policy. I have restricted the IAM policy to have access only for DynamoDB operations on a specific table named <code>Tasks</code>.</p><pre class="crayon-plain-tag">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:UpdateGlobalTable",
+                "dynamodb:UpdateItem",
+                "dynamodb:CreateTable",
+                "dynamodb:DescribeTable",
+                "dynamodb:DescribeGlobalTable",
+                "dynamodb:GetItem",
+                "dynamodb:CreateGlobalTable",
+                "dynamodb:UpdateTable"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:&lt;aws_account_id&gt;:table/Tasks"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": "dynamodb:ListTables",
+            "Resource": "*"
+        }
+    ]
+}</pre><p></p>
+<h4>Repository interface for CRUD operations</h4>
+<p>Since we have <code>spring-data-dynamodb</code> in our classpath, we can make use of CRUD repository for our database operations. With <code>@EnableScan<code></code></code> annotation, the repository implementation will be registered as a component in the Spring container.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.db.repository;
+
+import java.util.List;
+
+import org.socialsignin.spring.data.dynamodb.repository.EnableScan;
+import org.springframework.data.repository.CrudRepository;
+
+import com.rayfocus.api.tasklet.model.Task;
+
+@EnableScan
+public interface TaskRepository extends CrudRepository&lt;Task, String&gt; {
+	List&lt;Task&gt; findByUserId(String userId);
+}</pre><p></p>
+<h4>REST controller</h4>
+<p>Okay. Now we are all set to write our controller class for handling the incoming requests. Let&#8217;s write handler methods for writing/fetching user task to/from DynamoDB. Our controller class looks as shown in below listing.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.rayfocus.api.tasklet.http.HttpResponse;
+import com.rayfocus.api.tasklet.model.Task;
+import com.rayfocus.api.tasklet.service.TaskletService;
+
+@RestController
+@RequestMapping("/tasklet")
+public class TaskletController {
+
+	@Autowired
+	TaskletService taskletService;
+
+	@PostMapping("/task")
+	public ResponseEntity&lt;HttpResponse&gt; saveTask(@RequestBody Task newTask,
+			@RequestParam(value = "version", required = false) String apiVersion) {
+		return taskletService.saveTask(newTask);
+	}
+
+	@GetMapping("/task/{userid}")
+	public ResponseEntity&lt;HttpResponse&gt; getTasksByUserId(@PathVariable("userid") String userId,
+			@RequestParam(value = "version", required = false) String apiVersion) {
+		return taskletService.getTaskByUserId(userId);
+	}
+}</pre><p><code>@PostMapping</code> annotation indicates that the HTTP POST request with URI <code>http://&lt;domain&gt;:&lt;port&gt;/tasklet/task</code> will be handled and the data will be saved to database. The call is then delegated to service class from the controller.</p>
+<p>Similarly, <code>@GetMapping</code> annotation on method <code>getTaskByUserId</code> indicates that HTTP GET request with URI <code>http://&lt;domain&gt;:&lt;port&gt;/tasklet/task/{userid}</code>will be handled and the data will be returned after fetching from database.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+
+import com.rayfocus.api.tasklet.db.repository.TaskRepository;
+import com.rayfocus.api.tasklet.http.HttpResponse;
+import com.rayfocus.api.tasklet.model.Task;
+import com.rayfocus.api.tasklet.model.TaskMetaData;
+
+@Component
+public class TaskletService {
+
+	@Autowired
+	TaskRepository taskRepository;
+
+	public ResponseEntity&lt;HttpResponse&gt; saveTask(Task newTask) {
+		Task savedTask = taskRepository.save(newTask);
+
+		TaskMetaData taskMetaData = null;
+		if (savedTask == null) {
+			taskMetaData = new TaskMetaData(newTask.getTaskId(), newTask.getTaskName());
+			return new ResponseEntity&lt;HttpResponse&gt;(
+					new HttpResponse("500", "ERROR", "Task creation failed", taskMetaData),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		taskMetaData = new TaskMetaData(savedTask.getTaskId(), savedTask.getTaskName());
+		return new ResponseEntity&lt;HttpResponse&gt;(
+				new HttpResponse("200", "SUCCESS", "Task created successfully", taskMetaData), HttpStatus.OK);
+	}
+	
+	public ResponseEntity&lt;HttpResponse&gt; getTaskByUserId(String userId){
+		List&lt;Task&gt; tasks = taskRepository.findByUserId(userId);
+		if (tasks == null) {
+			return new ResponseEntity&lt;HttpResponse&gt;(
+					new HttpResponse("500", "ERROR", "Error fetching task details", tasks),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity&lt;HttpResponse&gt;(new HttpResponse("200", "SUCCESS", "Task Details", tasks),
+				HttpStatus.OK);
+	}
+}</pre><p>HttpResponse and TaskMetaData are helper classes to form the ResponseEntity.</p>
+<p><strong>HttpResponse.java</strong></p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.http;
+
+public class HttpResponse {
+	private final String statusCode;
+	private final String statusMessage;
+	private final String responseDesc;
+
+	private final Object responseData;
+
+	public HttpResponse(String statusCode, String statusMessage, String responseDesc, Object responseData) {
+		this.statusCode = statusCode;
+		this.statusMessage = statusMessage;
+		this.responseDesc = responseDesc;
+		this.responseData = responseData;
+	}
+
+	public String getStatusCode() {
+		return statusCode;
+	}
+
+	public String getStatusMessage() {
+		return statusMessage;
+	}
+
+	public String getResponseDesc() {
+		return responseDesc;
+	}
+
+	public Object getResponseData() {
+		return responseData;
+	}
+
+}</pre><p><strong>TaskMetaData.java</strong></p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.model;
+
+public class TaskMetaData {
+	private final String taskId;
+	private final String taskName;
+
+	public TaskMetaData(String taskId, String taskName) {
+		this.taskId = taskId;
+		this.taskName = taskName;
+	}
+
+	public String getTaskId() {
+		return taskId;
+	}
+
+	public String getTaskName() {
+		return taskName;
+	}
+
+}</pre><p></p>
+<h4>Managing API versions</h4>
+<p>If we need to manage the API versions going further, we can do that using Query params in the request URI. For example, if we have this application running on port 8080, then issue the request as below:</p>
+<p><strong>with query param</strong></p>
+<p><code>http://localhost:8080/tasklet/task?version=2</code></p>
+<p>In this case, we can route to the appropriate service method for processing the request.</p>
+<p><strong>without query param</strong></p>
+<p><code>http://localhost:8080/tasklet/task</code></p>
+<p>If we define the query param as optional, then by default we can route to the latest api version service method if the <code>version</code> param is not present in request.</p>
+<h4>Unit testing</h4>
+<p>We have completed developing our <code>Tasklet</code> service. Let&#8217;s write some unit tests to ensure that the application is working as expected.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet;
+
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import com.amazonaws.services.dynamodbv2.util.TableUtils;
+import com.amazonaws.services.dynamodbv2.util.TableUtils.TableNeverTransitionedToStateException;
+import com.rayfocus.api.tasklet.http.HttpResponse;
+import com.rayfocus.api.tasklet.model.SubTask;
+import com.rayfocus.api.tasklet.model.Task;
+import com.rayfocus.api.tasklet.model.TaskMetaData;
+import com.rayfocus.api.tasklet.service.TaskletService;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest
+public final class TaskletServiceTests {
+
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+
+	@Autowired
+	private AmazonDynamoDB amazonDynamoDB;
+
+	@Autowired
+	private TaskletService taskletService;
+	
+	private static boolean taskTableExist = false;
+
+	@Before
+	public void setUp() throws TableNeverTransitionedToStateException, InterruptedException {
+		if( ! taskTableExist ) {
+			if(TableUtils.createTableIfNotExists(amazonDynamoDB, new DynamoDBMapper(amazonDynamoDB).generateCreateTableRequest(Task.class)
+					.withProvisionedThroughput(new ProvisionedThroughput(2L, 2L)))) {
+				logger.info("~~~ Waiting for Tasks table to be active ~~~");
+				TableUtils.waitUntilActive(amazonDynamoDB, "Tasks");
+			}
+			else {
+				logger.info("~~~ Tasks table already exists ~~~");
+			}
+			taskTableExist = true;
+		}
+	}
+
+	@Test
+	public void testSaveTask() {
+		logger.info("Saving the taskable items");
+
+		List&lt;SubTask&gt; subTasks = new ArrayList&lt;SubTask&gt;(
+				Arrays.asList(new SubTask("Vegetables", "INCOMPLETE"), new SubTask("Fruits", "COMPLETE")));
+		Task newTask = new Task("456", "Buy Groceries", "Active", subTasks, "users@taskletAPI.com", "11-JUN-2018");
+
+		ResponseEntity&lt;HttpResponse&gt; response = taskletService.saveTask(newTask);
+
+		assertTrue("Task saved successfully.", response.getBody().getStatusCode() == "200");
+		assertTrue("Task Id matches", ((TaskMetaData) response.getBody().getResponseData()).getTaskId() == "456");
+		logger.info("Save task done");
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testGetTaskByUserId() {
+		logger.info("Fetching the task items");
+
+		ResponseEntity&lt;HttpResponse&gt; response = taskletService.getTaskByUserId("users@taskletAPI.com");
+
+		assertTrue("Task fetched successfully.", response.getBody().getStatusCode() == "200");
+		assertTrue("User Id matches", ((List&lt;Task&gt;) response.getBody().getResponseData()).get(0).getUserId()
+				.equals("users@taskletAPI.com"));
+		logger.info("Get task done");
+	}
+}</pre><p><strong>Testing with Postman API client</strong></p>
+<p>Before testing with Postman client, make sure the application is up and running. It should run on the default port 8080 since we haven&#8217;t explicitly configured the server&#8217;s port.</p>
+<p>Launch the Postman client and make a HTTP POST request to <code>http://localhost:8080/tasklet/task?version=1</code> .  Input the below sample request.</p><pre class="crayon-plain-tag">{
+  "created_on": "11-JUN-2018",
+  "task_content": [
+    {
+      "status": "INCOMPLETE",
+      "task_item": "Vegetables"
+    },
+    {
+      "status": "COMPLETE",
+      "task_item": "Cakes &amp; Fruits"
+    },
+    {
+      "status": "COMPLETE",
+      "task_item": "Get Rice"
+    }
+  ],
+  "task_id": "123",
+  "task_name": "Buy Groceries",
+  "task_status": "Active",
+  "user_id": "users@taskletAPI.com"
+}</pre><p>You should see the response similar to the one shown in the below listing.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-795" src="https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp.png" alt="" width="1090" height="698" srcset="https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp.png 1090w, https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp-300x192.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp-768x492.png 768w, https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp-1024x656.png 1024w" sizes="(max-width: 1090px) 100vw, 1090px" /></p>
+<h4>Conclusion</h4>
+<p>We have seen how to integrate Spring Boot with Amazon DynamoDB . Finally, we have written unit tests to test our Tasklet API service. We will add more features of Spring Boot and Spring Cloud to our application in the upcoming posts. Stay tuned!</p>
+<p>The source code we have worked on so far is available in the downloads section. If you have any questions, feel free to post it in the comments section. Thank you.</p>
+<hr />
+<p><strong>Download source code : </strong><a href="http://downloads.rayfocus.com/code-samples/spring-boot-with-dynamodb.zip" target="_blank" rel="noopener"><span style="text-decoration: underline;">spring-boot-with-dynamodb.zip</span></a></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/">Integrate Spring Boot With Amazon DynamoDB</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/feed/</wfw:commentRss>
+			<slash:comments>10</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Serverless framework with AWS &#8211; Example</title>
+		<link>https://blogs.rayfocus.com/serverless-framework-with-aws-example/</link>
+					<comments>https://blogs.rayfocus.com/serverless-framework-with-aws-example/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sun, 05 Nov 2017 16:41:05 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[AWS Lambda]]></category>
+		<category><![CDATA[Serverless]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=591</guid>
+
+					<description><![CDATA[<p>Serverless is the architectural style in which the applications relies heavily on Backend as a Service(Baas) and Function as a Service(Faas). In Baas, the third party remote application services are integrated tightly into the client side of apps, for example Firebase. Whereas in FaaS, the server side logic is written<a class="moretag" href="https://blogs.rayfocus.com/serverless-framework-with-aws-example/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/serverless-framework-with-aws-example/">Serverless framework with AWS &#8211; Example</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Serverless is the architectural style in which the applications relies heavily on Backend as a Service(Baas) and Function as a Service(Faas). In Baas, the third party remote application services are integrated tightly into the client side of apps, for example <a href="https://firebase.google.com/docs/database/" target="_blank" rel="noopener">Firebase</a>. Whereas in FaaS, the server side logic is written as functions code using the services provided by Cloud, for example <a href="https://aws.amazon.com/lambda/" target="_blank" rel="noopener">AWS Lambda</a>.</p>
+<h4><strong>What is Serverless framework?</strong></h4>
+<p>With the Serverless architecture being defined, what is that Serverless framework?</p>
+<p><a href="https://serverless.com/" target="_blank" rel="noopener">Serverless framework</a> is the tool which helps to build serverless applications and to deploy and manage it effectively. In short, we can focus on our application with out worrying about infrastructure.</p>
+<h4>Serverless framework with AWS</h4>
+<p>In this post, let&#8217;s see a simple example of using Serverless framework with AWS as Cloud service provider.</p>
+<p>Before start using the Serverless framework we need the following tools available.</p>
+<ol>
+<li><a href="https://aws.amazon.com/" target="_blank" rel="noopener">AWS account</a></li>
+<li><a href="http://docs.aws.amazon.com/cli/latest/userguide/installing.html" target="_blank" rel="noopener">AWS CLI  </a>and configuring the Credentials</li>
+<li><a href="https://nodejs.org" target="_blank" rel="noopener">NodeJS</a></li>
+<li><a href="https://serverless.com/framework/docs/providers/aws/guide/installation/" target="_blank" rel="noopener">Serverless framework</a></li>
+</ol>
+<p>After having the necessary tools, let&#8217;s start writing the application.</p>
+<p>The source code for this application  is available <a href="http://downloads.rayfocus.com/code-samples/aws-serverless-example.zip">here</a>. The download link is also provided at the end of this post.</p>
+<h4>Serverless Application</h4>
+<p>In this simple serverless example application, we are going to hit the API gateway from the html page. The API gateway will then trigger the Lambda function which will return the response. Then we will handle the response and display the output in html page.</p>
+<p>Yes. Probably the simplest example possible. And we are going to use the serverless framework to create the resources needed for this application.</p>
+<p><strong>serverless.yml</strong></p>
+<p>The serverless framework supports writing the configurations in YAML. So in serverless framework, we can define the resources needed for our application as a configuration. Then the framework will automate the resource creation using CloudFormation internally.</p>
+<p>Below listing shows the configuration for our application.</p><pre class="crayon-plain-tag">service: aws-serverless
+
+frameworkVersion: "&gt;=1.8.0 &lt;2.0.0"
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  versionFunctions: false
+
+functions:
+  main:
+    handler: backend/index.handler
+    environment:
+      USER_NAME: GuestUser
+    events:
+      - http:
+          path: /
+          method: get
+          cors: true</pre><p>The serverless.yml have the sections for defining the framework version, Cloud service provider, runtime environment, the Lambda function details and it&#8217;s event triggers.</p>
+<p><strong>Lambda function</strong></p>
+<p>Now we can start writing our Lambda function which will execute when the request is received from API gateway. Basically it&#8217;s a place to write our business logic for the request received from browser client.</p>
+<p>In the serverless.yml, if you notice the line <strong><code>handler: backend/index.handler</code></strong> which indicates that the framework is going to expect a <code>index.js </code>file inside a folder named <code>backend</code>. In the index.js file, there should be a function named <code>handler</code> exported as module.</p>
+<p>Below listing shows our code for Lambda function.</p><pre class="crayon-plain-tag">'use strict';
+
+const user_name = process.env['USER_NAME'];
+
+module.exports.handler = (event, context, callback) =&gt; {
+    console.log(JSON.stringify(event));
+    console.log('Input User Name Value : ' + user_name);
+    const welcomeMsg = `Hello ${user_name},
+                        Welcome to Serverless Architectures. It's AWSome!`;
+    const response = { 'message': welcomeMsg };
+    const respified = {
+        statusCode: 200,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify(response)
+    }
+    callback(
+        null,
+        respified
+    );
+}</pre><p></p>
+<h4><strong>Deploy the application</strong></h4>
+<p>To deploy the application, go to the project folder which contains the serverless.yml file. Then open the command prompt.</p>
+<p>Issue the command <code>sls deploy</code> .  Alternatively you can give <code>serverless deploy</code> , both will do the same action of deploying the resources.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-603" src="https://static.rayfocus.com/wp-content/uploads/2017/11/04184954/sls-deploy.png" alt="" width="682" height="526" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/04184954/sls-deploy.png 682w, https://static.rayfocus.com/wp-content/uploads/2017/11/04184954/sls-deploy-300x231.png 300w" sizes="(max-width: 682px) 100vw, 682px" /></p>
+<p>The resources are now created and deployed into the AWS Cloud. The framework outputs the API gateway endpoint in the console. This is because we have mentioned API gateway as a event trigger for Lambda function in the configuration file. Make a note of the endpoint URL, which we will use in our example shortly.</p>
+<p><strong>Note: </strong>The API gateway URL listed above in the image might not be available for you for testing. However you can configure the one for you on following this example.</p>
+<p>If you notice the functions name in the console, it&#8217;s <strong><code>aws-serverless-dev-main</code></strong></p>
+<p><code>aws-serverless</code> is the service name mentioned in configuration.  <code>dev</code> is the default staging name for our application. We can configure other names such as <code>prod, pre-prod. main</code> is the function name configured in serverless.yml.</p>
+<p>In the cloud formation console, you can view the stack created by serverless framework internally. In the Events, you can also see the entries of resource creation such as Lambda function, API gateway, IAM roles.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-606" src="https://static.rayfocus.com/wp-content/uploads/2017/11/04191135/cloudformation-stack1.png" alt="" width="974" height="586" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/04191135/cloudformation-stack1.png 974w, https://static.rayfocus.com/wp-content/uploads/2017/11/04191135/cloudformation-stack1-300x180.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/11/04191135/cloudformation-stack1-768x462.png 768w" sizes="(max-width: 974px) 100vw, 974px" /></p>
+<h4><strong>A simple client</strong></h4>
+<p>We are almost done. Now to test our application, we need a simple client which will run on browser and invoke the API gateway.</p>
+<p>Below listing shows our <code>index.html</code> file.</p><pre class="crayon-plain-tag">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+	&lt;head&gt;
+        &lt;title&gt;Serverless framework&lt;/title&gt;
+        &lt;style&gt;
+            .text-style {
+                color: maroon;
+            }
+            #welcome-img{
+                display: none;
+            }
+        &lt;/style&gt;
+	&lt;/head&gt;
+    &lt;body&gt;
+        &lt;div class="container" role="main" align="center"&gt;
+            &lt;h1&gt;Serverless framework with AWS - Example&lt;/h1&gt;
+            &lt;div&gt;
+                &lt;form class="col-md-4" id="features" action=""&gt;
+                    &lt;p&gt;
+                        &lt;h2&gt;
+                            &lt;span id="welcome-message" class="text-style"&gt;Click the below button to get welcome message&lt;/span&gt;
+                        &lt;h2&gt;
+                    &lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;button type="button" id="welcomeMessageButton" onclick= "getWelcomeMessage()" class="btn btn-info"&gt;Get Welcome Message&lt;/button&gt;
+                        &lt;button type="button" id="resetButton" onclick="resetMessage()" class="btn btn-info"&gt;Reset&lt;/button&gt;
+                    &lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;img id="welcome-img" src="https://static.rayfocus.com/wp-content/uploads/2017/11/04200430/serverless.png"&gt;
+                    &lt;/p&gt;
+                &lt;/form&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;script type="text/javascript"&gt;
+    
+            function getWelcomeMessage(){
+                invokeAPI(function(data){
+                    document.getElementById('welcome-message').innerHTML = data;
+                    document.getElementById('welcome-img').style.display = 'block';
+                });
+                
+            }
+    
+            function invokeAPI(callback){
+                var endpointURL = 'YOUR_API_GATEWAY_URL';
+                fetch(endpointURL, {
+                        method: 'get',
+                        mode: 'cors',
+                        headers: new Headers({
+                            'Accept': 'application/json'
+                        })
+                    }).then(response =&gt; {
+                        console.log('response untouched', response);
+                        if(response.status === 200){
+                            response.json().then(respified =&gt; {
+                                console.log('JSON response', respified)
+                                callback(respified.message);
+                            }).catch(err =&gt; {
+                                console.log('Error parsing the respone as JSON.', err);
+                                callback(err);
+                            });
+                        }
+                        else{
+                            throw `Invalid response received with status code ${response.status}`;
+                        }
+                    }).catch(err =&gt; {
+                        console.log('Error invoking API gateway endpoint.',err);
+                        callback(err);
+                    })
+                }
+    
+            function resetMessage(){
+                var defaultWelcomeMessage = 'Click the below button to get welcome message';
+                document.getElementById('welcome-message').innerHTML = defaultWelcomeMessage;
+                document.getElementById('welcome-img').style.display = 'none';
+            }
+    
+        &lt;/script&gt;
+	&lt;/body&gt;
+&lt;/html&gt;</pre><p><strong>Note:</strong> Replace the <code>YOUR_API_GATEWAY_URL</code> string with the URL that you will get when configuring the API gateway.</p>
+<h4>Test the application</h4>
+<p>Finally it&#8217;s all done. Now we can test our application. Open the index.html in a web browser. You should see the below screen rendered.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-611" src="https://static.rayfocus.com/wp-content/uploads/2017/11/05144729/index-html.png" alt="" width="804" height="275" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/05144729/index-html.png 804w, https://static.rayfocus.com/wp-content/uploads/2017/11/05144729/index-html-300x103.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/11/05144729/index-html-768x263.png 768w" sizes="(max-width: 804px) 100vw, 804px" /></p>
+<p>Click on the <code>Get Welcome Message</code> button. You should get the welcome message and the welcome image displayed as below.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-612" src="https://static.rayfocus.com/wp-content/uploads/2017/11/05144913/welcome-html.png" alt="" width="929" height="883" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/05144913/welcome-html.png 929w, https://static.rayfocus.com/wp-content/uploads/2017/11/05144913/welcome-html-300x285.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/11/05144913/welcome-html-768x730.png 768w" sizes="(max-width: 929px) 100vw, 929px" /></p>
+<h4>Clean up the resources</h4>
+<p>With serverless framework, it&#8217;s very simple to cleanup the resources we have created for the application. Just issue the command <code>sls remove</code>. The CloudFormation stack will be deleted and you are all done cleaning up.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-613" src="https://static.rayfocus.com/wp-content/uploads/2017/11/05150348/sls-remove.png" alt="" width="538" height="218" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/05150348/sls-remove.png 538w, https://static.rayfocus.com/wp-content/uploads/2017/11/05150348/sls-remove-300x122.png 300w" sizes="(max-width: 538px) 100vw, 538px" /></p>
+<h4>Conclusion</h4>
+<p>We have seen a simple example of using serverless framework. While developing this application, we haven&#8217;t used the AWS management console to get the things done. That is one of the key advantage of serverless framework. Because it means the creation , deployment and management of resources are automated.</p>
+<p>What&#8217;s next? We can start building the applications using serverless architectures and automate the resource management using serverless framework.</p>
+<p>Thank you for reading this post. If you have any questions, please share it in the comments section.</p>
+<hr />
+<p><strong>Download source code : </strong><span style="text-decoration: underline;"><a href="http://downloads.rayfocus.com/code-samples/aws-serverless-example.zip" rel="noopener">aws-serverless-example.zip</a></span></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/serverless-framework-with-aws-example/">Serverless framework with AWS &#8211; Example</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/serverless-framework-with-aws-example/feed/</wfw:commentRss>
+			<slash:comments>2</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Transcode your favourite videos using AWS Lambda and Elastic Transcoder</title>
+		<link>https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/</link>
+					<comments>https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Thu, 28 Sep 2017 18:31:24 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[Amazon Elastic Transcoder]]></category>
+		<category><![CDATA[AWS Lambda]]></category>
+		<category><![CDATA[Java]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=522</guid>
+
+					<description><![CDATA[<p>Video transcoding has been made easier and effective using the Elastic Transcoder service from Amazon. In this post, we will see how to make use of Elastic Transcoder to transcode the videos we upload to Amazon S3 bucket. Also, we will make use of AWS Lambda which will invoke the<a class="moretag" href="https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/">Transcode your favourite videos using AWS Lambda and Elastic Transcoder</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Video transcoding has been made easier and effective using the Elastic Transcoder service from Amazon. In this post, we will see how to make use of Elastic Transcoder to transcode the videos we upload to Amazon S3 bucket. Also, we will make use of AWS Lambda which will invoke the Elastic Transcoder whenever a new Object is added to S3 bucket.</p>
+<h4>Create S3 Buckets</h4>
+<p>In this example, we will use two S3 buckets say input and output bucket. The object (video file to be transcoded) will be uploaded into input bucket. The output bucket will have the transcoded videos. For this example, the input bucket is created with the name <code>input.videos-to-transcode</code> and the output bucket is <code>output.transcoded-videos</code>. Both the buckets are created in the US-EAST region(N. Virginia).</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-560" src="https://static.rayfocus.com/wp-content/uploads/2017/09/26072249/create-bucket.png" alt="" width="867" height="813" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/26072249/create-bucket.png 867w, https://static.rayfocus.com/wp-content/uploads/2017/09/26072249/create-bucket-300x281.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/09/26072249/create-bucket-768x720.png 768w" sizes="(max-width: 867px) 100vw, 867px" /></p>
+<p>For detailed steps on working with S3 buckets, refer the post <a href="https://blogs.rayfocus.com/getting-started-with-amazon-s3/" target="_blank" rel="noopener">Getting started with S3</a>.</p>
+<p><strong>Note: </strong>Since the Bucket name is unique through out, you have to choose a different bucket name other than the one mentioned in this example.</p>
+<h4>Elastic Transcoder</h4>
+<p>In Elastic Transcoder, pipelines are the queues to which the transcoding jobs can be added. Elastic Transcoder process the jobs in the order in which it is placed in the pipeline. Let&#8217;s configure the pipeline using the <a href="https://console.aws.amazon.com/elastictranscoder/" target="_blank" rel="noopener">Elastic Transcoder console</a>.</p>
+<p><strong>Create a pipeline</strong></p>
+<ul>
+<li>In the Elastic Transcoder console, choose Create a new Pipeline.</li>
+<li>Configure the pipeline by providing the input and output bucket details as below.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-563" src="https://static.rayfocus.com/wp-content/uploads/2017/09/26101209/configure-pipeline.png" alt="" width="684" height="773" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/26101209/configure-pipeline.png 684w, https://static.rayfocus.com/wp-content/uploads/2017/09/26101209/configure-pipeline-265x300.png 265w" sizes="(max-width: 684px) 100vw, 684px" /></p>
+<ul>
+<li>For IAM role, choose <strong>Create console default role</strong>. AWS will automatically create the IAM role Elastic_Transcoder_Default_Role.</li>
+<li>You can review the IAM policy attached to the default role.</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Sid": "1",
+      "Effect": "Allow",
+      "Action": [
+        "s3:Put*",
+        "s3:ListBucket",
+        "s3:*MultipartUpload*",
+        "s3:Get*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "2",
+      "Effect": "Allow",
+      "Action": "sns:Publish",
+      "Resource": "*"
+    },
+    {
+      "Sid": "3",
+      "Effect": "Deny",
+      "Action": [
+        "s3:*Delete*",
+        "s3:*Policy*",
+        "sns:*Remove*",
+        "sns:*Delete*",
+        "sns:*Permission*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}</pre><p></p>
+<ul>
+<li>For Notifications and Encryption sections, leave the default values.</li>
+<li>Choose <strong>Create Pipeline</strong>.</li>
+<li>You will now have the pipeline created with status as Active. Make a note of the pipeline id.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-568" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28140310/pipeline-id.png" alt="" width="487" height="208" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28140310/pipeline-id.png 487w, https://static.rayfocus.com/wp-content/uploads/2017/09/28140310/pipeline-id-300x128.png 300w" sizes="(max-width: 487px) 100vw, 487px" /></p>
+<h4>AWS Lambda Function</h4>
+<p>To summarize the things we have done so far, we have created input and output S3 buckets for placing the video files. Then we have configured the Elastic Transcoder pipeline. Now we need to connect these two pieces i.e S3 buckets and Elastic Transcoder so that when we upload some objects(video file) in S3 bucket the transcoding needs to be done for the video files. So how can we do that?</p>
+<p>Here comes the AWS Lambda to our rescue. Yes. Lambda acts as a glue between the S3 bucket and the Elastic Transcoder. This is done by configuring the events for new object creation in S3 bucket which will trigger the Lambda function. Then the Lambda function will create the Elastic Transcoder Job and add that to the Transcoder pipeline we have created. Elastic Transcoder then process the Job and produces the transcoded videos in the output S3 bucket.</p>
+<p><strong>Creating IAM role(Execution role) for Lambda</strong></p>
+<p>Before creating the Lambda function, let&#8217;s create an IAM role which will be associated with Lambda when it executes.</p>
+<ul>
+<li>Access the <a href="https://console.aws.amazon.com/iam" target="_blank" rel="noopener">IAM console</a>.</li>
+<li>Select <strong>Roles  </strong>in the left navigation pane and choose Create role.</li>
+<li>For role type, choose AWS service and select Lambda. Then select <strong>Next: Permissions</strong>.</li>
+<li>For Attach permissions policy, search for <strong>AWSLambdaBasicExecutionRole </strong>and select it.</li>
+<li>Then search for <strong>AmazonElasticTranscoderJobsSubmitter </strong>and select it.</li>
+<li>Choose <strong>Next: Review</strong>.</li>
+<li>Then provide the name for the role. For this example, it&#8217;s lambda-exec-role_video-transcoder.</li>
+<li>Choose <strong>Create role</strong>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-571" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28154301/select-lambda-role.png" alt="" width="677" height="605" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28154301/select-lambda-role.png 677w, https://static.rayfocus.com/wp-content/uploads/2017/09/28154301/select-lambda-role-300x268.png 300w" sizes="(max-width: 677px) 100vw, 677px" /></p>
+<h4><strong>Author the Lambda Function</strong></h4>
+<p>Now it&#8217;s time to write the Lambda function itself. In this example, we will use Java language to write the function. For this, you need Java 8, Eclipse IDE, AWS Toolkit for Eclipse, Maven.</p>
+<p>You can get the source code for this example from <a href="http://downloads.rayfocus.com/code-samples/example_videos-transcoding.zip" target="_blank" rel="noopener">here</a>. Also the download link is available at the end of this post.</p>
+<p><strong>Step 1 :</strong></p>
+<p>Add the below dependencies and plugins in your <code>pom.xml</code></p><pre class="crayon-plain-tag">&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+	&lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+	&lt;groupId&gt;com.rayfocus.aws.lambda&lt;/groupId&gt;
+	&lt;artifactId&gt;videotranscoder&lt;/artifactId&gt;
+	&lt;version&gt;4.0.0&lt;/version&gt;
+	&lt;dependencies&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.amazonaws&lt;/groupId&gt;
+			&lt;artifactId&gt;aws-lambda-java-core&lt;/artifactId&gt;
+			&lt;version&gt;1.1.0&lt;/version&gt;
+			&lt;scope&gt;compile&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.amazonaws&lt;/groupId&gt;
+			&lt;artifactId&gt;aws-lambda-java-events&lt;/artifactId&gt;
+			&lt;version&gt;1.3.0&lt;/version&gt;
+			&lt;scope&gt;compile&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;junit&lt;/groupId&gt;
+			&lt;artifactId&gt;junit&lt;/artifactId&gt;
+			&lt;version&gt;4.11&lt;/version&gt;
+			&lt;scope&gt;test&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.amazonaws&lt;/groupId&gt;
+			&lt;artifactId&gt;aws-java-sdk-elastictranscoder&lt;/artifactId&gt;
+			&lt;version&gt;1.9.1&lt;/version&gt;
+		&lt;/dependency&gt;
+	&lt;/dependencies&gt;
+	&lt;build&gt;
+		&lt;plugins&gt;
+			&lt;plugin&gt;
+				&lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+				&lt;artifactId&gt;maven-shade-plugin&lt;/artifactId&gt;
+				&lt;version&gt;3.1.0&lt;/version&gt;
+				&lt;configuration&gt;
+					&lt;!-- put your configurations here --&gt;
+				&lt;/configuration&gt;
+				&lt;executions&gt;
+					&lt;execution&gt;
+						&lt;phase&gt;package&lt;/phase&gt;
+						&lt;goals&gt;
+							&lt;goal&gt;shade&lt;/goal&gt;
+						&lt;/goals&gt;
+					&lt;/execution&gt;
+				&lt;/executions&gt;
+			&lt;/plugin&gt;
+		&lt;/plugins&gt;
+	&lt;/build&gt;
+&lt;/project&gt;</pre><p><strong>Step 2:</strong> Then create a class TranscodeJobCreator.java which will handle the requests by implementing the RequestHandler interface.</p><pre class="crayon-plain-tag">package com.rayfocus.aws.lambda.videotranscoder;
+
+import java.util.Arrays;
+import java.util.List;
+
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.elastictranscoder.AmazonElasticTranscoderClient;
+import com.amazonaws.services.elastictranscoder.model.CreateJobOutput;
+import com.amazonaws.services.elastictranscoder.model.CreateJobRequest;
+import com.amazonaws.services.elastictranscoder.model.JobInput;
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+
+import com.amazonaws.services.lambda.runtime.events.S3Event;
+
+@SuppressWarnings("deprecation")
+public class TranscodeJobCreator implements RequestHandler&lt;S3Event, Object&gt; {
+
+	private static final AmazonElasticTranscoderClient elasticTranscoder;
+
+	private static final String TRANSCODE_GENERIC_1080p_PRESET_ID = "1351620000001-000001";
+	private static final String TRANSCODE_GENERIC_720p_PRESET_ID = "1351620000001-000010";
+	private static final String TRANSCODE_WEB_720p_PRESET_ID = "1351620000001-100070";
+
+	private static final String OUTPUT_KEY_PREFIX = "output-videos/";
+	private static final String ELASTIC_TRANSCODER_PIPELINE_ID = "ELASTIC_TRANSCODER_PIPELINE_ID";
+	private static final String OUTPUT_VIDEO_FORMAT = "OUTPUT_VIDEO_FORMAT"; 
+
+	static {
+		//elasticTranscoder = new AmazonElasticTranscoderClient(AwsAuth.getProfileCredentials("aws-access"));
+		//elasticTranscoder = new AmazonElasticTranscoderClient(AwsAuth.getProfileCredentials());
+		elasticTranscoder = new AmazonElasticTranscoderClient();
+		Region usEast1 = Region.getRegion(Regions.US_EAST_1);
+		elasticTranscoder.setRegion(usEast1);
+	}
+
+	public Object handleRequest(S3Event input, Context context) {
+		context.getLogger().log("Input: " + input);
+		context.getLogger().log("PipelineId: " + System.getenv(ELASTIC_TRANSCODER_PIPELINE_ID));
+		
+		// Get the S3 input object key for Transcoder Job
+		String inputKey = input.getRecords().get(0).getS3().getObject().getKey();
+		inputKey = inputKey.replaceAll(" ", "+");
+		context.getLogger().log("Input Key: " + inputKey);
+		
+		// Create the Transcoder Job input
+		JobInput transcoderJobInput = new JobInput().withKey(inputKey);
+
+		// Create the output key for Transcoder Job
+		String outputKey = inputKey.split("\\.")[0];
+		
+		// Loggers
+		context.getLogger().log("OutputKey: " + outputKey);
+		
+		// Configure the Transcoder Job output
+		CreateJobOutput generic1080p = new CreateJobOutput().withKey(outputKey + "-1080p" + "." + System.getenv(OUTPUT_VIDEO_FORMAT))
+				.withPresetId(TRANSCODE_GENERIC_1080p_PRESET_ID);
+		CreateJobOutput generic720p = new CreateJobOutput().withKey(outputKey + "-720p" + "." + System.getenv(OUTPUT_VIDEO_FORMAT))
+				.withPresetId(TRANSCODE_GENERIC_720p_PRESET_ID);
+		CreateJobOutput web720p = new CreateJobOutput().withKey(outputKey + "-web-720p" + "." + System.getenv(OUTPUT_VIDEO_FORMAT))
+				.withPresetId(TRANSCODE_WEB_720p_PRESET_ID);
+		List&lt;CreateJobOutput&gt; transcoderJobOutputs = Arrays.asList(generic1080p, generic720p, web720p);
+
+		// Create the Transcoder Job request
+		CreateJobRequest createJobRequest = new CreateJobRequest()
+				.withPipelineId(System.getenv(ELASTIC_TRANSCODER_PIPELINE_ID)).withInput(transcoderJobInput)
+				.withOutputKeyPrefix(OUTPUT_KEY_PREFIX).withOutputs(transcoderJobOutputs);
+
+		// Create the Transcoder Job
+		elasticTranscoder.createJob(createJobRequest);
+		
+		return "{'status':'done'}";
+	}
+}</pre><p><strong>Step 3: </strong>Compile and build the project using Maven goal as <strong><code>package</code></strong>. After successful build then run the Maven build again using the goal as <strong><code>package shade:shade</code></strong>. In the target folder of the project, you should have the jar <code>videotranscoder-4.0.0.jar</code>.<img loading="lazy" decoding="async" class="aligncenter size-full wp-image-570" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28153957/transcoder-jar.png" alt="" width="321" height="232" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28153957/transcoder-jar.png 321w, https://static.rayfocus.com/wp-content/uploads/2017/09/28153957/transcoder-jar-300x217.png 300w" sizes="(max-width: 321px) 100vw, 321px" /></p>
+<h4><strong>Deploy the Lambda Function</strong></h4>
+<p>Now that we have written the Lambda function, we need to deploy it so that the function can be triggered when certain events occur.</p>
+<ul>
+<li>Access the <a href="https://console.aws.amazon.com/lambda" target="_blank" rel="noopener">Lambda console</a>. Choose region as N. Virginia.</li>
+<li>Select Create function. Choose Author from scratch.</li>
+<li>We will configure the Trigger in the following steps. For now leave it and choose Next.</li>
+<li>Give a name for the function. For this example, it&#8217;s <code>func_transcode-videos</code>.</li>
+<li>Select the Runtime as Java 8.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-573" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28161607/function-name.png" alt="" width="545" height="275" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28161607/function-name.png 545w, https://static.rayfocus.com/wp-content/uploads/2017/09/28161607/function-name-300x151.png 300w" sizes="(max-width: 545px) 100vw, 545px" /></p>
+<ul>
+<li>Now for Code entry type, upload the <code>videotranscoder-4.0.0.jar</code> available in the project&#8217;s target folder.</li>
+<li>Select Upload and choose the jar file.</li>
+<li>For Environment variables, we need two entries to be provided as we have used it in the handler code we have written.</li>
+<li>For ELASTIC_TRANSCODER_PIPELINE_ID, give the value of pipeline id.</li>
+<li>For OUTPUT_VIDEO_FORMAT, we choose <code>mp4</code> for this example.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-574" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28163330/func-upload.png" alt="" width="985" height="547" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28163330/func-upload.png 985w, https://static.rayfocus.com/wp-content/uploads/2017/09/28163330/func-upload-300x167.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/09/28163330/func-upload-768x426.png 768w" sizes="(max-width: 985px) 100vw, 985px" /></p>
+<ul>
+<li>For function handler give the value as <code>com.rayfocus.aws.lambda.videotranscoder.TranscodeJobCreator</code>.</li>
+<li>For Role, choose the existing role <code>lambda-exec-role_video-transcoder</code>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-575" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28164054/func-handler.png" alt="" width="545" height="402" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28164054/func-handler.png 545w, https://static.rayfocus.com/wp-content/uploads/2017/09/28164054/func-handler-300x221.png 300w" sizes="(max-width: 545px) 100vw, 545px" /></p>
+<ul>
+<li>In Advanced settings, change the Timeout value to 30 seconds so that Lambda function will have enough time to complete the execution. Leave the other settings unchanged.</li>
+<li>Then choose Next.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-576" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28164451/timeout-settings.png" alt="" width="422" height="301" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28164451/timeout-settings.png 422w, https://static.rayfocus.com/wp-content/uploads/2017/09/28164451/timeout-settings-300x214.png 300w" sizes="(max-width: 422px) 100vw, 422px" /></p>
+<ul>
+<li>Review the Lambda function details and select Create function.</li>
+<li>Now you should see the message for successful creation of Lambda function.</li>
+</ul>
+<h4>Configure the Triggers for AWS Lambda</h4>
+<ul>
+<li>To configure the triggers for Lambda, select the function created in previous step and choose Triggers section.</li>
+<li>Then select <strong>Add trigger</strong>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-577" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28165325/add-triggers.png" alt="" width="593" height="336" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28165325/add-triggers.png 593w, https://static.rayfocus.com/wp-content/uploads/2017/09/28165325/add-triggers-300x170.png 300w" sizes="(max-width: 593px) 100vw, 593px" /></p>
+<ul>
+<li>Select the trigger type as S3.</li>
+<li>Then select the input S3 bucket as event source. For Event type choose Object created(All).</li>
+<li>Enable the trigger and choose Submit.</li>
+<li>Now the trigger should be added successfully to the Lambda function.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-578" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28170040/configure-triggers.png" alt="" width="873" height="857" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28170040/configure-triggers.png 873w, https://static.rayfocus.com/wp-content/uploads/2017/09/28170040/configure-triggers-300x295.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/09/28170040/configure-triggers-768x754.png 768w" sizes="(max-width: 873px) 100vw, 873px" /></p>
+<h4>Test the Lambda Function</h4>
+<p>Now finally it&#8217;s time to test the video transcoding. Upload the sample video file into the input S3 bucket. You should get the transcoded videos in the output S3 bucket.</p>
+<p><strong>Input Video File<br />
+</strong></p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-583" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28175415/input-bucket1.png" alt="" width="468" height="432" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28175415/input-bucket1.png 468w, https://static.rayfocus.com/wp-content/uploads/2017/09/28175415/input-bucket1-300x277.png 300w" sizes="(max-width: 468px) 100vw, 468px" /></p>
+<p>&nbsp;</p>
+<p><strong>Transcoded Output Video Files<br />
+</strong></p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-584" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28175451/transcoded-output-in-bucket1.png" alt="" width="510" height="525" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28175451/transcoded-output-in-bucket1.png 510w, https://static.rayfocus.com/wp-content/uploads/2017/09/28175451/transcoded-output-in-bucket1-291x300.png 291w" sizes="(max-width: 510px) 100vw, 510px" /></p>
+<p>&nbsp;</p>
+<h4>Conclusion and What&#8217;s Next?</h4>
+<p>Congratulations! You have now done the video transcoding using Elastic Transcoder and AWS Lambda. We have seen how the Lambda function can be leveraged to achieve the transcoding functionality without configuring any servers by ourselves. This gives us the way to go ahead and explore more about the serverless architectures.</p>
+<p>We can have a thick client now talking to NoSQL database directly or by calling the API Gateway endpoint which will invoke Lambda function. The Lambda function will then do the database operations. There are plenty of options available to design the applications using serverless way in the Cloud.</p>
+<p>Let&#8217;s go serverless!</p>
+<p>That&#8217;s it for this post. If you face any errors in the example explained in this post, check the Cloud watch logs which will have the error details captured during Lambda invocations.</p>
+<p>If you have any questions or issues, please share it in the comments section.</p>
+<p>Thank you!</p>
+<hr />
+<p><strong>Download source code : </strong><a href="http://downloads.rayfocus.com/code-samples/example_videos-transcoding.zip">example_videos-transcoding.zip</a></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/">Transcode your favourite videos using AWS Lambda and Elastic Transcoder</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/feed/</wfw:commentRss>
+			<slash:comments>4</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Automated EBS snapshots using Amazon CloudWatch Events</title>
+		<link>https://blogs.rayfocus.com/automated-ebs-snapshots-using-cloudwatch-events/</link>
+					<comments>https://blogs.rayfocus.com/automated-ebs-snapshots-using-cloudwatch-events/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Thu, 17 Aug 2017 12:26:38 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[CloudWatch Events]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=497</guid>
+
+					<description><![CDATA[<p>Amazon CloudWatch is a monitoring service for AWS cloud resources and the applications running on it. CloudWatch helps you to collect and track metrics for your AWS resources. You can configure alarm to help you react when changes happen to your resources. For example, you can create a alarm when<a class="moretag" href="https://blogs.rayfocus.com/automated-ebs-snapshots-using-cloudwatch-events/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/automated-ebs-snapshots-using-cloudwatch-events/">Automated EBS snapshots using Amazon CloudWatch Events</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Amazon CloudWatch is a monitoring service for AWS cloud resources and the applications running on it. CloudWatch helps you to collect and track metrics for your AWS resources. You can configure alarm to help you react when changes happen to your resources. For example, you can create a alarm when your EC2 instance is utilizing more CPU than the normal usage limit.</p>
+<p>You can do more than creating alarm by leveraging the CloudWatch Events feature. In this tutorial, we are going to see the one such use case of CloudWatch Events where you can automate the EBS(Elastic Block Storage) snapshots creation.</p>
+<h4>What is CloudWatch Events?</h4>
+<p>Amazon CloudWatch Events helps you to respond to the changes in your AWS resources and to take the necessary corrective actions. With CloudWatch Events you can schedule automated actions using cron or rate expressions.</p>
+<h4>Prerequisites for this tutorial</h4>
+<ol>
+<li>You must have an active AWS account and access to AWS management console.</li>
+<li>An EBS volume for which snapshot creation will be automated. Ideally you can have a EBS backed EC2 instance. You can refer the post <a href="https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/" target="_blank" rel="noopener">launching EC2 instance</a> for detailed steps to spin up the EC2 instance.</li>
+</ol>
+<h4>Create CloudWatch Events rule</h4>
+<ul>
+<li>Open the CloudWatch console (<a href="https://console.aws.amazon.com/cloudwatch/" target="_blank" rel="noopener">https://console.aws.amazon.com/cloudwatch/</a>).</li>
+<li>For this example, I&#8217;m using the region EU (Frankfurt).</li>
+<li>Choose <strong>Events </strong>in the left navigation pane. Then choose Create rule.</li>
+<li>For the Event Source, choose <strong>Schedule</strong>.</li>
+<li>For this example, we are going to schedule the EBS snapshots at fixed rate interval. So choose the <code>Fixed rate of</code> option and enter the value as 5 minutes.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-500" src="https://static.rayfocus.com/wp-content/uploads/2017/08/15164633/create-rule.png" alt="" width="825" height="361" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/15164633/create-rule.png 825w, https://static.rayfocus.com/wp-content/uploads/2017/08/15164633/create-rule-300x131.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/08/15164633/create-rule-768x336.png 768w" sizes="(max-width: 825px) 100vw, 825px" /></p>
+<ul>
+<li>Choose <strong>Add target</strong>. Select the <code>EC2 CreateSnapshot API call</code> from the drop down.</li>
+<li>For Volume ID, grab your EBS volume ID and paste it here. Then choose <strong>Configure details</strong>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-503" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17083204/add-targets.png" alt="" width="812" height="404" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17083204/add-targets.png 812w, https://static.rayfocus.com/wp-content/uploads/2017/08/17083204/add-targets-300x149.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/08/17083204/add-targets-768x382.png 768w" sizes="(max-width: 812px) 100vw, 812px" /></p>
+<p><strong>Note:</strong> To get EBS volume ID, go to EC2 console and choose Volumes under ELASTIC BLOCK STORE in left navigation pane.</p>
+<ul>
+<li>In the next step, provide the details for Rule definition. Enter the name for Rule and optional description.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-506" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17111417/rule-def.png" alt="" width="750" height="228" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17111417/rule-def.png 750w, https://static.rayfocus.com/wp-content/uploads/2017/08/17111417/rule-def-300x91.png 300w" sizes="(max-width: 750px) 100vw, 750px" /></p>
+<ul>
+<li>For AWS permissions, choose<strong> Create new role</strong>. Then select Basic events execution role. This automatically creates a new IAM role which will allow CloudWatch to access your EC2 resources.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-507" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17112111/aws-permissions.png" alt="" width="820" height="232" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17112111/aws-permissions.png 820w, https://static.rayfocus.com/wp-content/uploads/2017/08/17112111/aws-permissions-300x85.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/08/17112111/aws-permissions-768x217.png 768w" sizes="(max-width: 820px) 100vw, 820px" /></p>
+<ul>
+<li>Now you will be taken to IAM console which will request your permission to access the resources in your AWS account.</li>
+<li>Give the Role Name of your choice. For this example, I have given the name as <code>My_AWS_Events_Role</code>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-508" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17112837/grant-permissions.png" alt="" width="727" height="363" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17112837/grant-permissions.png 727w, https://static.rayfocus.com/wp-content/uploads/2017/08/17112837/grant-permissions-300x150.png 300w" sizes="(max-width: 727px) 100vw, 727px" /></p>
+<ul>
+<li>You can review the policy document which is attached for this IAM role.</li>
+<li>Choose View Policy Document. You should see the policy listed in JSON format.</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Describe*",
+        "ec2:RebootInstances",
+        "ec2:StopInstances",
+        "ec2:TerminateInstances",
+        "ec2:CreateSnapshot"
+      ],
+      "Resource": "*"
+    }
+  ]
+}</pre><p></p>
+<ul>
+<li>You can edit the policy document as per your need. For example, you might not want to allow the <code>ec2:TerminateInstances</code> action for the role. For this tutorial, I&#8217;m leaving the default policy document unchanged. Now choose <strong>Allow</strong>.</li>
+<li>Now you will be taken back to Configure rule details page with the IAM role selected.</li>
+<li>Choose <strong>Create rule</strong>.</li>
+<li>You should now see the Success message for rule created.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-510" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17114136/rule-created.png" alt="" width="451" height="429" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17114136/rule-created.png 451w, https://static.rayfocus.com/wp-content/uploads/2017/08/17114136/rule-created-300x285.png 300w" sizes="(max-width: 451px) 100vw, 451px" /></p>
+<h4><strong>Check your EBS Snapshots</strong></h4>
+<p>You have created the CloudWatch Events rule to automate the EBS snapshots creation at a fixed interval of 5 minutes. Now go ahead to the EC2 console and check the <strong>Snapshots </strong>under ELASTIC BLOCK STORE in the left navigation pane.</p>
+<p>After a 5 minutes interval, you should see the EBS snapshot created.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter wp-image-512 size-full" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17121235/snapshot-snap.png" alt="" width="530" height="458" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17121235/snapshot-snap.png 530w, https://static.rayfocus.com/wp-content/uploads/2017/08/17121235/snapshot-snap-300x259.png 300w" sizes="(max-width: 530px) 100vw, 530px" /></p>
+<h4>Clean up your resources</h4>
+<p><strong>Disable or delete the CloudWatch Events rule</strong></p>
+<p>Go to the CloudWatch console and disable or delete the events rule.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-513" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17121532/cloudwatch-cleanup.png" alt="" width="363" height="361" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17121532/cloudwatch-cleanup.png 363w, https://static.rayfocus.com/wp-content/uploads/2017/08/17121532/cloudwatch-cleanup-150x150.png 150w, https://static.rayfocus.com/wp-content/uploads/2017/08/17121532/cloudwatch-cleanup-300x298.png 300w" sizes="(max-width: 363px) 100vw, 363px" /></p>
+<p><strong>Clean up the EC2 instance and EBS volume</strong></p>
+<p>In case if you have launched the EC2 instance for this tutorial, stop or terminate those in order to stop incurring charges.</p>
+<p>Make sure to delete the EBS volume if you have created it for this tutorial. Also delete the EBS snapshot which is created automatically if you do not need it.</p>
+<p><strong>Delete the AWS Events IAM role</strong></p>
+<p>Go to the IAM console and delete the IAM role (<code>My_AWS_Events_Role</code>) created as part of this tutorial.</p>
+<h4>Conclusion</h4>
+<p>You can do more with the CloudWatch Events. Go through the <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/WhatIsCloudWatchEvents.html" target="_blank" rel="noopener">AWS documentation</a> to explore the various options possible with CloudWatch Events. For example, using Events you can invoke AWS Lambda function to update DNS entries when your EC2 instance is ready.</p>
+<p>If you have any questions , please post in the comments section. Thank you!</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/automated-ebs-snapshots-using-cloudwatch-events/">Automated EBS snapshots using Amazon CloudWatch Events</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/automated-ebs-snapshots-using-cloudwatch-events/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>How to launch Amazon EC2 Linux Instance</title>
+		<link>https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/</link>
+					<comments>https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sat, 29 Jul 2017 18:45:30 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[Amazon EC2]]></category>
+		<category><![CDATA[AWS]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=243</guid>
+
+					<description><![CDATA[<p>Amazon EC2 is the service for providing the computing capacity in AWS. With the help of Amazon EC2 you can launch the virtual servers based on your need and you can configure the networking and storage aspects of it. Auto scaling feature in Amazon EC2 helps you to scale up<a class="moretag" href="https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/">How to launch Amazon EC2 Linux Instance</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Amazon EC2 is the service for providing the computing capacity in AWS. With the help of Amazon EC2 you can launch the virtual servers based on your need and you can configure the networking and storage aspects of it. Auto scaling feature in Amazon EC2 helps you to scale up and down your computing needs based on the changing traffic to your instances.</p>
+<h4><strong>Prerequisites</strong></h4>
+<p><strong>Activate your AWS account</strong></p>
+<p>You have to activate your AWS account to use the Amazon EC2 service.</p>
+<ul>
+<li>Open <a href="https://aws.amazon.com/" target="_blank" rel="noopener">https://aws.amazon.com/</a> and then choose Create an AWS Account.</li>
+<li>Follow the online instructions to complete the signup.</li>
+</ul>
+<p>After activating your AWS account, login to AWS management console.</p>
+<p><strong>Create Amazon EC2 key pair<br />
+</strong></p>
+<p>Have your Amazon EC2 key pair ready for connecting to instance after launching it. You can refer the post <a href="https://blogs.rayfocus.com/create-amazon-ec2-key-pairs/" target="_blank" rel="noopener">Creating Amazon EC2 key pair</a> for detailed steps.</p>
+<h4><strong>Launch an Amazon EC2 Instance<br />
+</strong></h4>
+<p>You can launch the EC2 instance using the AWS management console as described in below steps.</p>
+<ul>
+<li>Access the EC2 management console using the Services menu in the top left corner.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-337" src="https://static.rayfocus.com/wp-content/uploads/2017/07/17181815/access-ec2console1.png" alt="" width="891" height="550" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/17181815/access-ec2console1.png 891w, https://static.rayfocus.com/wp-content/uploads/2017/07/17181815/access-ec2console1-300x185.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/17181815/access-ec2console1-768x474.png 768w" sizes="(max-width: 891px) 100vw, 891px" /></p>
+<ul>
+<li>In the top right corner you can select the region of your choice. For this example, I chose EU (Frankfurt).</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter wp-image-340 size-medium" src="https://static.rayfocus.com/wp-content/uploads/2017/07/19085502/choose-region-286x300.png" alt="" width="286" height="300" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/19085502/choose-region-286x300.png 286w, https://static.rayfocus.com/wp-content/uploads/2017/07/19085502/choose-region.png 470w" sizes="(max-width: 286px) 100vw, 286px" /></p>
+<ul>
+<li>After choosing the region, Select Launch Instance in the EC2 Dashboard.</li>
+<li>In the next page, you can choose the Amazon Machine Image (AMI) of your choice to launch the instance.</li>
+<li>You have options to select from the AMIs provided by AWS, AWS marketplace, community AMIs or you can have use one of your own AMIs. For this example, choose Ubuntu server AMI provided by AWS which is also free tier eligible.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-390" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29081823/choose-ubuntu.png" alt="" width="1840" height="307" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29081823/choose-ubuntu.png 1840w, https://static.rayfocus.com/wp-content/uploads/2017/07/29081823/choose-ubuntu-300x50.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/29081823/choose-ubuntu-768x128.png 768w, https://static.rayfocus.com/wp-content/uploads/2017/07/29081823/choose-ubuntu-1024x171.png 1024w" sizes="(max-width: 1840px) 100vw, 1840px" /></p>
+<ul>
+<li>Once you have selected the AMI, you will have option to choose the instance type. AWS provides instance types with varying combinations of CPU, memory, storage, and networking capacity to help you choose based on your computing needs.</li>
+<li>Select the general purpose t2.micro instance type for this example. This instance type is eligible for free tier as well.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-395" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29091144/instance-type1.png" alt="" width="1064" height="474" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29091144/instance-type1.png 1064w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091144/instance-type1-300x134.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091144/instance-type1-768x342.png 768w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091144/instance-type1-1024x456.png 1024w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091144/instance-type1-604x270.png 604w" sizes="(max-width: 1064px) 100vw, 1064px" /></p>
+<ul>
+<li>Choose Next: Configure Instance Details. Leave the default configuration settings as it is for this example. Choose Next: Add Storage.</li>
+<li>By default root volume of size 8 GB will be attached to your instance. You can add additional EBS (Elastic Block Storage) volumes based on your need. For this example, leave the storage settings as it is and choose Next: Add Tags.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-396" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29091209/add-storage1.png" alt="" width="683" height="238" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29091209/add-storage1.png 683w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091209/add-storage1-300x105.png 300w" sizes="(max-width: 683px) 100vw, 683px" /></p>
+<ul>
+<li>You can add tags for your EC2 instance. Choose click to add a Name tag. For the Key <code>Name</code>, give the Value as <code>my-first-ec2-instance</code>. Choose Next: Configure Security Group.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-397" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29091225/add-tag1.png" alt="" width="944" height="201" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29091225/add-tag1.png 944w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091225/add-tag1-300x64.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091225/add-tag1-768x164.png 768w" sizes="(max-width: 944px) 100vw, 944px" /></p>
+<ul>
+<li>In the security groups configuration, you can either create a new security group or select from the existing groups. For this example, choose <span id="gwt-debug-liwSecurityNewGroupRadio" class="CC">Create a <b>new</b> security group</span>. Name it as <code>my-ec2-SG</code>. You can give the give the <span class="gwt-InlineLabel A2">Description</span> to your security group as well.</li>
+<li><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-401" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29092720/ec2-security-group.png" alt="" width="1588" height="429" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29092720/ec2-security-group.png 1588w, https://static.rayfocus.com/wp-content/uploads/2017/07/29092720/ec2-security-group-300x81.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/29092720/ec2-security-group-768x207.png 768w, https://static.rayfocus.com/wp-content/uploads/2017/07/29092720/ec2-security-group-1024x277.png 1024w" sizes="(max-width: 1588px) 100vw, 1588px" />By default, you will have the rule enabled to allow SSH access from all IP addresses. Leave the rule as it is and choose Review and Launch.</li>
+</ul>
+<p><span style="color: #000000;"><strong>Note:  </strong></span>The rule to allow SSH access from all IP addresses is meant for learning purpose only. In production environments, you must <strong>not </strong>follow this open to all policy.</p>
+<ul>
+<li>After reviewing the configuration details for your instance, choose Launch.</li>
+<li>You will be asked to select the key pair to associate it with your instance. Assuming that you have completed the actions mentioned in the prerequisites for this example, select <code>Choose an existing key pair</code> option.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-402" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29094347/choose-keypair.png" alt="" width="827" height="510" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29094347/choose-keypair.png 827w, https://static.rayfocus.com/wp-content/uploads/2017/07/29094347/choose-keypair-300x185.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/29094347/choose-keypair-768x474.png 768w" sizes="(max-width: 827px) 100vw, 827px" /></p>
+<ul>
+<li>Choose Launch Instances. Now you have launched the EC2 Linux instance.</li>
+<li>In the EC2 Dashboard, check the Instance state. It will be in pending status.</li>
+<li>After the Instance state changes to <code>running</code>, you can connect to it.</li>
+</ul>
+<h4>Connect to your Instance</h4>
+<p>You can use the PuTTY client to connect to your EC2 Linux instance.</p>
+<ul>
+<li>Get the PuTTY client from <a href="https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html">here</a>.</li>
+<li>Start the PuTTY client. For Host Name, enter the <span class="HG JG" data-tooltip="The public hostname of the instance, which resolves to the public IP address or Elastic IP address of the instance.">Public DNS (IPv4)</span> of your Instance.</li>
+<li>Give the name for the Session as <code>my-ec2-client</code>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-404" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29101110/ec2-putty-client.png" alt="" width="614" height="276" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29101110/ec2-putty-client.png 614w, https://static.rayfocus.com/wp-content/uploads/2017/07/29101110/ec2-putty-client-300x135.png 300w" sizes="(max-width: 614px) 100vw, 614px" /></p>
+<ul>
+<li>Now in the Category pane, select <code>Auth</code> under SSH. In the Private key file for authentication, choose your private key file that you have associated with your instance during its launch.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-405" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29101723/ec2-auth.png" alt="" width="616" height="439" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29101723/ec2-auth.png 616w, https://static.rayfocus.com/wp-content/uploads/2017/07/29101723/ec2-auth-300x214.png 300w" sizes="(max-width: 616px) 100vw, 616px" /></p>
+<ul>
+<li>Choose Open. Now the PuTTY client will display a Security Alert. Select Yes to proceed.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-406" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29102032/putty-alert.png" alt="" width="511" height="387" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29102032/putty-alert.png 511w, https://static.rayfocus.com/wp-content/uploads/2017/07/29102032/putty-alert-300x227.png 300w" sizes="(max-width: 511px) 100vw, 511px" /></p>
+<p><strong>Note: </strong>To get the Public DNS of your Instance, go to the EC2 console and choose Instances in the left navigation pane. Select the Instance that you have launched. You can see the details of Public DNS for the instance under the Description tab.</p>
+<ul>
+<li>Now the PuTTY will prompt to enter your username. Type <code>ubuntu</code> and hit Enter.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-409" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29175649/ec2-login.png" alt="" width="511" height="403" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29175649/ec2-login.png 511w, https://static.rayfocus.com/wp-content/uploads/2017/07/29175649/ec2-login-300x237.png 300w" sizes="(max-width: 511px) 100vw, 511px" /></p>
+<ul>
+<li>You should be able to login successfully to your EC2 Linux instance.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-410" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29175709/ec2-success-login.png" alt="" width="703" height="546" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29175709/ec2-success-login.png 703w, https://static.rayfocus.com/wp-content/uploads/2017/07/29175709/ec2-success-login-300x233.png 300w" sizes="(max-width: 703px) 100vw, 703px" /></p>
+<h4>Clean up your EC2 Instance</h4>
+<p>After you have completed the work with your instance, it&#8217;s a best practice to either shut down or terminate your EC2 resource so that you will stop incurring charges.</p>
+<p><strong>Terminate your Instance</strong></p>
+<ul>
+<li>Go to the EC2 console. Choose Instances in the left navigation pane.</li>
+<li>Select the instance that you have launched for this example.</li>
+<li>Choose Actions &gt;&gt; Instance State &gt;&gt; Terminate.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-412" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29182741/terminate-ec2.png" alt="" width="888" height="292" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29182741/terminate-ec2.png 888w, https://static.rayfocus.com/wp-content/uploads/2017/07/29182741/terminate-ec2-300x99.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/29182741/terminate-ec2-768x253.png 768w" sizes="(max-width: 888px) 100vw, 888px" /></p>
+<ul>
+<li>You will get a Dialog box to confirm your selection. Choose Yes, Terminate.</li>
+<li>Now the instance state will change to shutting-down and then to terminated.</li>
+</ul>
+<h4>Conclusion</h4>
+<p>In this tutorial, you have launched Amazon EC2 Linux instance and connected to it using PuTTY client. Finally you have cleaned up your EC2 instance by terminating it.</p>
+<p>So what&#8217;s next? Explore further deep in to the Amazon EC2 service and learn how to configure the Elastic Block Storage volumes, Elastic load balancing, Network and Security for your instances.</p>
+<p>If you have any questions or concerns, please post it in the comments section. Thank you!</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/">How to launch Amazon EC2 Linux Instance</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>How to create Amazon EC2 key pairs</title>
+		<link>https://blogs.rayfocus.com/create-amazon-ec2-key-pairs/</link>
+					<comments>https://blogs.rayfocus.com/create-amazon-ec2-key-pairs/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Fri, 21 Jul 2017 06:09:44 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[Amazon EC2 key pair]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=324</guid>
+
+					<description><![CDATA[<p>Amazon EC2 uses public-key cryptography to encrypt and decrypt login information. In the public-key cryptography, the password is encrypted using the public key. The public key is stored in the Amazon EC2 instance and we need private key to decrypt and access the EC2 instance. The public and private keys<a class="moretag" href="https://blogs.rayfocus.com/create-amazon-ec2-key-pairs/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/create-amazon-ec2-key-pairs/">How to create Amazon EC2 key pairs</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Amazon EC2 uses public-key cryptography to encrypt and decrypt login information. In the public-key cryptography, the password is encrypted using the public key. The public key is stored in the Amazon EC2 instance and we need private key to decrypt and access the EC2 instance. The public and private keys are known as key pair.</p>
+<h4>Creating a key pair using the Amazon EC2 console</h4>
+<p>In order to access the Amazon EC2 console, you must activate your AWS account.</p>
+<p><strong>Activate your AWS account</strong></p>
+<ul>
+<li>Open <a href="https://aws.amazon.com/" target="_blank" rel="noopener">https://aws.amazon.com/</a> and then choose Create an AWS Account.</li>
+<li>Follow the online instructions to complete the signup.</li>
+</ul>
+<p><strong>Access the EC2 console</strong></p>
+<p>After activating your account, login and navigate to Amazon EC2 console.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-337" src="https://static.rayfocus.com/wp-content/uploads/2017/07/17181815/access-ec2console1.png" alt="" width="891" height="550" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/17181815/access-ec2console1.png 891w, https://static.rayfocus.com/wp-content/uploads/2017/07/17181815/access-ec2console1-300x185.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/17181815/access-ec2console1-768x474.png 768w" sizes="(max-width: 891px) 100vw, 891px" /></p>
+<p>In the top right corner you can select the region of your choice. At the time of this writing, Amazon supports 14 regions in total. In general, select the AWS region which is near to your geographical location so that you can reduce the latency in network to the best possible level. For this example, I chose EU (Frankfurt).</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-340" src="https://static.rayfocus.com/wp-content/uploads/2017/07/19085502/choose-region.png" alt="" width="470" height="493" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/19085502/choose-region.png 470w, https://static.rayfocus.com/wp-content/uploads/2017/07/19085502/choose-region-286x300.png 286w" sizes="(max-width: 470px) 100vw, 470px" /></p>
+<p>The key pair that you create is specific to that region. If you change the AWS region, you have to create another key pair for that new region.</p>
+<p><strong>Create key pair</strong></p>
+<ul>
+<li>In the left navigation pane of EC2 console, choose the <strong>key pair </strong>under NETWORK &amp; SECURITY.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-343" src="https://static.rayfocus.com/wp-content/uploads/2017/07/19140522/keypair-nav-link.png" alt="" width="528" height="529" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/19140522/keypair-nav-link.png 528w, https://static.rayfocus.com/wp-content/uploads/2017/07/19140522/keypair-nav-link-150x150.png 150w, https://static.rayfocus.com/wp-content/uploads/2017/07/19140522/keypair-nav-link-300x300.png 300w" sizes="(max-width: 528px) 100vw, 528px" /></p>
+<ul>
+<li>Click <strong>Create Key Pair</strong> button.</li>
+<li>Enter the key pair name of your choice. For this example, the key pair name is <code>my-eu-keypair</code>.</li>
+<li>You need this key pair when launching the EC2 instance. So make sure you give a meaningful name for your key pair which is easy to remember as well.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-344" src="https://static.rayfocus.com/wp-content/uploads/2017/07/19142629/keypair-name.png" alt="" width="1080" height="565" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/19142629/keypair-name.png 1080w, https://static.rayfocus.com/wp-content/uploads/2017/07/19142629/keypair-name-300x157.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/19142629/keypair-name-768x402.png 768w, https://static.rayfocus.com/wp-content/uploads/2017/07/19142629/keypair-name-1024x536.png 1024w" sizes="(max-width: 1080px) 100vw, 1080px" /></p>
+<ul>
+<li>Choose Create after entering the key pair name.</li>
+<li>Once the key pair is created, private key file will be downloaded automatically. Save it in a safe place since this is the only time you will have option to save the private key file.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-345" src="https://static.rayfocus.com/wp-content/uploads/2017/07/19142911/save-keypair.png" alt="" width="896" height="541" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/19142911/save-keypair.png 896w, https://static.rayfocus.com/wp-content/uploads/2017/07/19142911/save-keypair-300x181.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/19142911/save-keypair-768x464.png 768w" sizes="(max-width: 896px) 100vw, 896px" /></p>
+<ul>
+<li>The private key file will have the extension <code>.pem</code></li>
+</ul>
+<h4>Connect to EC2 instance from Windows using PuTTY</h4>
+<p>Now you have created the key pair and have the private key file with you. You can launch the EC2 instance by choosing the key pair name that you have created. But if you want to connect to the instance using the PuTTY from Windows, then you need to convert the private key format (.pem) to the required (.ppk) format.</p>
+<p><strong>Convert your private key</strong></p>
+<ul>
+<li>Get the PuTTYgen tool from <a href="https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html">here</a>.</li>
+<li>Start PuTTYgen. You will get a window as below.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-350" src="https://static.rayfocus.com/wp-content/uploads/2017/07/19190422/PuTTYgen.png" alt="" width="641" height="575" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/19190422/PuTTYgen.png 641w, https://static.rayfocus.com/wp-content/uploads/2017/07/19190422/PuTTYgen-300x269.png 300w" sizes="(max-width: 641px) 100vw, 641px" /></p>
+<ul>
+<li>Choose RSA for the Type of key to generate.</li>
+<li>Click Load and select the private key file that you have created.</li>
+<li>You have to select All Files option to locate you .pem file since PuTTYgen displays only the .ppk file by default.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-352" src="https://static.rayfocus.com/wp-content/uploads/2017/07/21054506/choose-keypair-file.png" alt="" width="809" height="165" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/21054506/choose-keypair-file.png 809w, https://static.rayfocus.com/wp-content/uploads/2017/07/21054506/choose-keypair-file-300x61.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/21054506/choose-keypair-file-768x157.png 768w" sizes="(max-width: 809px) 100vw, 809px" /></p>
+<ul>
+<li>Once you have selected the .pem file PuTTYgen will display the dialog box for successful import of key file. Click OK.</li>
+<li> Leave the  Key passphrase field empty. Choose Save private key.</li>
+<li>PuTTYgen will display a Warning for saving the key with out passphrase. Choose Yes.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-355" src="https://static.rayfocus.com/wp-content/uploads/2017/07/21055928/save-ppk-file.png" alt="" width="654" height="585" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/21055928/save-ppk-file.png 654w, https://static.rayfocus.com/wp-content/uploads/2017/07/21055928/save-ppk-file-300x268.png 300w" sizes="(max-width: 654px) 100vw, 654px" /></p>
+<ul>
+<li>For the key file name, specify the one that you have used when generating the key pair in EC2 console. In our case it&#8217;s <code>my-eu-keypair</code>.</li>
+<li>Now the private key file will be automatically saved in the .ppk format.</li>
+</ul>
+<h4>What next?</h4>
+<p>You have the private key file now in correct format in order to connect to your EC2 instances using the PuTTY client. Go ahead and start launching your EC2 instances. This ends our post on creating the Amazon EC2 key pair.</p>
+<p>If you have any questions please post it in the comments section. Thank you!</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/create-amazon-ec2-key-pairs/">How to create Amazon EC2 key pairs</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/create-amazon-ec2-key-pairs/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Getting started with Amazon S3</title>
+		<link>https://blogs.rayfocus.com/getting-started-with-amazon-s3/</link>
+					<comments>https://blogs.rayfocus.com/getting-started-with-amazon-s3/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Thu, 29 Jun 2017 18:50:00 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[Amazon S3]]></category>
+		<category><![CDATA[AWS]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=108</guid>
+
+					<description><![CDATA[<p>In this post, we will see what is Amazon S3 service and how to get started with it. What is Amazon S3? Amazon Simple Storage Service (Amazon S3) is storage for the internet. With Amazon S3 you can store any amount of data and access it from anywhere on the<a class="moretag" href="https://blogs.rayfocus.com/getting-started-with-amazon-s3/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/getting-started-with-amazon-s3/">Getting started with Amazon S3</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, we will see what is Amazon S3 service and how to get started with it.</p>
+<h4><strong>What is Amazon S3?</strong></h4>
+<p>Amazon Simple Storage Service (Amazon S3) is storage for the internet. With Amazon S3 you can store any amount of data and access it from anywhere on the web.</p>
+<p>You can use the Amazon S3 service via AWS management console, AWS SDK and AWS command line interface(CLI). Under the hood Amazon S3 is exposed as a web service and Amazon provides many different options to use it.</p>
+<h4><strong>Getting started</strong></h4>
+<p>To get started with Amazon S3 or any of the AWS services, you must activate your AWS account.</p>
+<h4><strong>Activate your AWS account</strong></h4>
+<ul>
+<li>Open <a href="https://aws.amazon.com/" target="_blank" rel="noopener">https://aws.amazon.com/</a> and then choose Create an AWS Account.</li>
+<li>Follow the online instructions to complete the signup.</li>
+</ul>
+<p>After activating your AWS account, login to AWS management console.</p>
+<h4><strong>Create S3 bucket</strong></h4>
+<p>In the AWS management console, navigate to the S3 service under storage category.</p>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-service.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>After opening the S3 console click on Create bucket.</li>
+<li>Choose a unique DNS-compliant bucket name. The S3 bucket name that you choose must be unique across all existing bucket names in Amazon S3.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-create-bucket.png" alt="" width="500" height="500" /></strong></p>
+<p><strong>Note :</strong> You can not use the same bucket name used in the above example since S3 bucket names must be unique.</p>
+<ul>
+<li>For the Region, choose Asia Pacific (Mumbai) or any other region where you want your bucket to reside.</li>
+<li>Click Create. You should have your bucket created by now.</li>
+</ul>
+<h4><strong>Add an Object to S3 bucket</strong></h4>
+<ul>
+<li>To add an object to bucket, select the bucket that you have just created. In our case its admin-s3-rayfocus.</li>
+<li>Click on Upload button.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-upload-object.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>Then click on Add files and select the file that you want to upload. In our case we will add a HTML file.</li>
+<li>After selecting the file, Click Upload button.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-add-object.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>Now you have added the object to your bucket.</li>
+</ul>
+<p><strong>Note : </strong>To create index.html</p>
+<ul>
+<li>Copy the below html content and save it with filename as index.html.</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">&lt;!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN"&gt;
+&lt;html&gt;
+&lt;head&gt;
+	&lt;title&gt;Amazon S3&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+	&lt;h1&gt;Welcome to Amazon Simple Storage Service&lt;/h1&gt;
+	&lt;p&gt;Have a great day!&lt;/p&gt;
+	&lt;br/&gt;
+	&lt;hr&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre><p></p>
+<h4><strong>View an Object in S3 bucket</strong></h4>
+<ul>
+<li>Click on the bucket that you have just created.</li>
+<li>After opening the bucket, select the checkbox next to the Object that you have uploaded.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-view-object.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>Click on Download button.</li>
+</ul>
+<h4><strong>Host a Static website using S3</strong></h4>
+<ul>
+<li>To host a static website using S3, click on the bucket you have created.</li>
+<li>Click the tab Properties and select Static website hosting.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-static-website.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>For the index document, type the Object name index.html created earlier. Click Save.</li>
+<li>Copy the endpoint</li>
+<li>Click on the Object index.html and select Make public.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-object-access.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>You have now granted the public access for the Object in your bucket.</li>
+</ul>
+<p><strong>Access the S3 Static website</strong></p>
+<ul>
+<li>Paste the endpoint in the browser address bar and access it.</li>
+<li>You should see the below html page rendered.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-welcome.png" alt="" width="500" height="500" /></strong></p>
+<h4>Delete an Object from S3 bucket</h4>
+<ul>
+<li>To delete an object, select the checkbox next to it.</li>
+<li>In the Delete objects dialog box click Delete.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-delete-object.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>This will delete the Object from your S3 bucket.</li>
+</ul>
+<h4>Delete S3 bucket</h4>
+<ul>
+<li>To delete S3 bucket, click the bucket icon next to the name of the bucket.</li>
+<li>Now click Delete bucket.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-delete-bucket.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li style="list-style-type: none;">
+<ul>
+<li>In the Delete bucket dialog box, type in the name of the bucket that you want to delete. Click Confirm.</li>
+</ul>
+</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-delete-bucket-02.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>This will delete the S3 bucket.</li>
+</ul>
+<h4>What next? Integrating S3 with other AWS services</h4>
+<p>You can integrate Amazon S3 with other AWS services like Route 53 and Cloud front.</p>
+<ul>
+<li>If you have custom domain name, configure Route 53 to point to the S3 static website endpoint.</li>
+<li>Integrate S3 with Cloud front to speed up your static and dynamic web content distribution for users.</li>
+</ul>
+<h4>Conclusion</h4>
+<p>Now you know how to use the Amazon S3 service and to host a static website using it. If you have any questions or concerns post it the comments section.</p>
+<p>Thank you!</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/getting-started-with-amazon-s3/">Getting started with Amazon S3</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/getting-started-with-amazon-s3/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Java 9 &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/category/core-java/java-9/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Wed, 17 Jan 2018 05:43:27 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Introduction to Java 9 modules with example</title>
+		<link>https://blogs.rayfocus.com/introduction-to-java-9-modules-with-example/</link>
+					<comments>https://blogs.rayfocus.com/introduction-to-java-9-modules-with-example/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Tue, 16 Jan 2018 16:40:47 +0000</pubDate>
+				<category><![CDATA[Core Java]]></category>
+		<category><![CDATA[Java 9]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=494</guid>
+
+					<description><![CDATA[<p>Java 9 is a major feature release of the Java platform and the key features include Java Platform Module System(JPMS), Java Shell and lot of improvements to JVM and core libraries. In this post, let&#8217;s have a look at the Java 9 modules and write programs to get started in<a class="moretag" href="https://blogs.rayfocus.com/introduction-to-java-9-modules-with-example/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/introduction-to-java-9-modules-with-example/">Introduction to Java 9 modules with example</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Java 9 is a major feature release of the Java platform and the key features include Java Platform Module System(JPMS), Java Shell and lot of improvements to JVM and core libraries. In this post, let&#8217;s have a look at the Java 9 modules and write programs to get started in a modular way.</p>
+<p><img fetchpriority="high" decoding="async" class="aligncenter size-full wp-image-663" src="https://static.rayfocus.com/wp-content/uploads/2018/01/07210302/java9-1.jpg" alt="" width="657" height="321" srcset="https://static.rayfocus.com/wp-content/uploads/2018/01/07210302/java9-1.jpg 657w, https://static.rayfocus.com/wp-content/uploads/2018/01/07210302/java9-1-300x147.jpg 300w" sizes="(max-width: 657px) 100vw, 657px" /></p>
+<h4><strong>Why Java needs modularity?</strong></h4>
+<p>Java needs the concept of module system to address two main problems.</p>
+<ol>
+<li>Classpath problem</li>
+<li>Monolithic JDK</li>
+</ol>
+<p><strong>Classpath problem:</strong></p>
+<p>Classpath have the following problems which can make them error prone.</p>
+<ul>
+<li> When two different versions of same library deployed accidentally. This could make the application buggy and to behave in an unexpected way. Debugging the issue could be challenging.</li>
+<li>Conflicts arising when there are two different libraries and have the same contents. Again this could make way for some nasty bugs.</li>
+<li>Classpath helps to find the classes irrespective of the components/packages to which they belong. Jar files are just containers of classes and there is no control on restricting the access to packages.</li>
+</ul>
+<p><img decoding="async" class="aligncenter size-full wp-image-689" src="https://static.rayfocus.com/wp-content/uploads/2018/01/11203850/jarhell.jpg" alt="" width="921" height="535" srcset="https://static.rayfocus.com/wp-content/uploads/2018/01/11203850/jarhell.jpg 921w, https://static.rayfocus.com/wp-content/uploads/2018/01/11203850/jarhell-300x174.jpg 300w, https://static.rayfocus.com/wp-content/uploads/2018/01/11203850/jarhell-768x446.jpg 768w" sizes="(max-width: 921px) 100vw, 921px" /></p>
+<p><strong>Monolithic JDK:</strong></p>
+<p>In the initial stages of Java, the JDK is relatively small. Well, but as Java evolves it means JDK grows. The size of rt.jar with over 60MB in jdk1.8 could very well state the problem.</p>
+<ul>
+<li>The monolithic nature of JDK makes it challenging to use in memory intensive and IoT devices. Because, eventhough we might need only a small portion of JDK, we have to load them entirely to use them.</li>
+<li>Using JDK in Cloud environment. Yes, Cloud do offers flexibility in using the space to hold the application but we might end up using lot of space for JDK itself when we actually need only a small portion of it.</li>
+</ul>
+<p><img decoding="async" class="aligncenter size-full wp-image-692" src="https://static.rayfocus.com/wp-content/uploads/2018/01/11204605/monolithic-jdk.png" alt="" width="860" height="573" srcset="https://static.rayfocus.com/wp-content/uploads/2018/01/11204605/monolithic-jdk.png 860w, https://static.rayfocus.com/wp-content/uploads/2018/01/11204605/monolithic-jdk-300x200.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/01/11204605/monolithic-jdk-768x512.png 768w" sizes="(max-width: 860px) 100vw, 860px" /></p>
+<p>Apart from this, restricting the access to Java internal API&#8217;s and the startup performance of Java applications are other problems to mention.</p>
+<p>The newly introduced Modules helps Java to tackle the above mentioned problems.</p>
+<h4>What is a Module?</h4>
+<p>Module is a container of packages designed for reuse. Each module contains <code>module descriptor</code> which includes the below information.</p>
+<ul>
+<li>Module name</li>
+<li>Module dependencies i.e name of the other modules which it depends on</li>
+<li>Name of the packages it exports which can be used only by the modules which depends on it</li>
+</ul>
+<h4>Module declaration</h4>
+<p>Module is declared inside the file named <code>"module-info.java"</code> which is the module descriptor.</p><pre class="crayon-plain-tag">module com.rayfocus.app{
+    /** Modules upon which the module `com.rayfocus.app` depends on */
+    requires com.rayfocus.services;
+    /** Packages exposed by this module which can be used by other modules */
+    exports com.rayfocus.app.util;
+}</pre><p></p>
+<h4>Develop a Java module</h4>
+<p>Let&#8217; develop a simple Java module, compile and execute it.</p>
+<p>You can download the example <a href="http://downloads.rayfocus.com/code-samples/java9-modules-example.zip" target="_blank" rel="noopener">from here</a>. Also download link is available at the end of this post.</p>
+<p><strong>Step 1: Prerequisites </strong></p>
+<p>Download and install the jdk9 from <a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk9-downloads-3848520.html" target="_blank" rel="noopener">here</a> based on your operating system. Verify whether the Java is correctly installed.</p><pre class="crayon-plain-tag">C:\&gt;java --version
+java 9.0.1
+Java(TM) SE Runtime Environment (build 9.0.1+11)
+Java HotSpot(TM) 64-Bit Server VM (build 9.0.1+11, mixed mode)
+
+C:\&gt;</pre><p><strong>Step 2: Create project structure</strong></p>
+<p>Create the project structure using the below commands.</p><pre class="crayon-plain-tag">C:\&gt;md java9-modules\src
+
+C:\&gt;</pre><p><strong>Step 3: Create a Module folder</strong></p>
+<p>Create a module under <code>src</code> folder. For this example, let&#8217;s create a module named <code>com.rayfocus.app</code></p><pre class="crayon-plain-tag">C:\&gt;md java9-modules\src\com.rayfocus.app
+
+C:\&gt;</pre><p><strong>Step 4: Create Module descriptor</strong></p>
+<p>Module descriptor always have the name <code>module-info.java</code>. Let&#8217;s create one under the module directory <code>com.rayfocus.app</code></p><pre class="crayon-plain-tag">C:\&gt;copy NUL java9-modules\src\com.rayfocus.app\module-info.java
+        1 file(s) copied.
+
+C:\&gt;</pre><p>Add the below contents to module-info.java</p><pre class="crayon-plain-tag">module com.rayfocus.app { }</pre><p><strong>Step 5: Develop a Hello World Module</strong></p>
+<p>Create a simple Java class under the package <code>com.rayfocus.app</code> to print the <code>Hello Java9 Modules</code> to console. First create a package structure <code>com.rayfocus.app</code></p><pre class="crayon-plain-tag">C:\&gt;cd java9-modules\src\com.rayfocus.app
+
+C:\java9-modules\src\com.rayfocus.app&gt;md com\rayfocus\app
+
+C:\java9-modules\src\com.rayfocus.app&gt;copy NUL com\rayfocus\app\Client.java
+        1 file(s) copied.
+
+C:\java9-modules\src\com.rayfocus.app&gt;</pre><p>Add the below contents to <code>Client.java</code></p><pre class="crayon-plain-tag">package com.rayfocus.app;
+
+public class Client{
+    public static void main(String[] args) {
+        System.out.println("Hello Java9 Modules!");
+    }
+}</pre><p><strong>Step 6: Compile Module</strong></p>
+<p>Compile the module using <code>javac</code> as below. To place our compiled class files let&#8217;s create another folder <code>mods</code> under the project directory <code>java9-modules</code>.</p><pre class="crayon-plain-tag">C:\java9-modules&gt;md mods
+
+C:\java9-modules&gt;javac --module-source-path src -d mods --module com.rayfocus.app
+
+C:\java9-modules&gt;</pre><p><strong>Step 7: Project structure tree</strong></p>
+<p>After successful compilation, the module project created so far will have the following structure.</p><pre class="crayon-plain-tag">C:\java9-modules&gt;tree /A /F
+Folder PATH listing for volume PC COE
+Volume serial number is B637-BAEC
+C:.
++---mods
+|   \---com.rayfocus.app
+|       |   module-info.class
+|       |
+|       \---com
+|           \---rayfocus
+|               \---app
+|                       Client.class
+|
+\---src
+    \---com.rayfocus.app
+        |   module-info.java
+        |
+        \---com
+            \---rayfocus
+                \---app
+                        Client.java</pre><p><strong>Step 8: Run the program</strong></p>
+<p>Run the program <code>com.rayfocus.app.Client</code> using the below command.</p><pre class="crayon-plain-tag">C:\java9-modules&gt;java --module-path mods --module com.rayfocus.app/com.rayfocus.app.Client
+Hello Java9 Modules!
+
+C:\java9-modules&gt;</pre><p>Congrats! You have created a Java module, compiled and executed it successfully. Let&#8217;s continue to develop a multiple module and see how the implied readability works in Java.</p>
+<h4>Develop multiple modules</h4>
+<p>Add two more modules <code>com.rayfocus.services</code> and <code>com.rayfocus.domain</code> .</p>
+<p><strong>Step 1: Module &#8211; com.rayfocus.services</strong></p>
+<p>Create module <code>com.rayfocus.services</code> as below.</p><pre class="crayon-plain-tag">C:\java9-modules&gt;md src\com.rayfocus.services
+
+C:\java9-modules&gt;copy NUL src\com.rayfocus.services\module-info.java
+        1 file(s) copied.
+
+C:\java9-modules&gt;</pre><p>Add the below contents to <code>module-info.java</code></p><pre class="crayon-plain-tag">module com.rayfocus.services{
+    requires transitive com.rayfocus.domain;
+    exports com.rayfocus.services;
+}</pre><p>Note the modifier <strong><code>transitive</code></strong> which follows the <code>requires</code> directive. This indicates that any other module which reads the <code>com.rayfocus.services</code> will also read the module <code>com.rayfocus.domain</code> . This is called <strong>implied readability</strong>.</p>
+<p>Create a service class <code>MessageService.java</code></p><pre class="crayon-plain-tag">C:\java9-modules&gt;md src\com.rayfocus.services\com\rayfocus\services
+
+C:\java9-modules&gt;copy NUL src\com.rayfocus.services\com\rayfocus\services\MessageService.java
+        1 file(s) copied.
+
+C:\java9-modules&gt;</pre><p>Add the below contents to <code>MessageService.java</code></p><pre class="crayon-plain-tag">package com.rayfocus.services;
+
+import com.rayfocus.domain.message.Message;
+
+public class MessageService{
+    public String getMessage(){
+        return (new Message()).getValue();
+    }
+}</pre><p><strong>Step 2: Module &#8211; com.rayfocus.domain</strong></p>
+<p>Create another module <code>com.rayfocus.domain</code></p><pre class="crayon-plain-tag">C:\java9-modules&gt;md src\com.rayfocus.domain
+
+C:\java9-modules&gt;copy NUL src\com.rayfocus.domain\module-info.java
+        1 file(s) copied.
+
+C:\java9-modules&gt;</pre><p>Add the below contents to <code>module-info.java</code></p><pre class="crayon-plain-tag">module com.rayfocus.domain{
+    exports com.rayfocus.domain.message;
+}</pre><p>Create a domain class <code>Message.java</code></p><pre class="crayon-plain-tag">C:\java9-modules&gt;md src\com.rayfocus.domain\com\rayfocus\domain\message
+
+C:\java9-modules&gt;copy NUL src\com.rayfocus.domain\com\rayfocus\domain\message\Message.java
+        1 file(s) copied.
+
+C:\java9-modules&gt;</pre><p>Add the below contents to <code>Message.java</code></p><pre class="crayon-plain-tag">package com.rayfocus.domain.message;
+
+public class Message{
+    private String value = "Implied readability works!";
+
+    public String getValue(){
+        return value;
+    }
+}</pre><p><strong>Step 3: Modify com.rayfocus.app module</strong></p>
+<p>Two corrections needs to be done in the <code>com.rayfocus.app</code> module.</p>
+<ul>
+<li>Add the <code>com.rayfocus.services</code> module as dependency.</li>
+<li>Correct the <code>Client.java</code> class to use the MessageService.</li>
+</ul>
+<p>Add the below contents to <code>com.rayfocus.app/module-info.java</code></p><pre class="crayon-plain-tag">module com.rayfocus.app { 
+    requires com.rayfocus.services;
+}</pre><p>Add the below contents to <code>Client.java</code></p><pre class="crayon-plain-tag">package com.rayfocus.app;
+
+import com.rayfocus.services.MessageService;
+
+public class Client {
+    public static void main(String[] args) {
+        System.out.println("Hello Java9 Modules!");
+        MessageService msgService = new MessageService();
+        System.out.println(msgService.getMessage());
+    }
+}</pre><p></p>
+<h4>Compile multiple modules</h4>
+<p>Compile the multiple modules in the order as below.</p><pre class="crayon-plain-tag">C:\java9-modules&gt;javac --module-source-path src -d mods --module com.rayfocus.domain
+
+C:\java9-modules&gt;javac --module-source-path src -d mods --module com.rayfocus.services
+
+C:\java9-modules&gt;javac --module-source-path src -d mods --module com.rayfocus.app
+
+C:\java9-modules&gt;</pre><p></p>
+<h4>Run the multiple module program</h4>
+<p>Execute the multiple module program using the below command.</p><pre class="crayon-plain-tag">C:\java9-modules&gt;java --module-path mods --module com.rayfocus.app/com.rayfocus.app.Client
+Hello Java9 Modules!
+Implied readability works!
+
+C:\java9-modules&gt;</pre><p></p>
+<h4>Final Project structure tree</h4>
+<p>The multiple module project will have following structure.</p><pre class="crayon-plain-tag">C:\java9-modules&gt;tree /A /F
+Folder PATH listing for volume PC COE
+Volume serial number is B637-BAEC
+C:.
++---mods
+|   +---com.rayfocus.app
+|   |   |   module-info.class
+|   |   |
+|   |   \---com
+|   |       \---rayfocus
+|   |           \---app
+|   |                   Client.class
+|   |
+|   +---com.rayfocus.domain
+|   |   |   module-info.class
+|   |   |
+|   |   \---com
+|   |       \---rayfocus
+|   |           \---domain
+|   |               \---message
+|   |                       Message.class
+|   |
+|   \---com.rayfocus.services
+|       |   module-info.class
+|       |
+|       \---com
+|           \---rayfocus
+|               \---services
+|                       MessageService.class
+|
+\---src
+    +---com.rayfocus.app
+    |   |   module-info.java
+    |   |
+    |   \---com
+    |       \---rayfocus
+    |           \---app
+    |                   Client.java
+    |
+    +---com.rayfocus.domain
+    |   |   module-info.java
+    |   |
+    |   \---com
+    |       \---rayfocus
+    |           \---domain
+    |               \---message
+    |                       Message.java
+    |
+    \---com.rayfocus.services
+        |   module-info.java
+        |
+        \---com
+            \---rayfocus
+                \---services
+                        MessageService.java</pre><p></p>
+<h4>Thoughts on implied readability</h4>
+<p>Well! Now the multiple modules are developed, compiled and executed. The implied readability works as expected. The module <code>com.rayfocus.app</code> is able to read the module <code>com.rayfocus.domain</code> which is declared as a transitive dependency in the module <code>com.rayfocus.services</code>.</p>
+<h4>Conclusion</h4>
+<p>Modules in Java gives a very <strong>strong encapsulation</strong>. From the example we have developed, we can see that in order to read a package in other module, the package has to be exported explicitly in module descriptor. Else the program won&#8217;t compile. Java 9 is going to be exciting to develop and will bring some challenges to migrate the existing applications.</p>
+<p>Overall I feel it&#8217;s a welcome addition to Java! Share your opinions and comments as well.</p>
+<p>Thank you!</p>
+<hr />
+<p><strong>Download source code : </strong><span style="text-decoration: underline;"><a href="http://downloads.rayfocus.com/code-samples/java9-modules-example.zip" rel="noopener">java9-modules-example.zip</a></span></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/introduction-to-java-9-modules-with-example/">Introduction to Java 9 modules with example</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/introduction-to-java-9-modules-with-example/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

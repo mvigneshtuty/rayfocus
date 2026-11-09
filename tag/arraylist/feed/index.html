@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>ArrayList &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/tag/arraylist/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Sun, 06 Jan 2019 05:22:02 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>ArrayList in Java</title>
+		<link>https://blogs.rayfocus.com/arraylist-in-java/</link>
+					<comments>https://blogs.rayfocus.com/arraylist-in-java/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sun, 06 Jan 2019 05:22:02 +0000</pubDate>
+				<category><![CDATA[Data Structures]]></category>
+		<category><![CDATA[Programming]]></category>
+		<category><![CDATA[ArrayList]]></category>
+		<category><![CDATA[Java]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=976</guid>
+
+					<description><![CDATA[<p>ArrayList is one of the implementation of the List interface. It is internally a resizable-array under the hood. ArrayList is equivalent to Vector but the only difference is it is not synchronized. ArrayList uses Array internally to store the data. Hence as like Array, random access is possible and it<a class="moretag" href="https://blogs.rayfocus.com/arraylist-in-java/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/arraylist-in-java/">ArrayList in Java</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>ArrayList is one of the implementation of the List interface. It is internally a resizable-array under the hood. ArrayList is equivalent to Vector but the only difference is it is not synchronized.</p>
+<p><img fetchpriority="high" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2019/01/06043317/java-arraylist.png" alt="" width="284" height="177" class="aligncenter size-full wp-image-981" /></p>
+<ul>
+<li>ArrayList uses Array internally to store the data. Hence as like Array, random access is possible and it is very fast. The operation is O(1) constant time complexity.</li>
+<li>Other operations like add, remove is O(N) linear time complexity approximately.</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">List&lt;String&gt; names = new ArrayList&lt;String&gt;(3);
+
+// Add elements to list
+names.add("Kidzee");
+names.add("funKids");
+names.add("KidsPlay");</pre><p></p>
+<ul>
+<li>For remove operation, ArrayList is not so efficient since the elements has to be shifted in this case. For example, if the 1st element in the list is removed then all other elements has to be shifted by one position and this operation is O(N) complexity. Hence if there is a need for lot of remove operations, LinkedList is better suited for this purpose.</li>
+<li>ArrayList supports other operations like size(), isEmpty(), sort(), toArray().</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">package com.rayfocus.datastructures.arraylist;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ArrayListDS {
+
+	public static void main(String[] args) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+		
+		// Initializing the ArrayList; If number of elements known before then provide it during initialization
+		List&lt;String&gt; names = new ArrayList&lt;String&gt;(3);
+
+		// Add elements to list
+	    names.add("Kidzee");
+		names.add("funKids");
+		names.add("KidsPlay");
+		
+		// Iterate the values in the list
+		for(String val: names) {
+			System.out.println("name : "+val);
+		}
+		
+		// Element retrieval using random index - Very fast O(1) complexity
+		System.out.println("Element at index (0) is "+names.get(0));
+		
+		// Remove values from list
+		// Not so efficient since the elements has to shifted internally in the array.
+		// LinkedList serves better for this purpose
+		System.out.println("Remove element at index (1)");
+		names.remove(1);
+		System.out.println("After remove, now the name in index (1) is : "+names.get(1)); // will print out "KidsPlay"
+		
+		// Size of ArrayList
+		System.out.println("Size : "+names.size());
+		// Check isEmpty
+		System.out.println("List isEmpty? "+names.isEmpty());
+		
+	}
+}</pre><p></p>
+<h5><strong>Capacity re-allocation when adding elements</strong></h5>
+<p>Since ArrayList is a re-sizable array, if the capacity of the Array reaches the maximum a new Array is created and elements are copied to new Array. So in general, if the number of elements to be stored is known ahead it&#8217;s better to initialize the ArrayList using the size itself.</p>
+<p>For example, if 200 items to be stored in list, then</p>
+<p><code>List&lt;String&gt; names = new ArrayList&lt;String&gt;(200);</code><br />
+so that an Array is created with initial capacity of 200.</p>
+<h5><strong>Summary</strong></h5>
+<p>ArrayList is a good choice, when</p>
+<ul>
+<li>The elements are going to be added and retrieved using the random index value. It is O(1) complexity.</li>
+<li>The applications don&#8217;t need to remove the elements which are added.</li>
+<li>You have to avoid the hassle of creating a new Array and copy the elements into it.</li>
+</ul>
+<p>ArrayList is not so efficient, when</p>
+<ul>
+<li>There is lot of remove operations to be performed. This operation is O(N) time complexity.</li>
+<li>There is a need to synchronize the operations for concurrent access. Since ArrayList is not designed to be thread safe.</li>
+</ul>
+<p>&nbsp;</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/arraylist-in-java/">ArrayList in Java</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/arraylist-in-java/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

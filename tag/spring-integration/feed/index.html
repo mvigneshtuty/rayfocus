@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Spring Integration &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/tag/spring-integration/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Mon, 30 Apr 2018 03:25:19 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Getting started with Spring Integration</title>
+		<link>https://blogs.rayfocus.com/getting-started-with-spring-integration/</link>
+					<comments>https://blogs.rayfocus.com/getting-started-with-spring-integration/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Thu, 08 Jun 2017 06:00:27 +0000</pubDate>
+				<category><![CDATA[Spring framework]]></category>
+		<category><![CDATA[Java]]></category>
+		<category><![CDATA[Spring Integration]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=4</guid>
+
+					<description><![CDATA[<p>In this post, we will see what Spring Integration is about and how to get started with it. What is Spring Integration? Spring Integration is an open source framework for enterprise application integration. It is built on top of Spring framework. Hence it is very easy to adopt Spring Integration<a class="moretag" href="https://blogs.rayfocus.com/getting-started-with-spring-integration/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/getting-started-with-spring-integration/">Getting started with Spring Integration</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, we will see what Spring Integration is about and how to get started with it.</p>
+<h4><strong>What is Spring Integration?</strong></h4>
+<p><img fetchpriority="high" decoding="async" class="aligncenter size-full wp-image-764" src="https://static.rayfocus.com/wp-content/uploads/2017/06/30032459/spring-integration.png" alt="" width="298" height="169" /></p>
+<p>Spring Integration is an open source framework for enterprise application integration. It is built on top of Spring framework. Hence it is very easy to adopt Spring Integration in the projects which are already using the Spring framework.</p>
+<p>Spring Integration facilitates asynchronous, message driven behavior within a Spring based application. Spring Integration components are loosely coupled for modularity and testability.</p>
+<h4><strong>Main components of Spring Integration</strong></h4>
+<p>We will see some of the main components of Spring Integration which is the core of the framework.</p>
+<p><strong>Message</strong></p>
+<p>In Spring Integration, Message is a generic wrapper for any java object combined with metadata used by the framework while handling that object. It consists of payload and headers. Payload can be of any type and the headers hold commonly required information such as id, timestamp, correlation id and return address.</p>
+<p><strong><img decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/01_MessagePayload.png" alt="" width="238" height="191" /></strong></p>
+<p><strong>Message Channel</strong></p>
+<p>A Message Channel represents the pipe of the pipe-and-filters architecture. Producers send message to a channel and consumers receive message from a channel. The Message Channel therefore decouples the messaging components and also provides a convenient point for interception and monitoring of Messages.</p>
+<p><img decoding="async" class="size-medium wp-image-49 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/023_MessageChannel.png" alt="" width="400" height="45" /></p>
+<p><strong>Message Endpoint</strong></p>
+<p>A Message Endpoint represents the filter of a pipes-and-filters architecture. The endpoint&#8217;s primary role is to connect application code to messaging framework and to do so in a non-invasive manner. Some of the endpoints are Transformer, Router, Splitter, Aggregator, Service Activator, Gateways.</p>
+<h4><strong>Getting started</strong></h4>
+<p>We will now create a simple Hello World application using Spring Integration.</p>
+<h4><strong>Prerequisite tools and libraries</strong></h4>
+<p style="padding-left: 30px;">1. Maven 3<br />
+2. Eclipse IDE 4.4.2<br />
+3. JDK 1.6 or higher<br />
+4. Spring Integration Core 4.3.9.RELEASE<br />
+5. Spring Integration Stream 4.3.9.RELEASE</p>
+<p><strong>Step 1 :</strong> Create a simple maven project in Eclipse IDE. Add the following dependencies to pom.xml</p><pre class="crayon-plain-tag">&lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.integration&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-integration-core&lt;/artifactId&gt;
+            &lt;version&gt;4.3.9.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.integration&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-integration-stream&lt;/artifactId&gt;
+            &lt;version&gt;4.3.9.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;junit&lt;/groupId&gt;
+            &lt;artifactId&gt;junit&lt;/artifactId&gt;
+            &lt;version&gt;4.12&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-test&lt;/artifactId&gt;
+            &lt;version&gt;4.3.8.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+  &lt;/dependencies&gt;</pre><p><strong>Step 2 :</strong> Now add the Spring configuration file spring-integration-config.xml in src/main/resources. This should have enabled  the Spring project nature as well in the Eclipse IDE.</p><pre class="crayon-plain-tag">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:int="http://www.springframework.org/schema/integration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:stream="http://www.springframework.org/schema/integration/stream"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd 
+                        http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+                        http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd"&gt;
+
+    &lt;!-- Simple Message Processing --&gt;
+    &lt;int:channel id="inputChannel" /&gt;
+
+    &lt;int:service-activator input-channel="inputChannel"
+        output-channel="printChannel" ref="messageProcessor" /&gt;
+
+    &lt;!-- Stream output --&gt;
+
+    &lt;int:channel id="printChannel" /&gt;
+
+    &lt;stream:stdout-channel-adapter
+        append-newline="true" channel="printChannel" /&gt;
+
+    &lt;!-- Bean definitions --&gt;
+    &lt;bean id="messageProcessor"
+        class="com.rayfocus.spring.integration.SimpleMessageProcessor" /&gt;
+&lt;/beans&gt;</pre><p><strong>Spring Integration graph :</strong></p>
+<p><img loading="lazy" decoding="async" class="size-medium wp-image-194 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/integ-graph-01.PNG" alt="" width="400" height="100" /></p>
+<p style="text-align: left;"><strong>Note :</strong> In order to see the Spring Integration graph in Eclipse IDE, make sure that the spring plugin for eclipse is installed.</p>
+<p><strong>Step 3 :</strong>  Declare the Interface to have methods for processing the message.</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration;
+
+import org.springframework.messaging.Message;
+
+public interface MessageProcessor
+{
+    Message&lt;String&gt; addMessageGreetings(Message&lt;String&gt; inputMessage);
+}</pre><p><strong>Step 4 :</strong>  Now, lets code the Simple message processor implementation.</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration;
+
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+
+public class SimpleMessageProcessor implements MessageProcessor
+{
+    @ServiceActivator
+    public Message&lt;String&gt; addMessageGreetings( Message&lt;String&gt; inputMessage )
+    {
+        String payloadMessage = inputMessage.getPayload();
+        String greetingsMessage = "Welcome " + payloadMessage
+                + ", Greetings from Spring Integration! ";
+        return MessageBuilder.withPayload( greetingsMessage ).build();
+    }
+}</pre><p>If you have noticed the service-activator declaration, it will pass on the message to printChannel.</p>
+<p>From printChannel, the message will be passed on to stdout-channel-adapter. So the message returned from addMessageGreetings method will be directed to the standard output console.</p>
+<p>Lets see this in action</p>
+<p><strong>Step 5 :</strong>  Create a GreetingsApp.java class as below</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration.app;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+
+public class GreetingsApp
+{
+
+    public static void main( String[] args )
+    {
+        String config = "spring-integration-config.xml";
+        ApplicationContext context = new ClassPathXmlApplicationContext( config );
+        MessageChannel inputChannel = context.getBean( "inputChannel",
+                MessageChannel.class );
+        Message&lt;String&gt; inputMessage = MessageBuilder.withPayload( "UserName" )
+                .build();
+        inputChannel.send( inputMessage );
+        ( ( ClassPathXmlApplicationContext ) context ).close();
+    }
+
+}</pre><p>Execute the GreetingsApp.java and you should see the below output printed to console.</p><pre class="crayon-plain-tag">Welcome UserName, Greetings from Spring Integration!</pre><p>So, how this works?</p>
+<p>When we send the String message to channel component inputChannel, the message is then passed on to service activator.</p>
+<p>In the service activator, we can write the business related code. In our case, we just referred to the SimpleMessageProcessor instance where we created the greetings message.<br />
+The returned message from service activator is then passed on the printChannel.</p>
+<p>The printChannel forms the input for stdout-channel-adapter as per our configuration. Hence the greeting message will get printed to the console.</p>
+<p>If we take a look in to the GreetingsApp.java, which is the client class from where we send the spring integration message, we are dealing with the spring integration components directly. We are depending on the use of the channel component inputChannel to send the message.</p>
+<p>We can remove those direct dependencies using the component gateway proxy to our configuration.</p>
+<p><strong>Step 6 : </strong>Integrating using Gateway Proxy</p>
+<p>Add the below component entry to configuration xml.</p><pre class="crayon-plain-tag">&lt;!-- Messaging Gateway --&gt;
+    &lt;int:gateway id="gatewayProxy"
+        service-interface="com.rayfocus.spring.integration.MessageProcessor"
+        default-request-channel="gatewayInputChannel"
+        default-reply-channel="gatewayOutputChannel" /&gt;
+
+    &lt;int:channel id="gatewayInputChannel" /&gt;
+
+    &lt;int:service-activator input-channel="gatewayInputChannel"
+        ref="gatewayMessageProcessor" output-channel="gatewayOutputChannel" /&gt;
+
+    &lt;int:channel id="gatewayOutputChannel" /&gt;
+
+    &lt;bean id="gatewayMessageProcessor"
+        class="com.rayfocus.spring.integration.GatewayMessageProcessor" /&gt;</pre><p><strong>Spring Integration graph :</strong></p>
+<p><img loading="lazy" decoding="async" class="size-medium wp-image-199 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/integ-graph-02.PNG" alt="" width="600" height="300" /></p>
+<p>You should now see the additional gateway components in the Spring Integration graph.</p>
+<p>For the service-activator component, GatewayMessageProcessor.java will implement the MessageProcessor interface and do the same work of creating the greeting message. In this case, its a different greeting message.</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration;
+
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+
+public class GatewayMessageProcessor implements MessageProcessor
+{
+
+    @ServiceActivator
+    public Message&lt;String&gt; addMessageGreetings( Message&lt;String&gt; inputMessage )
+    {
+        String payloadMessage = inputMessage.getPayload();
+        String greetingsMessage = "Welcome " + payloadMessage
+                + ", Greetings from Spring Integration Gateway Proxy! ";
+        return MessageBuilder.withPayload( greetingsMessage ).build();
+    }
+}</pre><p><strong>Step 7 :</strong> Now create a client class GatewayGreetingsApp.java</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration.app;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import com.rayfocus.spring.integration.MessageProcessor;
+
+public class GatewayGreetingsApp
+{
+
+    public static void main( String[] args )
+    {
+        String config = "spring-integration-config.xml";
+        ApplicationContext context = new ClassPathXmlApplicationContext( config );
+        MessageProcessor messageProcessor = context.getBean( "gatewayProxy",
+                MessageProcessor.class );
+        Message&lt;String&gt; greetingsMessage = messageProcessor.addMessageGreetings( MessageBuilder.withPayload(
+                "GatewayUser" ).build() );
+        System.out.println(greetingsMessage.getPayload());
+        ( ( ClassPathXmlApplicationContext ) context ).close();
+
+    }
+}</pre><p>When the GatewayGreetingsApp.java is executed you should see the below output printed to console.</p><pre class="crayon-plain-tag">Welcome GatewayUser, Greetings from Spring Integration Gateway Proxy!</pre><p>If you note the configuration for gateway proxy, we are not directing the output of service activator to stdout-channel-adapter. Instead the message is passed on to the gatewayOutputChannel from which the gateway will listen to and receive the response.</p>
+<p>Then in GatewayGreetingsApp.java, response message is received of type Message&lt;String&gt;. The output is then printed using System.out.</p>
+<p>In real time cases, the response can be used for performing any other activities like passing to another spring integration component, logging to database.<br />
+In our example, we just printed it to console using System.out.</p>
+<h4><strong>Conclusion</strong></h4>
+<p>This ends our tutorial on getting started with spring integration. You can refer the Spring Integration API <a href="http://docs.spring.io/spring-integration/reference/html/" target="_blank" rel="noopener">documentation</a> to dig deep and find out what the Spring Integration offers to solve the integration problems.</p>
+<p>Hope this post helped you in getting started with spring integration. If you have any questions or concerns please post it in the comments section.</p>
+<p>Thank you!</p>
+<hr />
+<p><strong>Download source code : </strong><a href="http://downloads.rayfocus.com/code-samples/spring-integration-sample.zip">spring-integration-sample.zip</a></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/getting-started-with-spring-integration/">Getting started with Spring Integration</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/getting-started-with-spring-integration/feed/</wfw:commentRss>
+			<slash:comments>8</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

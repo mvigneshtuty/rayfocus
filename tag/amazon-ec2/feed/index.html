@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Amazon EC2 &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/tag/amazon-ec2/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Thu, 03 Aug 2017 07:22:50 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>How to launch Amazon EC2 Linux Instance</title>
+		<link>https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/</link>
+					<comments>https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sat, 29 Jul 2017 18:45:30 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[Amazon EC2]]></category>
+		<category><![CDATA[AWS]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=243</guid>
+
+					<description><![CDATA[<p>Amazon EC2 is the service for providing the computing capacity in AWS. With the help of Amazon EC2 you can launch the virtual servers based on your need and you can configure the networking and storage aspects of it. Auto scaling feature in Amazon EC2 helps you to scale up<a class="moretag" href="https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/">How to launch Amazon EC2 Linux Instance</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Amazon EC2 is the service for providing the computing capacity in AWS. With the help of Amazon EC2 you can launch the virtual servers based on your need and you can configure the networking and storage aspects of it. Auto scaling feature in Amazon EC2 helps you to scale up and down your computing needs based on the changing traffic to your instances.</p>
+<h4><strong>Prerequisites</strong></h4>
+<p><strong>Activate your AWS account</strong></p>
+<p>You have to activate your AWS account to use the Amazon EC2 service.</p>
+<ul>
+<li>Open <a href="https://aws.amazon.com/" target="_blank" rel="noopener">https://aws.amazon.com/</a> and then choose Create an AWS Account.</li>
+<li>Follow the online instructions to complete the signup.</li>
+</ul>
+<p>After activating your AWS account, login to AWS management console.</p>
+<p><strong>Create Amazon EC2 key pair<br />
+</strong></p>
+<p>Have your Amazon EC2 key pair ready for connecting to instance after launching it. You can refer the post <a href="https://blogs.rayfocus.com/create-amazon-ec2-key-pairs/" target="_blank" rel="noopener">Creating Amazon EC2 key pair</a> for detailed steps.</p>
+<h4><strong>Launch an Amazon EC2 Instance<br />
+</strong></h4>
+<p>You can launch the EC2 instance using the AWS management console as described in below steps.</p>
+<ul>
+<li>Access the EC2 management console using the Services menu in the top left corner.</li>
+</ul>
+<p><img fetchpriority="high" decoding="async" class="aligncenter size-full wp-image-337" src="https://static.rayfocus.com/wp-content/uploads/2017/07/17181815/access-ec2console1.png" alt="" width="891" height="550" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/17181815/access-ec2console1.png 891w, https://static.rayfocus.com/wp-content/uploads/2017/07/17181815/access-ec2console1-300x185.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/17181815/access-ec2console1-768x474.png 768w" sizes="(max-width: 891px) 100vw, 891px" /></p>
+<ul>
+<li>In the top right corner you can select the region of your choice. For this example, I chose EU (Frankfurt).</li>
+</ul>
+<p><img decoding="async" class="aligncenter wp-image-340 size-medium" src="https://static.rayfocus.com/wp-content/uploads/2017/07/19085502/choose-region-286x300.png" alt="" width="286" height="300" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/19085502/choose-region-286x300.png 286w, https://static.rayfocus.com/wp-content/uploads/2017/07/19085502/choose-region.png 470w" sizes="(max-width: 286px) 100vw, 286px" /></p>
+<ul>
+<li>After choosing the region, Select Launch Instance in the EC2 Dashboard.</li>
+<li>In the next page, you can choose the Amazon Machine Image (AMI) of your choice to launch the instance.</li>
+<li>You have options to select from the AMIs provided by AWS, AWS marketplace, community AMIs or you can have use one of your own AMIs. For this example, choose Ubuntu server AMI provided by AWS which is also free tier eligible.</li>
+</ul>
+<p><img decoding="async" class="aligncenter size-full wp-image-390" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29081823/choose-ubuntu.png" alt="" width="1840" height="307" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29081823/choose-ubuntu.png 1840w, https://static.rayfocus.com/wp-content/uploads/2017/07/29081823/choose-ubuntu-300x50.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/29081823/choose-ubuntu-768x128.png 768w, https://static.rayfocus.com/wp-content/uploads/2017/07/29081823/choose-ubuntu-1024x171.png 1024w" sizes="(max-width: 1840px) 100vw, 1840px" /></p>
+<ul>
+<li>Once you have selected the AMI, you will have option to choose the instance type. AWS provides instance types with varying combinations of CPU, memory, storage, and networking capacity to help you choose based on your computing needs.</li>
+<li>Select the general purpose t2.micro instance type for this example. This instance type is eligible for free tier as well.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-395" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29091144/instance-type1.png" alt="" width="1064" height="474" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29091144/instance-type1.png 1064w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091144/instance-type1-300x134.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091144/instance-type1-768x342.png 768w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091144/instance-type1-1024x456.png 1024w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091144/instance-type1-604x270.png 604w" sizes="(max-width: 1064px) 100vw, 1064px" /></p>
+<ul>
+<li>Choose Next: Configure Instance Details. Leave the default configuration settings as it is for this example. Choose Next: Add Storage.</li>
+<li>By default root volume of size 8 GB will be attached to your instance. You can add additional EBS (Elastic Block Storage) volumes based on your need. For this example, leave the storage settings as it is and choose Next: Add Tags.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-396" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29091209/add-storage1.png" alt="" width="683" height="238" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29091209/add-storage1.png 683w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091209/add-storage1-300x105.png 300w" sizes="(max-width: 683px) 100vw, 683px" /></p>
+<ul>
+<li>You can add tags for your EC2 instance. Choose click to add a Name tag. For the Key <code>Name</code>, give the Value as <code>my-first-ec2-instance</code>. Choose Next: Configure Security Group.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-397" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29091225/add-tag1.png" alt="" width="944" height="201" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29091225/add-tag1.png 944w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091225/add-tag1-300x64.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/29091225/add-tag1-768x164.png 768w" sizes="(max-width: 944px) 100vw, 944px" /></p>
+<ul>
+<li>In the security groups configuration, you can either create a new security group or select from the existing groups. For this example, choose <span id="gwt-debug-liwSecurityNewGroupRadio" class="CC">Create a <b>new</b> security group</span>. Name it as <code>my-ec2-SG</code>. You can give the give the <span class="gwt-InlineLabel A2">Description</span> to your security group as well.</li>
+<li><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-401" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29092720/ec2-security-group.png" alt="" width="1588" height="429" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29092720/ec2-security-group.png 1588w, https://static.rayfocus.com/wp-content/uploads/2017/07/29092720/ec2-security-group-300x81.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/29092720/ec2-security-group-768x207.png 768w, https://static.rayfocus.com/wp-content/uploads/2017/07/29092720/ec2-security-group-1024x277.png 1024w" sizes="(max-width: 1588px) 100vw, 1588px" />By default, you will have the rule enabled to allow SSH access from all IP addresses. Leave the rule as it is and choose Review and Launch.</li>
+</ul>
+<p><span style="color: #000000;"><strong>Note:  </strong></span>The rule to allow SSH access from all IP addresses is meant for learning purpose only. In production environments, you must <strong>not </strong>follow this open to all policy.</p>
+<ul>
+<li>After reviewing the configuration details for your instance, choose Launch.</li>
+<li>You will be asked to select the key pair to associate it with your instance. Assuming that you have completed the actions mentioned in the prerequisites for this example, select <code>Choose an existing key pair</code> option.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-402" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29094347/choose-keypair.png" alt="" width="827" height="510" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29094347/choose-keypair.png 827w, https://static.rayfocus.com/wp-content/uploads/2017/07/29094347/choose-keypair-300x185.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/29094347/choose-keypair-768x474.png 768w" sizes="(max-width: 827px) 100vw, 827px" /></p>
+<ul>
+<li>Choose Launch Instances. Now you have launched the EC2 Linux instance.</li>
+<li>In the EC2 Dashboard, check the Instance state. It will be in pending status.</li>
+<li>After the Instance state changes to <code>running</code>, you can connect to it.</li>
+</ul>
+<h4>Connect to your Instance</h4>
+<p>You can use the PuTTY client to connect to your EC2 Linux instance.</p>
+<ul>
+<li>Get the PuTTY client from <a href="https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html">here</a>.</li>
+<li>Start the PuTTY client. For Host Name, enter the <span class="HG JG" data-tooltip="The public hostname of the instance, which resolves to the public IP address or Elastic IP address of the instance.">Public DNS (IPv4)</span> of your Instance.</li>
+<li>Give the name for the Session as <code>my-ec2-client</code>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-404" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29101110/ec2-putty-client.png" alt="" width="614" height="276" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29101110/ec2-putty-client.png 614w, https://static.rayfocus.com/wp-content/uploads/2017/07/29101110/ec2-putty-client-300x135.png 300w" sizes="(max-width: 614px) 100vw, 614px" /></p>
+<ul>
+<li>Now in the Category pane, select <code>Auth</code> under SSH. In the Private key file for authentication, choose your private key file that you have associated with your instance during its launch.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-405" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29101723/ec2-auth.png" alt="" width="616" height="439" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29101723/ec2-auth.png 616w, https://static.rayfocus.com/wp-content/uploads/2017/07/29101723/ec2-auth-300x214.png 300w" sizes="(max-width: 616px) 100vw, 616px" /></p>
+<ul>
+<li>Choose Open. Now the PuTTY client will display a Security Alert. Select Yes to proceed.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-406" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29102032/putty-alert.png" alt="" width="511" height="387" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29102032/putty-alert.png 511w, https://static.rayfocus.com/wp-content/uploads/2017/07/29102032/putty-alert-300x227.png 300w" sizes="(max-width: 511px) 100vw, 511px" /></p>
+<p><strong>Note: </strong>To get the Public DNS of your Instance, go to the EC2 console and choose Instances in the left navigation pane. Select the Instance that you have launched. You can see the details of Public DNS for the instance under the Description tab.</p>
+<ul>
+<li>Now the PuTTY will prompt to enter your username. Type <code>ubuntu</code> and hit Enter.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-409" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29175649/ec2-login.png" alt="" width="511" height="403" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29175649/ec2-login.png 511w, https://static.rayfocus.com/wp-content/uploads/2017/07/29175649/ec2-login-300x237.png 300w" sizes="(max-width: 511px) 100vw, 511px" /></p>
+<ul>
+<li>You should be able to login successfully to your EC2 Linux instance.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-410" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29175709/ec2-success-login.png" alt="" width="703" height="546" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29175709/ec2-success-login.png 703w, https://static.rayfocus.com/wp-content/uploads/2017/07/29175709/ec2-success-login-300x233.png 300w" sizes="(max-width: 703px) 100vw, 703px" /></p>
+<h4>Clean up your EC2 Instance</h4>
+<p>After you have completed the work with your instance, it&#8217;s a best practice to either shut down or terminate your EC2 resource so that you will stop incurring charges.</p>
+<p><strong>Terminate your Instance</strong></p>
+<ul>
+<li>Go to the EC2 console. Choose Instances in the left navigation pane.</li>
+<li>Select the instance that you have launched for this example.</li>
+<li>Choose Actions &gt;&gt; Instance State &gt;&gt; Terminate.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-412" src="https://static.rayfocus.com/wp-content/uploads/2017/07/29182741/terminate-ec2.png" alt="" width="888" height="292" srcset="https://static.rayfocus.com/wp-content/uploads/2017/07/29182741/terminate-ec2.png 888w, https://static.rayfocus.com/wp-content/uploads/2017/07/29182741/terminate-ec2-300x99.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/07/29182741/terminate-ec2-768x253.png 768w" sizes="(max-width: 888px) 100vw, 888px" /></p>
+<ul>
+<li>You will get a Dialog box to confirm your selection. Choose Yes, Terminate.</li>
+<li>Now the instance state will change to shutting-down and then to terminated.</li>
+</ul>
+<h4>Conclusion</h4>
+<p>In this tutorial, you have launched Amazon EC2 Linux instance and connected to it using PuTTY client. Finally you have cleaned up your EC2 instance by terminating it.</p>
+<p>So what&#8217;s next? Explore further deep in to the Amazon EC2 service and learn how to configure the Elastic Block Storage volumes, Elastic load balancing, Network and Security for your instances.</p>
+<p>If you have any questions or concerns, please post it in the comments section. Thank you!</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/">How to launch Amazon EC2 Linux Instance</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

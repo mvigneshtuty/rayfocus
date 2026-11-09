@@ -1,0 +1,554 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Amazon DynamoDB &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/tag/amazon-dynamodb/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Mon, 11 Jun 2018 19:39:15 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Integrate Spring Boot With Amazon DynamoDB</title>
+		<link>https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/</link>
+					<comments>https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Mon, 11 Jun 2018 19:39:15 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[Spring framework]]></category>
+		<category><![CDATA[Amazon DynamoDB]]></category>
+		<category><![CDATA[Spring Boot]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=770</guid>
+
+					<description><![CDATA[<p>In this post, let&#8217;s see how to integrate Spring Boot with Amazon DynamoDB. I have been exploring the option of creating the REST API using Spring Boot backed by DynamoDB. I will share the information that I have learned during the development process with a simple project named Tasklet API.<a class="moretag" href="https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/">Integrate Spring Boot With Amazon DynamoDB</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, let&#8217;s see how to integrate Spring Boot with Amazon DynamoDB. I have been exploring the option of creating the REST API using Spring Boot backed by DynamoDB. I will share the information that I have learned during the development process with a simple project named Tasklet API.</p>
+<p><img fetchpriority="high" decoding="async" class="aligncenter size-full wp-image-775" src="https://static.rayfocus.com/wp-content/uploads/2018/05/31181051/springboot-dynamodb.png" alt="" width="494" height="222" srcset="https://static.rayfocus.com/wp-content/uploads/2018/05/31181051/springboot-dynamodb.png 494w, https://static.rayfocus.com/wp-content/uploads/2018/05/31181051/springboot-dynamodb-300x135.png 300w" sizes="(max-width: 494px) 100vw, 494px" /></p>
+<p>Let&#8217;s build our project on top of the example we have used in the <a href="https://blogs.rayfocus.com/spring-boot-hello-world-example/" target="_blank" rel="noopener">spring boot starter post</a>. The complete project we are going to develop in this post can be downloaded from <a href="http://downloads.rayfocus.com/code-samples/spring-boot-with-dynamodb.zip" target="_blank" rel="noopener">here</a> or from the downloads section available at the end of this post.</p>
+<h4>Prerequisite tools</h4>
+<ol>
+<li style="list-style-type: none;">
+<ol>
+<li>Java 1.8 or higher</li>
+<li>Eclipse IDE</li>
+<li>Maven</li>
+</ol>
+</li>
+</ol>
+<h4>DynamoDB library for Java</h4>
+<p>To make the integration between Spring based applications and DynamoDB easier, we can make use of the community module <a href="https://github.com/derjust/spring-data-dynamodb" target="_blank" rel="noopener">Spring Data DynamoDB</a>. I assume that you have imported the <a href="http://downloads.rayfocus.com/code-samples/rayfocus-api.tasklet.zip" target="_blank" rel="noopener">project</a> used in the spring boot starter post.</p>
+<p>Add the below dependency for <code>spring-data-dynamodb</code> in pom.xml</p><pre class="crayon-plain-tag">&lt;dependency&gt;
+	&lt;groupId&gt;com.github.derjust&lt;/groupId&gt;
+	&lt;artifactId&gt;spring-data-dynamodb&lt;/artifactId&gt;
+	&lt;version&gt;5.0.2&lt;/version&gt;
+&lt;/dependency&gt;</pre><p>Using the Tasklet API, users should be able to add, read, edit and delete the <code>Tasks.</code>  As next step we need to create the data model class which represent the Task itself.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.model;
+
+import java.util.List;
+
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@DynamoDBTable(tableName = "Tasks")
+public class Task {
+
+	private String taskId;
+	private String taskName;
+	private String taskStatus;
+	private List&lt;SubTask&gt; taskContent;
+	private String userId;
+	private String createdOn;
+
+	@JsonCreator
+	public Task(@JsonProperty("task_id") String taskId, @JsonProperty("task_name") String taskName,
+			@JsonProperty("task_status") String taskStatus, @JsonProperty("task_content") List&lt;SubTask&gt; taskContent,
+			@JsonProperty("user_id") String userId, @JsonProperty("created_on") String createdOn) {
+		this.taskId = taskId;
+		this.taskName = taskName;
+		this.taskStatus = taskStatus;
+		this.taskContent = taskContent;
+		this.userId = userId;
+		this.createdOn = createdOn;
+	}
+
+	public Task() 
+	{
+		// default constructor
+	}
+
+	/** Getters */
+	@DynamoDBHashKey(attributeName = "task_id")
+	public String getTaskId() {
+		return taskId;
+	}
+
+	@DynamoDBAttribute(attributeName = "task_name")
+	public String getTaskName() {
+		return taskName;
+	}
+	
+	@DynamoDBAttribute(attributeName = "task_status")
+	public String getTaskStatus() {
+		return taskStatus;
+	}
+
+	@DynamoDBAttribute(attributeName = "task_content")
+	public List&lt;SubTask&gt; getTaskContent() {
+		return taskContent;
+	}
+
+	@DynamoDBAttribute(attributeName = "user_id")
+	public String getUserId() {
+		return userId;
+	}
+
+	@DynamoDBAttribute(attributeName = "created_on")
+	public String getCreatedOn() {
+		return createdOn;
+	}
+
+	/** Setters */
+	public void setTaskId(String taskId) {
+		this.taskId = taskId;
+	}
+
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
+	}
+
+	public void setTaskStatus(String taskStatus) {
+		this.taskStatus = taskStatus;
+	}
+
+	public void setTaskContent(List&lt;SubTask&gt; taskContent) {
+		this.taskContent = taskContent;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public void setCreatedOn(String createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	
+	@Override
+	public String toString() {
+		return "Task [taskId=" + taskId + ", taskName=" + taskName + ", taskStatus=" + taskStatus + ", taskContent="
+				+ taskContent + ", userId=" + userId + ", createdOn=" + createdOn + "]";
+	}
+
+}</pre><p>We have to represent the sub tasks as well for which another Model class <code>SubTask</code> to be defined.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.model;
+
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBDocument;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@DynamoDBDocument
+public class SubTask {
+	
+	private String taskItem;
+	private String status;
+
+	@JsonCreator
+	public SubTask(@JsonProperty("task_item") String taskItem, 
+			       @JsonProperty("status") String status) {
+		this.taskItem = taskItem;
+		this.status = status;
+	}
+
+	public SubTask() 
+	{
+		// default constructor
+	}
+	
+	/** Getters */
+	@DynamoDBAttribute(attributeName = "task_item")
+	public String getTaskItem() {
+		return taskItem;
+	}
+
+	@DynamoDBAttribute(attributeName = "status")
+	public String getStatus() {
+		return status;
+	}
+
+	/** Setters */
+	public void setTaskItem(String taskItem) {
+		this.taskItem = taskItem;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+}</pre><p><strong>DynamoDB Config</strong></p>
+<p>To access the DynamoDB from Spring Boot application, we need to create and register Spring beans for DynamoDB client.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.db.config;
+
+import org.socialsignin.spring.data.dynamodb.repository.config.EnableDynamoDBRepositories;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+
+@Configuration
+@EnableDynamoDBRepositories(basePackages = "com.rayfocus.api.tasklet.db.repository")
+public class DynamoDBConfig {
+
+	@Value("${amazon.aws.accesskey}")
+	private String awsAccessKey;
+
+	@Value("${amazon.aws.secretkey}")
+	private String awsSecretKey;
+
+	@Bean
+	public AmazonDynamoDB amazonDynamoDB(AWSCredentials awsCredentials) {
+		@SuppressWarnings("deprecation")
+		AmazonDynamoDB amazonDynamoDB = new AmazonDynamoDBClient(awsCredentials);
+		return amazonDynamoDB;
+	}
+
+	@Bean
+	public AWSCredentials awsCredentials() {
+		return new BasicAWSCredentials(awsAccessKey, awsSecretKey);
+	}
+
+}</pre><p>To complete the configuration, add the entries for AWS access key and secret key in the <code>application.properties</code>.</p><pre class="crayon-plain-tag">amazon.aws.accesskey=[AWS_ACCESS_KEY]
+amazon.aws.secretkey=[AWS_SECRET_KEY]</pre><p><strong>Note:</strong>  When deploying the application into Amazon EC2 instance or Amazon ECS, we can make use of the IAM roles to access the other AWS services like DynamoDB or S3, instead of storing credentials in properties file. At this point of time, to develop this project let&#8217;s make use of credentials.</p>
+<h4>IAM Policy for accessing DynamoDB</h4>
+<p>For this project, I have created a IAM user named TaskletAPI and attached the below custom IAM policy. I have restricted the IAM policy to have access only for DynamoDB operations on a specific table named <code>Tasks</code>.</p><pre class="crayon-plain-tag">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:UpdateGlobalTable",
+                "dynamodb:UpdateItem",
+                "dynamodb:CreateTable",
+                "dynamodb:DescribeTable",
+                "dynamodb:DescribeGlobalTable",
+                "dynamodb:GetItem",
+                "dynamodb:CreateGlobalTable",
+                "dynamodb:UpdateTable"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:&lt;aws_account_id&gt;:table/Tasks"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": "dynamodb:ListTables",
+            "Resource": "*"
+        }
+    ]
+}</pre><p></p>
+<h4>Repository interface for CRUD operations</h4>
+<p>Since we have <code>spring-data-dynamodb</code> in our classpath, we can make use of CRUD repository for our database operations. With <code>@EnableScan<code></code></code> annotation, the repository implementation will be registered as a component in the Spring container.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.db.repository;
+
+import java.util.List;
+
+import org.socialsignin.spring.data.dynamodb.repository.EnableScan;
+import org.springframework.data.repository.CrudRepository;
+
+import com.rayfocus.api.tasklet.model.Task;
+
+@EnableScan
+public interface TaskRepository extends CrudRepository&lt;Task, String&gt; {
+	List&lt;Task&gt; findByUserId(String userId);
+}</pre><p></p>
+<h4>REST controller</h4>
+<p>Okay. Now we are all set to write our controller class for handling the incoming requests. Let&#8217;s write handler methods for writing/fetching user task to/from DynamoDB. Our controller class looks as shown in below listing.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.rayfocus.api.tasklet.http.HttpResponse;
+import com.rayfocus.api.tasklet.model.Task;
+import com.rayfocus.api.tasklet.service.TaskletService;
+
+@RestController
+@RequestMapping("/tasklet")
+public class TaskletController {
+
+	@Autowired
+	TaskletService taskletService;
+
+	@PostMapping("/task")
+	public ResponseEntity&lt;HttpResponse&gt; saveTask(@RequestBody Task newTask,
+			@RequestParam(value = "version", required = false) String apiVersion) {
+		return taskletService.saveTask(newTask);
+	}
+
+	@GetMapping("/task/{userid}")
+	public ResponseEntity&lt;HttpResponse&gt; getTasksByUserId(@PathVariable("userid") String userId,
+			@RequestParam(value = "version", required = false) String apiVersion) {
+		return taskletService.getTaskByUserId(userId);
+	}
+}</pre><p><code>@PostMapping</code> annotation indicates that the HTTP POST request with URI <code>http://&lt;domain&gt;:&lt;port&gt;/tasklet/task</code> will be handled and the data will be saved to database. The call is then delegated to service class from the controller.</p>
+<p>Similarly, <code>@GetMapping</code> annotation on method <code>getTaskByUserId</code> indicates that HTTP GET request with URI <code>http://&lt;domain&gt;:&lt;port&gt;/tasklet/task/{userid}</code>will be handled and the data will be returned after fetching from database.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+
+import com.rayfocus.api.tasklet.db.repository.TaskRepository;
+import com.rayfocus.api.tasklet.http.HttpResponse;
+import com.rayfocus.api.tasklet.model.Task;
+import com.rayfocus.api.tasklet.model.TaskMetaData;
+
+@Component
+public class TaskletService {
+
+	@Autowired
+	TaskRepository taskRepository;
+
+	public ResponseEntity&lt;HttpResponse&gt; saveTask(Task newTask) {
+		Task savedTask = taskRepository.save(newTask);
+
+		TaskMetaData taskMetaData = null;
+		if (savedTask == null) {
+			taskMetaData = new TaskMetaData(newTask.getTaskId(), newTask.getTaskName());
+			return new ResponseEntity&lt;HttpResponse&gt;(
+					new HttpResponse("500", "ERROR", "Task creation failed", taskMetaData),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		taskMetaData = new TaskMetaData(savedTask.getTaskId(), savedTask.getTaskName());
+		return new ResponseEntity&lt;HttpResponse&gt;(
+				new HttpResponse("200", "SUCCESS", "Task created successfully", taskMetaData), HttpStatus.OK);
+	}
+	
+	public ResponseEntity&lt;HttpResponse&gt; getTaskByUserId(String userId){
+		List&lt;Task&gt; tasks = taskRepository.findByUserId(userId);
+		if (tasks == null) {
+			return new ResponseEntity&lt;HttpResponse&gt;(
+					new HttpResponse("500", "ERROR", "Error fetching task details", tasks),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity&lt;HttpResponse&gt;(new HttpResponse("200", "SUCCESS", "Task Details", tasks),
+				HttpStatus.OK);
+	}
+}</pre><p>HttpResponse and TaskMetaData are helper classes to form the ResponseEntity.</p>
+<p><strong>HttpResponse.java</strong></p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.http;
+
+public class HttpResponse {
+	private final String statusCode;
+	private final String statusMessage;
+	private final String responseDesc;
+
+	private final Object responseData;
+
+	public HttpResponse(String statusCode, String statusMessage, String responseDesc, Object responseData) {
+		this.statusCode = statusCode;
+		this.statusMessage = statusMessage;
+		this.responseDesc = responseDesc;
+		this.responseData = responseData;
+	}
+
+	public String getStatusCode() {
+		return statusCode;
+	}
+
+	public String getStatusMessage() {
+		return statusMessage;
+	}
+
+	public String getResponseDesc() {
+		return responseDesc;
+	}
+
+	public Object getResponseData() {
+		return responseData;
+	}
+
+}</pre><p><strong>TaskMetaData.java</strong></p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.model;
+
+public class TaskMetaData {
+	private final String taskId;
+	private final String taskName;
+
+	public TaskMetaData(String taskId, String taskName) {
+		this.taskId = taskId;
+		this.taskName = taskName;
+	}
+
+	public String getTaskId() {
+		return taskId;
+	}
+
+	public String getTaskName() {
+		return taskName;
+	}
+
+}</pre><p></p>
+<h4>Managing API versions</h4>
+<p>If we need to manage the API versions going further, we can do that using Query params in the request URI. For example, if we have this application running on port 8080, then issue the request as below:</p>
+<p><strong>with query param</strong></p>
+<p><code>http://localhost:8080/tasklet/task?version=2</code></p>
+<p>In this case, we can route to the appropriate service method for processing the request.</p>
+<p><strong>without query param</strong></p>
+<p><code>http://localhost:8080/tasklet/task</code></p>
+<p>If we define the query param as optional, then by default we can route to the latest api version service method if the <code>version</code> param is not present in request.</p>
+<h4>Unit testing</h4>
+<p>We have completed developing our <code>Tasklet</code> service. Let&#8217;s write some unit tests to ensure that the application is working as expected.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet;
+
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import com.amazonaws.services.dynamodbv2.util.TableUtils;
+import com.amazonaws.services.dynamodbv2.util.TableUtils.TableNeverTransitionedToStateException;
+import com.rayfocus.api.tasklet.http.HttpResponse;
+import com.rayfocus.api.tasklet.model.SubTask;
+import com.rayfocus.api.tasklet.model.Task;
+import com.rayfocus.api.tasklet.model.TaskMetaData;
+import com.rayfocus.api.tasklet.service.TaskletService;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest
+public final class TaskletServiceTests {
+
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+
+	@Autowired
+	private AmazonDynamoDB amazonDynamoDB;
+
+	@Autowired
+	private TaskletService taskletService;
+	
+	private static boolean taskTableExist = false;
+
+	@Before
+	public void setUp() throws TableNeverTransitionedToStateException, InterruptedException {
+		if( ! taskTableExist ) {
+			if(TableUtils.createTableIfNotExists(amazonDynamoDB, new DynamoDBMapper(amazonDynamoDB).generateCreateTableRequest(Task.class)
+					.withProvisionedThroughput(new ProvisionedThroughput(2L, 2L)))) {
+				logger.info("~~~ Waiting for Tasks table to be active ~~~");
+				TableUtils.waitUntilActive(amazonDynamoDB, "Tasks");
+			}
+			else {
+				logger.info("~~~ Tasks table already exists ~~~");
+			}
+			taskTableExist = true;
+		}
+	}
+
+	@Test
+	public void testSaveTask() {
+		logger.info("Saving the taskable items");
+
+		List&lt;SubTask&gt; subTasks = new ArrayList&lt;SubTask&gt;(
+				Arrays.asList(new SubTask("Vegetables", "INCOMPLETE"), new SubTask("Fruits", "COMPLETE")));
+		Task newTask = new Task("456", "Buy Groceries", "Active", subTasks, "users@taskletAPI.com", "11-JUN-2018");
+
+		ResponseEntity&lt;HttpResponse&gt; response = taskletService.saveTask(newTask);
+
+		assertTrue("Task saved successfully.", response.getBody().getStatusCode() == "200");
+		assertTrue("Task Id matches", ((TaskMetaData) response.getBody().getResponseData()).getTaskId() == "456");
+		logger.info("Save task done");
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testGetTaskByUserId() {
+		logger.info("Fetching the task items");
+
+		ResponseEntity&lt;HttpResponse&gt; response = taskletService.getTaskByUserId("users@taskletAPI.com");
+
+		assertTrue("Task fetched successfully.", response.getBody().getStatusCode() == "200");
+		assertTrue("User Id matches", ((List&lt;Task&gt;) response.getBody().getResponseData()).get(0).getUserId()
+				.equals("users@taskletAPI.com"));
+		logger.info("Get task done");
+	}
+}</pre><p><strong>Testing with Postman API client</strong></p>
+<p>Before testing with Postman client, make sure the application is up and running. It should run on the default port 8080 since we haven&#8217;t explicitly configured the server&#8217;s port.</p>
+<p>Launch the Postman client and make a HTTP POST request to <code>http://localhost:8080/tasklet/task?version=1</code> .  Input the below sample request.</p><pre class="crayon-plain-tag">{
+  "created_on": "11-JUN-2018",
+  "task_content": [
+    {
+      "status": "INCOMPLETE",
+      "task_item": "Vegetables"
+    },
+    {
+      "status": "COMPLETE",
+      "task_item": "Cakes &amp; Fruits"
+    },
+    {
+      "status": "COMPLETE",
+      "task_item": "Get Rice"
+    }
+  ],
+  "task_id": "123",
+  "task_name": "Buy Groceries",
+  "task_status": "Active",
+  "user_id": "users@taskletAPI.com"
+}</pre><p>You should see the response similar to the one shown in the below listing.</p>
+<p><img decoding="async" class="aligncenter size-full wp-image-795" src="https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp.png" alt="" width="1090" height="698" srcset="https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp.png 1090w, https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp-300x192.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp-768x492.png 768w, https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp-1024x656.png 1024w" sizes="(max-width: 1090px) 100vw, 1090px" /></p>
+<h4>Conclusion</h4>
+<p>We have seen how to integrate Spring Boot with Amazon DynamoDB . Finally, we have written unit tests to test our Tasklet API service. We will add more features of Spring Boot and Spring Cloud to our application in the upcoming posts. Stay tuned!</p>
+<p>The source code we have worked on so far is available in the downloads section. If you have any questions, feel free to post it in the comments section. Thank you.</p>
+<hr />
+<p><strong>Download source code : </strong><a href="http://downloads.rayfocus.com/code-samples/spring-boot-with-dynamodb.zip" target="_blank" rel="noopener"><span style="text-decoration: underline;">spring-boot-with-dynamodb.zip</span></a></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/">Integrate Spring Boot With Amazon DynamoDB</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/feed/</wfw:commentRss>
+			<slash:comments>10</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

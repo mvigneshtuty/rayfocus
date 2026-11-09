@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Angular4 &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/tag/angular4/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Tue, 26 Dec 2017 10:18:33 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Reactive forms validation in Angular</title>
+		<link>https://blogs.rayfocus.com/angular-reactive-forms-validation/</link>
+					<comments>https://blogs.rayfocus.com/angular-reactive-forms-validation/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Mon, 25 Dec 2017 17:14:12 +0000</pubDate>
+				<category><![CDATA[Angular]]></category>
+		<category><![CDATA[Angular4]]></category>
+		<category><![CDATA[ReactiveForms]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=622</guid>
+
+					<description><![CDATA[<p>Angular is a framework which makes the web applications development easier. Recently I have been exploring the Angular to build a single page application(SPA). When doing so, I came across a need to build a form which takes the user details and contact the server back-end to save the details.<a class="moretag" href="https://blogs.rayfocus.com/angular-reactive-forms-validation/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/angular-reactive-forms-validation/">Reactive forms validation in Angular</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Angular is a framework which makes the web applications development easier. Recently I have been exploring the Angular to build a single page application(SPA). When doing so, I came across a need to build a form which takes the user details and contact the server back-end to save the details. In this post, I will share the form validation techniques that I have learned when building the reactive forms using Angular 4.</p>
+<p><img fetchpriority="high" decoding="async" class="aligncenter size-full wp-image-624" src="https://static.rayfocus.com/wp-content/uploads/2017/12/19144528/angular.png" alt="" width="225" height="225" srcset="https://static.rayfocus.com/wp-content/uploads/2017/12/19144528/angular.png 225w, https://static.rayfocus.com/wp-content/uploads/2017/12/19144528/angular-150x150.png 150w" sizes="(max-width: 225px) 100vw, 225px" /></p>
+<p>Also, we will see how to do the confirm password validation using the reactive angular forms. Before going into the details, let&#8217;s have a brief look into the different form-building techniques provided by Angular.</p>
+<h4><strong>Template-driven forms</strong></h4>
+<p>In template-driven approach, the forms can be built by writing templates in the Angular template syntax with the form-specific directives. <a class="code-anchor" href="https://angular.io/api/forms/FormsModule" target="_blank" rel="noopener"><span class="typ">FormsModule </span></a><span class="typ">have to imported into the app. module</span><span class="typ">.  Also, <code>FormsModule</code> need to be added to the list of imports defined in the <code>@NgModule</code> decorator. Below listing shows the sample <code>app.module.ts</code>.</span></p><pre class="crayon-plain-tag">import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+
+@NgModule({
+  imports: [
+    BrowserModule,
+    FormsModule
+  ],
+  declarations: [
+    AppComponent
+  ],
+  providers: [ ],
+  bootstrap: [ AppComponent ]
+})
+
+export class AppModule { }</pre><p>Then in the HTML template for the component, declare the form element as shown below.</p>
+<div>
+<pre class="crayon-plain-tag">&lt;input type="text" 
+       id="userid"
+       name="userId"
+       required minlength="6" maxlength="10" pattern="[a-zA-Z0-9]*"
+       [(ngModel)]="model.userid"
+       #userid="ngModel"
+       class="form-control form-control-lg" 
+       placeholder="User ID"&gt;
+&lt;div *ngIf="!userid.valid &amp;&amp; userid.touched" class="alert alert-danger"&gt;
+    &lt;div *ngIf="userid.errors.required"&gt;User ID is required&lt;/div&gt;
+    &lt;div *ngIf="userid.errors.minlength"&gt;User ID should be minimum {{userid.errors.minlength.requiredLength}} characters&lt;/div&gt;
+    &lt;div *ngIf="userid.errors.pattern"&gt;User ID can contain only alpha numeric characters [a-zA-Z0-9]&lt;/div&gt;
+&lt;/div&gt;</pre><br />
+The attributes <code>required</code>, <code>minlength</code>, <code>maxlength</code> and <code>pattern</code> can be added to the <code>&lt;input&gt;</code> form control and and the form control will then be binded to data model properties in the component using directives like <code>ngModel</code>.</p>
+<p>This template-driven approach is asynchronous and the Angular will create the form control objects under the hood.</p>
+<h4><strong>Reactive forms</strong></h4>
+<p>Angular reactive forms supports reactive programming style and we need to manage the data flow explicitly. In reactive forms, you need to create the form control objects in the component and bind them to the form control elements in the component template.</p>
+<p>You can push data model values into the form controls and pull user changed values back. In this approach you will use the form control objects directly in the component and hence the value updates are synchronous. To use the reactive forms, you need to import <code>ReactiveFormsModule</code> in the  <code>app.module.ts</code>.</p>
+<p>The revised <code>app.module.ts</code> will be as below.</p><pre class="crayon-plain-tag">import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+@NgModule({
+  imports: [
+    BrowserModule,
+    FormsModule,
+    ReactiveFormsModule
+  ],
+  declarations: [
+    AppComponent
+  ],
+  providers: [ ],
+  bootstrap: [ AppComponent ]
+})
+
+export class AppModule { }</pre><p></p>
+<h4>Reactive forms validation</h4>
+<p>Let&#8217;s see a quick example of how to implement the validation in reactive forms. Access the sample code for this example  from the below link.</p>
+<p><a href="http://downloads.rayfocus.com/code-samples/angular-reactive-forms-example.zip" target="_blank" rel="noopener">Download Example Application</a></p>
+<p>Also, the links are provided at the end of this post for reference.</p>
+<p>In this example, we have a form for creating a new user. The form will take <code>UserId</code>, <code>Password</code> and <code>Confirm-Password</code>.  Initialize the form-group as below.</p><pre class="crayon-plain-tag">this.createUserFormGrp = this.fb.group({
+      userid: ['', [
+        Validators.required,
+        Validators.minLength(5),
+        Validators.pattern('[a-zA-Z0-9]*')
+      ]],
+      passwordgrp: this.fb.group({
+        password: ['',
+          [
+            Validators.required,
+            Validators.minLength(6),
+            Validators.pattern(/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&amp;*()_+])[A-Za-z\d][A-Za-z\d!@#$%^&amp;*()_+]{5,19}$/)
+          ]
+        ],
+        confpwd: ['',
+          [
+            Validators.required
+          ]
+        ]
+      },
+        { validator: CreateUserValidator.isPasswordMisMatched }
+      )
+    });</pre><p>If you notice the above snippet, the validation for required, minlength and pattern can be done using the <code>Validators</code> present in the <code>@angular/forms.</code></p>
+<h4>Implementing custom validation</h4>
+<p>The custom validation functionality can be written separately in typescript file as  <code>static</code> method. In this case, the method <code>isPasswordMisMatched</code> will be called for validating the equality of password and confirm-password.</p><pre class="crayon-plain-tag">import { AbstractControl, ValidationErrors } from "@angular/forms";
+
+
+export class CreateUserValidator {
+ 
+    static isPasswordMisMatched(control: AbstractControl): ValidationErrors | null {
+
+        const password = control.get('password').value;
+        const confpwd = control.get('confpwd').value;
+
+        /** Mismatch when password is null or undefined */
+        if (password == null || password == undefined) {
+            return {
+                mismatch: true
+            };
+        }
+        /** Mismatch when confirm password is null or undefined */
+        if (confpwd == null || confpwd == undefined) {
+            return {
+                mismatch: true
+            };
+        }
+        /** Mismatch when either password or confirm password have empty string */
+        if (!((password as string).length &gt; 0) || !((confpwd as string).length &gt; 0)) {
+            return {
+                mismatch: true
+            };
+        }
+        /** Mismatch when either password and confirm password are not equal */
+        if (password !== confpwd) {
+            return {
+                mismatch: true
+            };
+        }
+        console.log('returning passwords match!...');
+        return null;
+    }
+}</pre><p><strong>Displaying the validation errors in component&#8217;s template</strong></p>
+<p>The above snippet for custom validation returns a response with attribute <code>mismatch</code>. Based on the attribute value of mismatch, display the error message in the template.</p><pre class="crayon-plain-tag">&lt;input 
+    id="confirmpwd" 
+    type="password"
+    formControlName="confpwd"
+    [(ngModel)]="newUser.confirmPwd"
+    class="form-control form-control-lg input"
+    [ngClass]="getPasswordGrp.errors?.mismatch ? 'confpwd-invalid': 'confpwd-valid'"
+    placeholder="Confirm Password"&gt;
+&lt;div *ngIf="getConfPwd.touched &amp;&amp; getPasswordGrp.errors?.mismatch" class="alert alert-danger"&gt;
+    &lt;div *ngIf="getPasswordGrp.errors?.mismatch"&gt;Confirm password didn't match&lt;/div&gt;
+&lt;/div&gt;</pre><p></p>
+<h4><strong>Mock back-end for rescue</strong></h4>
+<p>Using the mock back-end for <code>Http</code> requests will help to simulate the requests to server. This example application uses the mock back-end to simulate the requests to server when creating new user.</p>
+<p>The mock back-end will return success message only when the UserId is <code>testuser</code> and Password is <code>test@123</code>.</p><pre class="crayon-plain-tag">import { Http, BaseRequestOptions, Response, ResponseOptions, RequestMethod } from '@angular/http';
+import { MockBackend, MockConnection } from '@angular/http/testing';
+ 
+export function mockBackendFactory(backend: MockBackend, options: BaseRequestOptions) {
+
+    backend.connections.subscribe((connection: MockConnection) =&gt; {
+      // setTimeout() function to simulate an asynchronous call 
+      // to the server that takes 2 second. 
+      setTimeout(() =&gt; {
+        //
+        // Mock implementation of /api/create-user
+        //
+        if (connection.request.url.endsWith('/api/create-user') &amp;&amp; 
+            connection.request.method === RequestMethod.Post) {
+            console.log('request received by Mock');
+            let body = JSON.parse(connection.request.getBody());
+
+            if (body.userId === 'testuser' &amp;&amp; body.password === 'test@123') {
+              connection.mockRespond(new Response(
+                new ResponseOptions({ 
+                  status: 200, 
+                  body: { responseCode: 'SUC',
+                    respMessage: 'User created successfully'
+                 }
+                })
+              ));
+            } else {
+              connection.mockRespond(new Response(
+                new ResponseOptions({ 
+                    status: 200, 
+                    body: {
+                          responseCode: 'ERR',
+                          respMessage: 'User creation failed'
+                      }
+                })
+              ));
+            }
+        }
+
+      }, 2000);
+    }); 
+    return new Http(backend, options);
+}
+ 
+export let mockBackendProvider = {
+    provide: Http,
+    useFactory: mockBackendFactory,
+    deps: [MockBackend, BaseRequestOptions]
+};</pre><p><strong>API call from component</strong></p>
+<p>Trigger the API call from component on successful form submission. The below snippet shows the implementation of calling the API provided by mock back-end.</p><pre class="crayon-plain-tag">/**
+   * Method to handle the Create User Form submission
+   */
+  createUser(): void{
+    /** Show the loading spinner since the API call will take few seconds to complete */
+    this.sharedService.showLoadingSpinner.next(true);
+    this.sharedService.loadingSpinnerMessage.next('Creating User...');
+    /** call the user serice to create new user */
+    this.userService.createNewUser(this.newUser)
+      .subscribe( result =&gt; {
+        this.sharedService.showLoadingSpinner.next(false); // hide the loading spinner
+        this.formSubmitted = true;
+        if(result){
+          this.userCreationFailed = false;
+          this.alertMessage = 'User created Successfully';
+        }
+        else{
+          this.userCreationFailed = true;
+          this.alertMessage = 'User creation failed';
+        }
+      });
+  }</pre><p></p>
+<h4>Create User Form</h4>
+<p>Here is the reactive form for creating new user in this example application.</p>
+<p><img decoding="async" class="aligncenter size-full wp-image-637" src="https://static.rayfocus.com/wp-content/uploads/2017/12/25143001/create-user-form.png" alt="" width="664" height="588" srcset="https://static.rayfocus.com/wp-content/uploads/2017/12/25143001/create-user-form.png 664w, https://static.rayfocus.com/wp-content/uploads/2017/12/25143001/create-user-form-300x266.png 300w" sizes="(max-width: 664px) 100vw, 664px" /></p>
+<p><strong>Displaying success message on completion of Create User API call</strong></p>
+<p><img decoding="async" class="aligncenter size-full wp-image-638" src="https://static.rayfocus.com/wp-content/uploads/2017/12/25143052/create-success.png" alt="" width="648" height="258" srcset="https://static.rayfocus.com/wp-content/uploads/2017/12/25143052/create-success.png 648w, https://static.rayfocus.com/wp-content/uploads/2017/12/25143052/create-success-300x119.png 300w" sizes="(max-width: 648px) 100vw, 648px" /></p>
+</div>
+<h4>Conclusion</h4>
+<p>In this post, we have discussed about the different form building techniques provided by Angular. The reactive form approach is very powerful and makes building the complex forms easier. Also, we have developed a sample application which makes use of reactive forms and performs  validation using custom validators.</p>
+<p>Thank you for reading this post. What next? Start building your single page applications and make use of the reactive forms offered by Angular.</p>
+<hr />
+<p><strong>Downloads: </strong><a href="http://downloads.rayfocus.com/code-samples/angular-reactive-forms-example.zip" target="_blank" rel="noopener">angular-reactive-forms-example.zip</a></p>
+<div>
+<hr />
+</div>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/angular-reactive-forms-validation/">Reactive forms validation in Angular</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/angular-reactive-forms-validation/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

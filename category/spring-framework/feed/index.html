@@ -1,0 +1,2417 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Spring framework &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/category/spring-framework/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Wed, 05 Oct 2022 12:04:54 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Scaling with Spring Batch &#8211; Multi threaded step</title>
+		<link>https://blogs.rayfocus.com/scaling-with-spring-batch-multi-threaded-step/</link>
+					<comments>https://blogs.rayfocus.com/scaling-with-spring-batch-multi-threaded-step/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Wed, 05 Oct 2022 12:04:54 +0000</pubDate>
+				<category><![CDATA[Parallel Processing]]></category>
+		<category><![CDATA[Spring Batch]]></category>
+		<category><![CDATA[Spring framework]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=1071</guid>
+
+					<description><![CDATA[<p>In this post, we will go through the scaling options available in the Spring Batch framework. For introduction on how to write a Spring Batch job, you can refer the previous post which provides details on how to read files from S3 bucket. It&#8217;s all based on your use case<a class="moretag" href="https://blogs.rayfocus.com/scaling-with-spring-batch-multi-threaded-step/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/scaling-with-spring-batch-multi-threaded-step/">Scaling with Spring Batch &#8211; Multi threaded step</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, we will go through the scaling options available in the Spring Batch framework.<br />
+For introduction on how to write a Spring Batch job, you can refer the previous post which provides details on how to read files from S3 bucket.</p>
+<h5>It&#8217;s all based on your use case</h5>
+<p>Spring Batch provides lot of options to implement a Job with parallel processing. But it does not mean you must choose one of them. Your decision to use parallel processing should be driven by your use case. Most of the times, a single threaded Job would be suffice for many of the use cases. So, first try out with a single threaded Job. If that is not enough and you have valid point for parallel processing, then pick one of the scaling options provided by Spring Batch.</p>
+<h5>Different types of Scaling options</h5>
+<ol>
+<li>Multi threaded step</li>
+<li>Parallel step</li>
+<li>Asynchronous Item processor/Item writer</li>
+<li>Remote partitioning</li>
+<li>Remote chunking</li>
+</ol>
+<p>Even in the previous post, we have used one of the scaling technique &#8220;Asynchronous item processor/writer&#8221;. But we will go through the details of that scaling option in a separate post.</p>
+<p>In this post, we will go through the &#8220;Multi threaded step&#8221; scaling technique.</p>
+<h5>Multi threaded step</h5>
+<p><img fetchpriority="high" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2022/10/05104537/multi-threaded_1-300x244.png" alt="" class="size-medium wp-image-1078 aligncenter" width="300" height="244" srcset="https://static.rayfocus.com/wp-content/uploads/2022/10/05104537/multi-threaded_1-300x244.png 300w, https://static.rayfocus.com/wp-content/uploads/2022/10/05104537/multi-threaded_1.png 650w" sizes="(max-width: 300px) 100vw, 300px" /></p>
+<p>The configuration to achieve the multi threaded step is straight forward. In general, Spring Batch process the record in chunks.</p>
+<p>Let&#8217;s say the chunk size is 100.<br />
+With single threaded step(which is the default), the first 100 record is processed. Once completed, the next 100 and goes on.<br />
+With multiple threaded step of 2 threads for example, two chunks are processed in parallel i.e total 200 records. Once competed, it continues to pick the next two chunks and goes on.</p>
+<p>Adding task executor to the step makes it multi threaded.</p><pre class="crayon-plain-tag">@Bean
+    public Step dataProcessStep() throws Exception {
+        Step step = this.stepBuilderFactory.get("dataProcess-step")
+                .&lt;TransactionData, TransactionData&gt;chunk(chunkSize)
+                .reader(dataReader())
+                .faultTolerant().skipLimit(100)
+                .processor(dataProcessor(null))
+                .writer(dataWriter(null))
+                .taskExecutor(taskExecutor())
+                .build();
+        ((TaskletStep) step).setStepExecutionListeners(new StepExecutionListener[]{
+                stepExecutionListener()
+        });
+        return step;
+    }</pre><p></p>
+<h5>Task executor config</h5>
+<p></p><pre class="crayon-plain-tag">@Bean
+    public TaskExecutor taskExecutor()
+    {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(threadPoolSize);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setThreadNamePrefix("exec-");
+        return executor;
+    }</pre><p></p>
+<h5>What else?</h5>
+<p>Ideally, that&#8217;s it needed to configure a multi threaded step. You can refer the complete code sample for multi-threaded scaling option here in <a href="https://bitbucket.org/rayfocus-blogs/spring-batch.code-samples/src/develop/multithreaded-step/" target="_blank" rel="noopener">Git</a>.</p>
+<p><strong>Prerequisites to run the code sample:</strong></p>
+<ul>
+<li>MySQL database in local machine (If not you can use H2 database and change data source config accordingly)</li>
+<li>Spring batch metadata tables (Script file is added under the src/main/resources in the code sample)</li>
+<li>Database table to persist the data by ItemWriter (Script file is added under the src/main/resources in the code sample)</li>
+</ul>
+<h5>References</h5>
+<ol>
+<li>&#8220;High performance batch processing&#8221; session by Michael Minella and Mahmoud Ben Hassine (https://www.youtube.com/watch?v=J6IPlfm7N6w)</li>
+</ol>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/scaling-with-spring-batch-multi-threaded-step/">Scaling with Spring Batch &#8211; Multi threaded step</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/scaling-with-spring-batch-multi-threaded-step/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Read CSV files from S3 using Spring Batch</title>
+		<link>https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/</link>
+					<comments>https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Fri, 26 Nov 2021 11:25:30 +0000</pubDate>
+				<category><![CDATA[Spring Batch]]></category>
+		<category><![CDATA[Spring framework]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=1047</guid>
+
+					<description><![CDATA[<p>In this post, let&#8217;s see how to read files from S3 using spring batch. We will read CSV files as stream without loading the entire data in memory and process each item. For Item writer, we&#8217;ll use just the no operation item writer since we will not write the items<a class="moretag" href="https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/">Read CSV files from S3 using Spring Batch</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, let&#8217;s see how to read files from S3 using spring batch.<br />
+We will read CSV files as stream without loading the entire data in memory and process each item. For Item writer, we&#8217;ll use just the no operation item writer since we will not write the items to file or any database tables.</p>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2021/11/05103102/spring-batch.png" alt="" class="aligncenter size-full wp-image-1048" width="200" height="200" srcset="https://static.rayfocus.com/wp-content/uploads/2021/11/05103102/spring-batch.png 200w, https://static.rayfocus.com/wp-content/uploads/2021/11/05103102/spring-batch-150x150.png 150w" sizes="(max-width: 200px) 100vw, 200px" /></p>
+<h3>Job configuration</h3>
+<p>Let&#8217;s start with the Job configuration.<flow><flow> </flow></flow></p><pre class="crayon-plain-tag">@Bean
+    public Job processMovieDataFromS3Job() throws Exception {
+        FlowBuilder&lt;Flow&gt; dataProcessFlowBuilder = new FlowBuilder&lt;Flow&gt;("dataProcess-flow");
+        Flow dataProcessFlow = dataProcessFlowBuilder
+                .start(movieDataProcessStep())
+                    .on(ExitStatus.COMPLETED.getExitCode()).end()
+                .from(movieDataProcessStep())
+                    .on(ANY_OTHER_EXIT_STATUS).fail()
+                .end();
+        return jobBuilderFactory.get("movieDataProcess-job")
+                .incrementer(new RunIdIncrementer())
+                .start(dataProcessFlow)
+                .end()
+                .listener(movieJobExecutionListener())
+                .build();
+    }</pre><p>Next, we will define a step to read and process data from CSV present in S3</p><pre class="crayon-plain-tag">@Bean
+    public Step movieDataProcessStep() throws Exception {
+        Step step = this.stepBuilderFactory.get("dataProcess-step")
+                .&lt;Movie, Movie&gt;chunk(chunkSize)
+                .reader(movieDataReader())
+                .processor(asyncMovieDataProcessor())
+                .writer(asyncMovieItemWriter())
+                .build();
+        ((TaskletStep) step).setStepExecutionListeners(new StepExecutionListener[]{
+                movieStepExecutionListener()
+        });
+        return step;
+    }</pre><p>In the step, we will use <code>read-process-write</code> pattern.</p>
+<h5>Item reader</h5>
+<p>For Reader config, we will use SynchronizedItemReader delegating to MultiResourceItemReader. To the MultiResourceItemReader, we will add list of resources. Resources in this case is the files in S3.</p>
+<p>Update the value of <code>sourceBucket</code> and <code>sourceObjectPrefix</code> based on the S3 bucket details of your use case.</p><pre class="crayon-plain-tag">@Bean(destroyMethod="")
+    @StepScope
+    public SynchronizedItemStreamReader&lt;Movie&gt; movieDataReader() {
+        SynchronizedItemStreamReader synchronizedItemStreamReader = new SynchronizedItemStreamReader();
+        List&lt;Resource&gt; resourceList = new ArrayList&lt;&gt;();
+        String sourceBucket = rawDataS3Bucket;
+        String sourceObjectPrefix = rawDataS3ObjectPrefix
+                .concat("MOVIES")
+                .concat(FORWARD_SLASH);
+        log.info("sourceObjectPrefix::"+sourceObjectPrefix);
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+                .withBucketName(sourceBucket)
+                .withPrefix(sourceObjectPrefix);
+        ObjectListing sourceObjectsListing;
+        do{
+            sourceObjectsListing = amazonS3Client.listObjects(listObjectsRequest);
+            for (S3ObjectSummary sourceFile : sourceObjectsListing.getObjectSummaries()){
+
+                if(!(sourceFile.getSize() &gt; 0)
+                        || (!sourceFile.getKey().endsWith(DOT.concat(inputDataFileExtension)))
+                ){
+                    // Skip if file is empty (or) file extension is not "csv"
+                    continue;
+                }
+                log.info("Reading "+sourceFile.getKey());
+                resourceList.add(resourceLoader.getResource(S3_PROTOCOL_PREFIX.concat(sourceBucket).concat(FORWARD_SLASH)
+                        .concat(sourceFile.getKey())));
+            }
+            listObjectsRequest.setMarker(sourceObjectsListing.getNextMarker());
+        }while(sourceObjectsListing.isTruncated());
+
+        Resource[] resources = resourceList.toArray(new Resource[resourceList.size()]);
+        MultiResourceItemReader&lt;Movie&gt; multiResourceItemReader = new MultiResourceItemReader&lt;&gt;();
+        multiResourceItemReader.setName("movie-multiResource-Reader");
+        multiResourceItemReader.setResources(resources);
+        multiResourceItemReader.setDelegate(movieFileItemReader());
+        synchronizedItemStreamReader.setDelegate(multiResourceItemReader);
+        return synchronizedItemStreamReader;
+    }</pre><p>For this example, I have created a sample movie data set. Flat file item reader config to parse CSV file as below</p><pre class="crayon-plain-tag">@Bean
+    @StepScope
+    public FlatFileItemReader&lt;Movie&gt; movieFileItemReader()
+    {
+        FlatFileItemReader&lt;Movie&gt; reader = new FlatFileItemReader&lt;&gt;();
+        reader.setLinesToSkip(1);
+        DefaultLineMapper&lt;Movie&gt; movieDataLineMapper = new DefaultLineMapper();
+        DelimitedLineTokenizer tokenizer = new DelimitedLineTokenizer();
+        tokenizer.setNames(new String[] {
+                "name","genre","releaseYear","releasePlatform"
+        });
+        movieDataLineMapper.setFieldSetMapper(movieFieldSetMapper());
+        movieDataLineMapper.setLineTokenizer(tokenizer);
+        reader.setLineMapper(movieDataLineMapper);
+        reader.setRecordSeparatorPolicy(new DefaultRecordSeparatorPolicy());
+        return reader;
+    }
+
+    @Bean
+    public FieldSetMapper&lt;Movie&gt; movieFieldSetMapper(){
+        return new MovieFieldSetMapper();
+    }</pre><p></p>
+<h5>Item processor</h5>
+<p>For item processor, we will configure with async capabilities.  This is not needed for the sample data set for the example in this post. However, when you want to process a huge data set async processing will be very helpful.</p><pre class="crayon-plain-tag">// ASYNC ITEM PROCESSOR
+    @Bean
+    @StepScope
+    public ItemProcessor asyncMovieDataProcessor(){
+        AsyncItemProcessor&lt;Movie, Movie&gt; asyncItemProcessor = new AsyncItemProcessor&lt;&gt;();
+        asyncItemProcessor.setDelegate(movieDataProcessor(null));
+        asyncItemProcessor.setTaskExecutor(asyncMovieTaskExecutor());
+        return asyncItemProcessor;
+    }
+
+    // DELEGATE ITEM PROCESSOR
+    @Bean
+    @StepScope
+    public ItemProcessor&lt;Movie, Movie&gt; movieDataProcessor(@Value("#{stepExecution}") StepExecution stepExecution) {
+        MovieDataProcessor movieDataProcessor = new MovieDataProcessor();
+        return movieDataProcessor;
+    }
+
+    // TASK EXECUTOR
+
+    @Bean
+    public TaskExecutor asyncMovieTaskExecutor()
+    {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(threadPoolSize);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setThreadNamePrefix("movieExec-");
+        return executor;
+    }</pre><p></p>
+<h5>Item writer</h5>
+<p>Then, for item writer we configure it with async. This is to support the item processor which process the items in multiple threads and we need to handle the Future which gets returned.</p><pre class="crayon-plain-tag">// WRITER
+    @Bean
+    @StepScope
+    public ItemWriter asyncMovieItemWriter() throws Exception{
+        SimpleAsyncItemWriter&lt;Movie&gt; simpleAsyncItemWriter = new SimpleAsyncItemWriter&lt;&gt;();
+        simpleAsyncItemWriter.setDelegate(movieNoOpItemWriter());
+        return simpleAsyncItemWriter;
+    }
+
+    @Bean
+    @StepScope
+    public ItemWriter movieNoOpItemWriter() {
+        return new NoOpItemWriter();
+    }</pre><p></p>
+<h5>Database</h5>
+<p>We will use H2 in memory database.</p><pre class="crayon-plain-tag">// H2 dependency
+implementation group: 'com.h2database', name: 'h2', version: '1.4.193'
+
+// Data source config
+spring.batch.datasource.jdbc-url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+spring.batch.datasource.driverClassName=org.h2.Driver
+spring.batch.datasource.username=sa
+spring.batch.datasource.password=</pre><p></p>
+<h3>Running the application</h3>
+<p>To run the application, just execute <code>Run</code> from ReadFileFromS3BatchApplication.java file.</p>
+<p>I have created two movie data set CSV files for this example. The data set files are available under resources folder in the project for reference. The execution logs are as below</p>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-1024x335.png" alt="" class="aligncenter size-large wp-image-1062" width="750" height="245" srcset="https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-1024x335.png 1024w, https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-300x98.png 300w, https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-768x251.png 768w, https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-1536x503.png 1536w, https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs.png 1632w" sizes="(max-width: 750px) 100vw, 750px" /></p>
+<p>&nbsp;</p>
+<h3>Conclusion</h3>
+<p>In this article, we have explored how to read files from S3 bucket using spring batch. The key note is we have processed the files as stream without loading them in memory.<br />
+The complete source code is available over on <a href="https://bitbucket.org/rayfocus-blogs/spring-batch.code-samples/src/develop/read-files-fromS3/" target="_blank" rel="noopener">Git</a></p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/">Read CSV files from S3 using Spring Batch</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Secure your Spring REST API using OAuth2</title>
+		<link>https://blogs.rayfocus.com/secure-your-spring-rest-api-using-oauth2/</link>
+					<comments>https://blogs.rayfocus.com/secure-your-spring-rest-api-using-oauth2/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sat, 08 Sep 2018 11:20:40 +0000</pubDate>
+				<category><![CDATA[Spring framework]]></category>
+		<category><![CDATA[Spring Security]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=821</guid>
+
+					<description><![CDATA[<p>In this post, let&#8217;s see the techniques about securing the Spring REST API using OAuth2. We will start by building an Authorization server to generate OAuth2 tokens. Then we will build our REST API which is the resource server. Finally, we will configure the security aspects for our resource server<a class="moretag" href="https://blogs.rayfocus.com/secure-your-spring-rest-api-using-oauth2/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/secure-your-spring-rest-api-using-oauth2/">Secure your Spring REST API using OAuth2</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[In this post, let&#8217;s see the techniques about securing the Spring REST API using OAuth2. We will start by building an Authorization server to generate OAuth2 tokens. Then we will build our REST API which is the resource server. Finally, we will configure the security aspects for our resource server to use OAuth2. We will then test our secured REST API using Postman HTTP client.
+
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/09025900/spring-security-oauth2_2.png" alt="" width="229" height="216" class="aligncenter size-full wp-image-892" /><strong>Pre-requisite tools to build our application</strong>
+<ol>
+ 	<li>Java 1.8</li>
+ 	<li>Maven</li>
+ 	<li>Any IDE of your choice</li>
+ 	<li>Postman HTTP client</li>
+</ol>
+<h4><strong>1. Brief Intro to OAuth2 concept</strong></h4>
+Before starting our development works, let&#8217;s go through the OAuth2 concept in general. This will help us to understand the overall picture in a better way.
+
+The OAuth 2.0 authorization framework enables a third party application to obtain limited access to HTTP service (resource). It does this by introducing an authorization layer and separating the role of the client from that of the resource owner. In OAuth, the client requests access to resources controlled by the resource owner and hosted by the resource server, and is issued a different set of credentials than those of the resource
+owner.
+<h5><strong>1.1. Roles</strong></h5>
+OAuth defines four roles:
+
+<strong>resource owner</strong>
+An entity capable of granting access to a protected resource. When the resource owner is a person, it is referred to as an end-user.
+
+<strong>resource server</strong>
+The server hosting the protected resources, capable of accepting and responding to protected resource requests using access tokens.
+
+<strong>client</strong>
+An application making protected resource requests on behalf of the resource owner and with its authorization. The term &#8220;client&#8221; does not imply any particular implementation characteristics (e.g., whether the application executes on a server, a desktop, or other
+devices).
+
+<strong>authorization server</strong>
+The server issuing access tokens to the client after successfully authenticating the resource owner and obtaining authorization.
+<h5><strong>1.2 Protocol flow</strong></h5>
+<img loading="lazy" decoding="async" class="aligncenter size-full wp-image-832" src="https://static.rayfocus.com/wp-content/uploads/2018/08/21055620/oauth2-flow-02.png" alt="" width="525" height="312" srcset="https://static.rayfocus.com/wp-content/uploads/2018/08/21055620/oauth2-flow-02.png 525w, https://static.rayfocus.com/wp-content/uploads/2018/08/21055620/oauth2-flow-02-300x178.png 300w" sizes="(max-width: 525px) 100vw, 525px" />
+The OAuth 2.0 flow illustrated in above Figure includes the following steps:
+
+(A) The client requests an access token by authenticating with the authorization server and presenting an authorization grant [<code>Authorization Grant - credentials representing the resource owner's authorization.</code>].
+
+(B) The authorization server authenticates the client and validates the authorization grant, and if valid, issues an access token and a refresh token.
+
+(C) The client makes a protected resource request to the resource server by presenting the access token.
+
+(D) The resource server validates the access token, and if valid, serves the request.
+
+(E) Steps (C) and (D) repeat until the access token expires. If the client knows the access token expired, it skips to step (G); otherwise, it makes another protected resource request.
+
+(F) Since the access token is invalid, the resource server returns an invalid token error.
+
+(G) The client requests a new access token by authenticating with the authorization server and presenting the refresh token. The client authentication requirements are based on the client type and on the authorization server policies.
+
+(H) The authorization server authenticates the client and validates the refresh token, and if valid, issues a new access token (and, optionally, a new refresh token).
+<h5><strong>1.3 OAuth2 Grant types</strong></h5>
+Grant types can be either of four types.
+<ol>
+ 	<li>Authorization code</li>
+ 	<li>Implicit</li>
+ 	<li>Resource owner password credentials</li>
+ 	<li>Client credentials</li>
+</ol>
+We are going to use <code>Resource owner password credentials</code> grant type for this example.
+
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08083917/oauth2-password-grant.png" alt="" width="484" height="273" class="aligncenter size-full wp-image-874" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08083917/oauth2-password-grant.png 484w, https://static.rayfocus.com/wp-content/uploads/2018/09/08083917/oauth2-password-grant-300x169.png 300w" sizes="(max-width: 484px) 100vw, 484px" />
+
+(A) The resource owner provides the client with its username and
+password.
+
+(B) The client requests an access token from the authorization
+server&#8217;s token endpoint by including the credentials received
+from the resource owner. When making the request, the client
+authenticates with the authorization server.
+
+(C) The authorization server authenticates the client and validates
+the resource owner credentials, and if valid, issues an access
+token.
+
+We will then use the access token in the request header when accessing the protected resource.
+<h4><strong>2. Developing the Authorization Server</strong></h4>
+Now that we have seen the OAuth2 concept, we will start developing our Authorization Server which issues access and refresh tokens to client upon successful authenticating the resource owner.
+
+Create a  simple Maven project and add the below dependencies in the <code>pom.xml</code>. Alternatively, you can use <a href="https://start.spring.io/" target="_blank" rel="noopener">spring initializr</a> to bootstrap the application at ease.
+
+<strong>2.1. Maven dependencies</strong>
+<pre class="crayon-plain-tag">&lt;parent&gt;
+		&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+		&lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+		&lt;version&gt;2.0.3.RELEASE&lt;/version&gt;
+		&lt;relativePath /&gt; &lt;!-- lookup parent from repository --&gt;
+          &lt;/parent&gt;
+           &lt;dependencies&gt;
+		&lt;!-- JDBC --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;!-- Security and OAuth2 --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.security.oauth&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-security-oauth2&lt;/artifactId&gt;
+			&lt;version&gt;2.3.3.RELEASE&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;!-- Web --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;!-- H2 --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.h2database&lt;/groupId&gt;
+			&lt;artifactId&gt;h2&lt;/artifactId&gt;
+			&lt;scope&gt;compile&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;!-- Test --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+			&lt;scope&gt;test&lt;/scope&gt;
+		&lt;/dependency&gt;
+	&lt;/dependencies&gt;</pre>
+<strong>2.2 Bootstrap class for Authorization server</strong>
+
+The following listing shows the code for bootstrap class.
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+
+@SpringBootApplication
+@EnableAuthorizationServer
+@EnableResourceServer
+public class Oauth2Application {
+
+	public static void main(String[] args) {
+		SpringApplication.run(Oauth2Application.class, args);
+	}
+}</pre>
+The annotation<code>@EnableAuthorizationServer</code> tells the Spring to expose REST endpoints which will be used in the Oauth2 process. Then with the annotation <code>@EnableResourceServer</code> , Spring will enable a security filter that authenticates the requests via an incoming OAuth2 token.
+
+<strong>2.3. REST Controller for exposing <code>oauth/user</code> endpoint</strong>
+
+Next, we will expose the endpoint <code>oauth/user</code> in the controller class. This endpoint will be used by the protected resources to validate the OAuth2 access token and to retrieve the roles associated with the user accessing the protected resource.
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class OAuth2Controller {
+
+	@RequestMapping(value = { "oauth/user" }, produces = "application/json")
+	public Map&lt;String, Object&gt; user(OAuth2Authentication user) {
+		Map&lt;String, Object&gt; userInfo = new HashMap&lt;&gt;();
+		userInfo.put("user", user.getUserAuthentication().getPrincipal());
+		userInfo.put("authorities", AuthorityUtils.authorityListToSet(user.getUserAuthentication().getAuthorities()));
+		return userInfo;
+	}
+}</pre>
+<strong>2.4 Register client applications with OAuth2 service</strong>
+
+In this step, we will configure the client applications which are authorized to use our OAuth2 service. We are going to use a JDBC based token store backed by embedded H2 database for this example. Below listing shows the code for <code>OAuth2Config.java</code>
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2.config;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+
+@Configuration
+public class OAuth2Config extends AuthorizationServerConfigurerAdapter {
+
+	@Autowired
+	private AuthenticationManager authenticationManager;
+
+	@Autowired
+	private UserDetailsService userDetailsService;
+
+	@Autowired
+	private DataSource dataSource;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private TokenStore tokenStore;
+	
+	@Override
+	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		endpoints.tokenStore(this.tokenStore)
+			.authenticationManager(authenticationManager)
+			.userDetailsService(userDetailsService);
+	}
+
+	@Override
+	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+		 clients.jdbc(dataSource)
+		 .passwordEncoder(passwordEncoder);
+	}
+	
+	@Bean
+	public DefaultTokenServices tokenServices() {
+		DefaultTokenServices tokenServices = new DefaultTokenServices();
+		tokenServices.setSupportRefreshToken(true);
+		tokenServices.setTokenStore(this.tokenStore);
+		tokenServices.setAccessTokenValiditySeconds(3600);
+		return tokenServices;
+	}
+	
+	@Bean
+	public TokenStore tokenStore() {
+		return new JdbcTokenStore(dataSource);
+	}
+}</pre>
+We have overridden two configure() methods from <code>AuthorizationServerConfigurerAdapter</code> class. The first one takes the parameter endpoints of type <code>AuthorizationServerEndpointsConfigurer</code>. In this method, we have declared the components <code>tokenStore</code>, <code>authenticationManager</code> and <code>userDetailsService</code> to be used by the Spring. Also, we have registered the <code>tokenStore</code> bean using the dataSource reference.
+
+The second configure method takes the parameter clients of type <code>ClientDetailsServiceConfigurer</code>. In this method, we are instructing the Spring to refer the client details from the H2 database by providing the necessary JDBC details. Spring will in turn query the entries in the table <code>OAUTH_CLIENT_DETAILS</code> to check whether the client application invoking the request is allowed to access the services protected by OAuth2 service.
+
+You may also note that we have provided the reference of <code>passwordEncoder</code>. This means we have encrypted and stored some client secrets in database. Spring will then use the passwordEncoder reference to resolve the encrypted values. We have also registered the <code>tokenServices</code> bean using the tokenStore reference and customized the access token validity to 3600 seconds.
+
+<strong>2.5 Configuring user details and roles</strong>
+
+In last step, we have configured the client application details and the secrets with OAuth2 service. Next, we need to set up the application user credentials and their roles. These details can be stored in-memory, JDBC data store or in LDAP server. For our example, we are going to use JDBC data store.
+
+Below listing shows the code for <code>WebSecurityConfig.java</code> which contains the configuration details.
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2.config;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@Configuration
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+	@Autowired
+	private DataSource dataSource;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
+	@Override
+	@Bean
+	public AuthenticationManager authenticationManagerBean() throws Exception {
+		return super.authenticationManagerBean();
+	}
+
+	@Override
+	@Bean
+	public UserDetailsService userDetailsServiceBean() throws Exception {
+		return super.userDetailsServiceBean();
+	}
+
+	@Bean
+	public BCryptPasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.jdbcAuthentication()
+			.dataSource(dataSource)
+			.usersByUsernameQuery("select username, password, enabled from USERS where username=?")
+			.authoritiesByUsernameQuery("select username, role from USER_ROLES where username=?")
+			.passwordEncoder(passwordEncoder);
+	}
+
+}</pre>
+We have registered two beans of type <code>AuthenticationManager</code> and <code>UserDetailsService</code>. Also to note, that we have used the default implementation provided by <code>WebSecurityConfigurerAdapter</code> class.
+
+Then, we have overridden configure() method which takes auth as parameter of type <code>AuthenticationManagerBuilder</code>. In this method, we have instructed the Spring to use JDBC dataSource for getting the details needed for authenticating the users. The user credentials will be referred from <code>USERS</code> table and their roles will be referred from <code>USER_ROLES</code> table.
+
+<strong>2.6 Schema details of OAuth2 tables for H2 database</strong>
+
+We have used the JDBC data store in our example. Hence we need the database schema in place to have the flow working properly. Below listing shows the schema.sql for H2 database.
+<pre class="crayon-plain-tag">--------------- H2 ---------------
+
+drop table if exists oauth_client_details;
+create table oauth_client_details (
+  client_id VARCHAR(255) PRIMARY KEY,
+  resource_ids VARCHAR(255),
+  client_secret VARCHAR(255),
+  scope VARCHAR(255),
+  authorized_grant_types VARCHAR(255),
+  web_server_redirect_uri VARCHAR(255),
+  authorities VARCHAR(255),
+  access_token_validity INTEGER,
+  refresh_token_validity INTEGER,
+  additional_information VARCHAR(4096),
+  autoapprove VARCHAR(255)
+);
+
+drop table if exists oauth_client_token;
+create table if not exists oauth_client_token (
+  token_id VARCHAR(255),
+  token LONGVARBINARY,
+  authentication_id VARCHAR(255) PRIMARY KEY,
+  user_name VARCHAR(255),
+  client_id VARCHAR(255)
+);
+
+drop table if exists oauth_access_token;
+create table if not exists oauth_access_token (
+  token_id VARCHAR(255),
+  token LONGVARBINARY,
+  authentication_id VARCHAR(255) PRIMARY KEY,
+  user_name VARCHAR(255),
+  client_id VARCHAR(255),
+  authentication LONGVARBINARY,
+  refresh_token VARCHAR(255)
+);
+
+drop table if exists oauth_refresh_token;
+create table if not exists oauth_refresh_token (
+  token_id VARCHAR(255),
+  token LONGVARBINARY,
+  authentication LONGVARBINARY
+);
+
+drop table if exists oauth_code;
+create table if not exists oauth_code (
+  code VARCHAR(255), authentication LONGVARBINARY
+);
+
+drop table if exists oauth_approvals;
+create table if not exists oauth_approvals (
+	userId VARCHAR(255),
+	clientId VARCHAR(255),
+	scope VARCHAR(255),
+	status VARCHAR(10),
+	expiresAt TIMESTAMP,
+	lastModifiedAt TIMESTAMP
+);
+
+drop table if exists ClientDetails;
+create table if not exists ClientDetails (
+  appId VARCHAR(255) PRIMARY KEY,
+  resourceIds VARCHAR(255),
+  appSecret VARCHAR(255),
+  scope VARCHAR(255),
+  grantTypes VARCHAR(255),
+  redirectUrl VARCHAR(255),
+  authorities VARCHAR(255),
+  access_token_validity INTEGER,
+  refresh_token_validity INTEGER,
+  additionalInformation VARCHAR(4096),
+  autoApproveScopes VARCHAR(255)
+);
+
+-- User details related tables
+drop table if exists users;
+create table if not exists users (
+  username VARCHAR(45) PRIMARY KEY,
+  password VARCHAR(100),
+  enabled BOOLEAN
+  );
+ 
+  drop table if exists user_roles;
+  create table if not exists user_roles (
+  user_role_id bigint auto_increment PRIMARY KEY,
+  username varchar(45),
+  role varchar(45),
+  FOREIGN KEY (username) REFERENCES users (username)
+  );</pre>
+The data which need to be populated is in the listing below:
+<pre class="crayon-plain-tag">-- OAuth Client Details
+INSERT INTO oauth_client_details
+	(client_id, 
+	client_secret, 
+	scope, 
+	authorized_grant_types,
+	web_server_redirect_uri, 
+	authorities, 
+	access_token_validity,
+	refresh_token_validity, 
+	additional_information, 
+	autoapprove)
+VALUES
+	('rayfocus-bookstore', 
+	'$2a$10$T1XME2CdpI1eGH0cmOwfjuCcDeu00Oec7ORfDWSPJcsYwW587ZH8a', 
+	'webclient,mobileclient',
+	'password,authorization_code,refresh_token', 
+	 null, 
+	 null, 
+	 3600, 
+	 3600, 
+	 null, 
+	 true);
+
+--Users	
+INSERT INTO users
+	(username,
+	password,
+	enabled)
+VALUES 
+	('bookstore.user',
+	'$2a$10$bffAVFOFkyQYCacKYrrW9OW2lLTTWjHjxc51kSnMEVfVGO2OgO6Rq', 
+	 true);
+INSERT INTO users
+	(username,
+	password,
+	enabled)
+VALUES 
+	('bookstore.admin',
+	'$2a$10$R6rgx0AcWDEIk2EJ2.NvueK6Gp3gBk66n58JEtfTctNjIJF7D6Wd2', 
+	 true);
+
+-- User Roles
+INSERT INTO user_roles 
+	(username, 
+	role)
+VALUES 
+	('bookstore.user', 
+	'ROLE_USER');
+INSERT INTO user_roles 
+	(username, 
+	role)
+VALUES 
+	('bookstore.admin', 
+	'ROLE_ADMIN');
+INSERT INTO user_roles 
+	(username, 
+	role)
+VALUES 
+	('bookstore.admin', 
+	'ROLE_USER');</pre>
+If the <code>schema.sql</code> and <code>data.sql</code> is in the classpath resource, then Spring will execute them when bootstrapping the application. You can notice that the credential values are encrypted and stored. For this example, to make the things simple I have used the <code>BCryptPasswordEncoder</code> to encrypt the values. Below listing shows the code for utility class <code>BCryptEncoderUtil.java</code> for your reference.
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2.util;
+
+import java.util.Arrays;
+
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+public class BCryptEncoderUtil {
+	
+	private static BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+	
+	public static void main(String[] args) {
+		
+		String[] toEncodePasswordStrings = {"userPassword","adminPassword","secretbook"};
+		
+		Arrays.asList(toEncodePasswordStrings).forEach(p -&gt; {
+			String encodedValue = passwordEncoder.encode(p);
+			System.out.println("Encoded value for {"+p +"} : "+encodedValue);
+		});
+	}
+}
+
+/**Result
+ * 
+Encoded value for {userPassword} : $2a$10$bffAVFOFkyQYCacKYrrW9OW2lLTTWjHjxc51kSnMEVfVGO2OgO6Rq
+Encoded value for {adminPassword} : $2a$10$R6rgx0AcWDEIk2EJ2.NvueK6Gp3gBk66n58JEtfTctNjIJF7D6Wd2
+Encoded value for {secretbook} : $2a$10$T1XME2CdpI1eGH0cmOwfjuCcDeu00Oec7ORfDWSPJcsYwW587ZH8a
+ * 
+ */</pre>
+<strong>2.7 Configuring the H2 console URL path</strong>
+
+For this example, we are using embedded H2 database. In order to access the H2 console, we have to do some configurations. First, we need the below entries to be added in <code>application.properties</code>
+<pre class="crayon-plain-tag">server.port=8088
+spring.h2.console.enabled=true
+spring.datasource.url=jdbc:h2:mem:bookstore</pre>
+We can further customize the URL path of the H2 console by programmatic configuration as shown in below listing.
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2.config;
+
+import java.sql.SQLException;
+
+import org.h2.server.web.WebServlet;
+import org.h2.tools.Server;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class H2Config {
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Bean
+	public ServletRegistrationBean h2servletRegistration() {
+	    ServletRegistrationBean registration = new ServletRegistrationBean(new WebServlet());
+	    registration.addUrlMappings("/h2-console/*");
+	    return registration;
+	}
+	
+	@Bean(initMethod = "start", destroyMethod = "stop")
+    public Server h2Server() throws SQLException {
+        return Server.createTcpServer("-tcp", "-tcpAllowOthers", "-tcpPort", "9092");
+    }
+}</pre>
+In the above listing we have registered a H2 tcp server bean on port 9092. The reason being we need to use common jdbc tokenStore for both OAuth and Resource servers. When configuring the resource server we will use this tcp port to connect to H2 database <code>spring.datasource.url=jdbc:h2:tcp://localhost:9092/mem:bookstore</code>
+
+<strong>2.7 Bypass the access check for H2 console</strong>
+
+The endpoints exposed by our OAuth2 service is protected and only the authenticated users can access it. However for this example, we can relax the rule for H2 console so that we can access it without any authentication.
+
+To do so, we need to use the <code>ResourceServerConfigurerAdapter</code> to configure the access rule. The below listing shows the code for <code>ResourceServerConfig.java</code>
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
+
+@Configuration
+public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
+
+	@Override
+	public void configure(HttpSecurity http) throws Exception {
+		http.authorizeRequests()
+			.antMatchers("/h2-console/**")
+			.permitAll()
+			.anyRequest()
+			.authenticated();
+		http.headers()
+			.frameOptions()
+			.disable();
+	}
+
+}</pre>
+<h4><strong>3. Develop the Resource Server</strong></h4>
+Okay! We have completed developing our Authorization server which issues access tokens for the authorized client applications. Now, we are ready to develop the resource server and to protect them using OAuth2.
+
+We will develop a book store API where users can get the details of book using ISBN, add new book to the store. The users with the admin role will additionally have access to delete a book using ISBN.
+<h5><strong>3.1 Maven dependencies</strong></h5>
+To start with, create a simple maven project and add the below dependencies in the <code>pom.xml</code>.
+<pre class="crayon-plain-tag">&lt;parent&gt;
+		&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+		&lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+		&lt;version&gt;2.0.3.RELEASE&lt;/version&gt;
+		&lt;relativePath /&gt; &lt;!-- lookup parent from repository --&gt;
+	&lt;/parent&gt;
+        &lt;dependencies&gt;
+		&lt;!-- Actuator --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;!-- JDBC --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;!-- Web --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;!-- Security and OAuth2 --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.security.oauth.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-security-oauth2-autoconfigure&lt;/artifactId&gt;
+			&lt;version&gt;2.0.3.RELEASE&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;!-- H2 --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.h2database&lt;/groupId&gt;
+			&lt;artifactId&gt;h2&lt;/artifactId&gt;
+			&lt;scope&gt;compile&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;!-- Test --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+			&lt;scope&gt;test&lt;/scope&gt;
+		&lt;/dependency&gt;
+          &lt;/dependencies&gt;</pre>
+<h5><strong>3.2 Bootstrap class for Resource server</strong></h5>
+Below listing shows the code for resource server.
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+
+@SpringBootApplication
+@EnableResourceServer
+public class BookstoreApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(BookstoreApplication.class, args);
+	}
+}</pre>
+The <code>@EnableResourceServer</code> annotation tells the Spring that it is protected resource and will enable a filter that intercepts all the requests to check whether a valid OAuth2 access token is present in the HTTP header. The validity of the access token is determined by making a call to the callback URL defined in the property <code>security.oauth2.resource.user-info-uri</code>. We will configure this shortly in the next sections.
+<h5><strong>3.3 Protecting the resource via user specific role</strong></h5>
+We can configure the access control rules using the <code>ResourceServerConfigurerAdapter</code> class in Spring. We need to extend this class and override the <code>configure()</code> method. The configure method will take parameter of type <code>HttpSecurity</code> class which will expose necessary methods to define our access rules. Below listing shows the code for ResourceServerConfig.java
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.config;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
+import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+
+@Configuration
+public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
+
+	@Autowired
+	private DataSource dataSource;
+	
+	@Autowired
+	private TokenStore tokenStore;
+	
+	@Override
+	public void configure(HttpSecurity http) throws Exception {
+		// allows all requests for h2-console
+		// allows requests with DELETE operation only to those having ADMIN role
+		// allows all other requests only for authenticated users
+		http.authorizeRequests()
+			.antMatchers("/h2-console/**")
+			.permitAll()
+			.antMatchers(HttpMethod.DELETE, "/book-store/admin/**")
+			.hasRole("ADMIN")
+			.anyRequest()
+			.authenticated();
+		http.headers()
+			.frameOptions()
+			.disable();
+	}
+
+	@Override
+	public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+		resources.tokenStore(this.tokenStore);
+	}
+	
+	@Bean
+	public TokenStore tokenStore() {
+		return new JdbcTokenStore(dataSource);
+	}
+}</pre>
+With the configuration in the above listing, we have restricted the Http DELETE operation only for users having <code>ADMIN</code> role. Also, if the URL contains <code>/book-store/admin/**</code> then it will be allowed only for ADMIN users. All other endpoints are allowed for authenticated users. For the purpose of this example, we have allowed H2 console URL to all users with out any authentication.
+
+Also, we have used the same <code>tokenStore</code> we have used for OAuth2 server. This is important since the resource server has to validate the access token available in the incoming request.
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.config;
+
+import org.h2.server.web.WebServlet;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class H2Config {
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Bean
+	public ServletRegistrationBean h2servletRegistration() {
+	    ServletRegistrationBean registration = new ServletRegistrationBean(new WebServlet());
+	    registration.addUrlMappings("/h2-console/*");
+	    return registration;
+	}
+}</pre>
+<h4><strong>3.4 Application.properties for Resource Server</strong></h4>
+The <code>application.properties</code> for Resource server is listed as below:
+<pre class="crayon-plain-tag">server.port=7077
+spring.h2.console.enabled=true
+spring.datasource.url=jdbc:h2:tcp://localhost:9092/mem:bookstore
+logging.level.org.springframework.web=ERROR
+logging.level.org.hibernate=ERROR
+security.oauth2.resource.user-info-uri=http://localhost:8088/oauth/user</pre>
+Spring will use the URI configured for property <code>security.oauth2.resource.user-info-uri</code> to get the details about the User accessing the protected resource from OAuth2 server.
+<h4><strong>3.5 Developing the other aspects of Resource Server</strong></h4>
+We have configured the security aspects of the resource server so far. We will now quickly complete the development of endpoints for accessing the bookstore database.
+
+<strong>3.5.1 Controller class</strong>
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.controller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.rayfocus.api.bookstore.http.HttpResponse;
+import com.rayfocus.api.bookstore.model.Book;
+import com.rayfocus.api.bookstore.service.BookStoreService;
+
+@RestController
+@RequestMapping("/book-store")
+public class BookStoreController {
+	
+	Logger logger = LoggerFactory.getLogger(BookStoreController.class);
+	
+	@Autowired
+	private BookStoreService bookStoreService;
+	
+	@GetMapping("/book")
+	public ResponseEntity&lt;HttpResponse&gt; getBookByISBN( @RequestParam(value="isbn", required=true) String isbn ) {
+		return bookStoreService.getBookByISBN(isbn);
+		
+	}
+	
+	@PostMapping("/book")
+	public ResponseEntity&lt;HttpResponse&gt; addNewBook(@RequestBody Book book){
+		return bookStoreService.addNewBook(book);
+	}
+	
+	@DeleteMapping("/admin/book")
+	public ResponseEntity&lt;HttpResponse&gt; deleteBook( @RequestParam(value="isbn", required=true) String isbn ){
+		return bookStoreService.deleteBookByISBN(isbn);
+	}
+}</pre>
+<strong>3.5.2 POJO class representing the Book</strong>
+
+This class uses Builder pattern to create new Book object.
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class Book {
+	
+	private Integer bookId;
+	
+	private String isbn;
+	
+	private String title;
+	
+	private String author;
+	
+	private String publisher;
+	
+	private Integer editionNumber;
+	
+	private Integer totalPages;
+	
+	public Book() {
+		// default constructor
+	}
+
+	public Book(@JsonProperty("isbn") String isbn, 
+			    @JsonProperty("title") String title, 
+			    @JsonProperty("author") String author, 
+			    @JsonProperty("publisher") String publisher, 
+			    @JsonProperty("editionNumber") Integer editionNumber, 
+			    @JsonProperty("totalPages") Integer totalPages) 
+	{
+		this.isbn = isbn;
+		this.title = title;
+		this.author = author;
+		this.publisher = publisher;
+		this.editionNumber = editionNumber;
+		this.totalPages = totalPages;
+	}
+	
+	public Book(Builder builder) {
+		this.bookId = builder.bookId;
+		this.isbn = builder.isbn;
+		this.title = builder.title;
+		this.author = builder.author;
+		this.publisher = builder.publisher;
+		this.editionNumber = builder.editionNumber;
+		this.totalPages = builder.totalPages;
+	}
+	
+	   // Book builder class
+		public static class Builder{
+			
+			private Integer bookId;
+			
+			private String isbn;
+			
+			private String title;
+			
+			private String author;
+			
+			private String publisher;
+			
+			private Integer editionNumber;
+			
+			private Integer totalPages;
+			
+			public Builder bookId(Integer val) {
+				bookId = val;
+				return this;
+			}
+			public Builder isbn(String val) {
+				isbn = val;
+				return this;
+			}
+			public Builder title(String val) {
+				title = val;
+				return this;
+			}
+			public Builder author(String val) {
+				author = val;
+				return this;
+			}
+			public Builder publisher(String val) {
+				publisher = val;
+				return this;
+			}
+			public Builder editionNumber(Integer val) {
+				editionNumber = val;
+				return this;
+			}
+			public Builder totalPages(Integer val) {
+				totalPages = val;
+				return this;
+			}
+			
+			public Book build() {
+				return new Book(this);
+			}
+		}
+
+	/** Getters */
+	
+	public Integer getBookId() {
+		return bookId;
+	}
+
+	public String getIsbn() {
+		return isbn;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public String getAuthor() {
+		return author;
+	}
+
+	public String getPublisher() {
+		return publisher;
+	}
+
+	public Integer getEditionNumber() {
+		return editionNumber;
+	}
+
+	public Integer getTotalPages() {
+		return totalPages;
+	}
+	
+}</pre>
+<strong>3.5.3 Service class for processing the incoming request </strong>
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.service;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+
+import com.rayfocus.api.bookstore.http.HttpResponse;
+import com.rayfocus.api.bookstore.model.Book;
+import com.rayfocus.api.bookstore.repository.BookStoreRepository;
+import com.rayfocus.api.bookstore.util.BookStoreUtil;
+
+@Component
+public class BookStoreService {
+	
+	Logger logger = LoggerFactory.getLogger(BookStoreService.class);
+	
+	@Autowired
+	private BookStoreRepository bookStoreRepository;
+	
+	/** Get the book from Book Store based on the input ISBN 
+	 * @param isbn ISBN value in String
+	 * @return ResponseEntity object
+	 * */
+	public ResponseEntity&lt;HttpResponse&gt; getBookByISBN(String isbn) {
+		ResponseEntity&lt;HttpResponse&gt; serviceResponse;
+		try {
+			Book book = bookStoreRepository.findBookByIsbn(isbn);
+			serviceResponse = buildServiceResponse(book, BookStoreUtil.GET_BOOK_SUCCESS);
+		}
+		catch(Exception e) {
+			serviceResponse = buildExceptionResponse(e);
+		}
+		return serviceResponse;
+	}
+	
+	/** Add new book to the Book Store
+	 * @param book Book object
+	 * @return ResponseEntity object
+	 * */
+	public ResponseEntity&lt;HttpResponse&gt; addNewBook(Book book) {
+		ResponseEntity&lt;HttpResponse&gt; serviceResponse = null;
+		try {
+			bookStoreRepository.addBook(book);
+			serviceResponse = buildServiceResponse(book, BookStoreUtil.ADD_BOOK_SUCCESS);
+		}
+		catch(Exception e) {
+			serviceResponse = buildExceptionResponse(e);
+		}
+		return serviceResponse;
+	}
+	
+	/** Delete the book from Book Store based on the input ISBN
+	 * This operation has to be allowed for users with Admin access  
+	 * @param isbn ISBN value in String
+	 * @return ResponseEntity object
+	 * */
+	public ResponseEntity&lt;HttpResponse&gt; deleteBookByISBN(String isbn){
+		ResponseEntity&lt;HttpResponse&gt; serviceResponse = null;
+		try {
+			bookStoreRepository.deleteBookByIsbn(isbn);
+			serviceResponse = buildServiceResponse(null, BookStoreUtil.DELETE_BOOK_SUCCESS);
+		}
+		catch(Exception e) {
+			serviceResponse = buildExceptionResponse(e);
+		}
+		return serviceResponse;
+	}
+	
+	/** Build service response for success scenarios 
+	 * @param book Book object
+	 * @return ResponseEntity object
+	 * */
+	private ResponseEntity&lt;HttpResponse&gt; buildServiceResponse(Book book, String respDesc){
+		HttpStatus statusCode = HttpStatus.OK;
+		String statusMessage = "SUCCESS";
+		if(book == null) {
+			statusCode = HttpStatus.NO_CONTENT;
+			
+		}
+		return new HttpResponse.Builder().statusCode(statusCode)
+				.statusMessage(statusMessage)
+				.responseData(book)
+				.responseDesc(respDesc)
+				.build();
+	}
+	
+	/** Build service response for exception scenarios 
+	 * @param excp Exception object
+	 * @return ResponseEntity object
+	 * */
+	private ResponseEntity&lt;HttpResponse&gt; buildExceptionResponse(Exception excp){
+		logger.error("Exception while accessing BookStore", excp.getMessage());
+		if( excp instanceof EmptyResultDataAccessException) {
+			return new HttpResponse.Builder().statusCode(HttpStatus.OK)
+					.statusMessage("WARNING")
+					.responseData(null)
+					.responseDesc(BookStoreUtil.NO_BOOK_FOUND_FOR_ISBN)
+					.build();
+		}
+		return new HttpResponse.Builder().statusCode(HttpStatus.INTERNAL_SERVER_ERROR)
+				.statusMessage("ERROR")
+				.responseData(null)
+				.responseDesc(BookStoreUtil.DB_ERROR)
+				.build();
+	}
+}</pre>
+Utility class as in below listing.
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.util;
+
+public class BookStoreUtil {
+	public static final String GET_BOOK_SUCCESS = "GET Book Successful";
+	public static final String DB_ERROR = "Database access error";
+	public static final String NO_BOOK_FOUND_FOR_ISBN = "No book found for the requested ISBN";
+	public static final String ADD_BOOK_SUCCESS = "ADD New Book Successful";
+	public static final String DELETE_BOOK_SUCCESS = "DELETE Book Successful";
+}</pre>
+<strong>3.5.4 Repository classes for performing database operations</strong>
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.repository;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import com.rayfocus.api.bookstore.model.Book;
+
+@Repository
+public class BookStoreRepository {
+
+	Logger logger = LoggerFactory.getLogger(BookStoreRepository.class);
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+
+	public Book findBookByIsbn(String isbn) {
+		Book book = null;
+		try {
+			book = jdbcTemplate.queryForObject("SELECT * FROM BOOKS WHERE isbn=?", new Object[] { isbn },
+					new BookStoreRowMapper());
+		}
+		catch(DataAccessException dae) {
+			logger.info("Data Access Exception while retrieving the book from bookstore.",dae);
+			throw dae;
+		}
+		catch(Exception e) {
+			logger.info("Unknown Exception while retrieving the book from bookstore.",e);
+			throw e;
+		}
+		return book;
+	}
+	
+	public int addBook(Book book) {
+		String addBookSql = "INSERT INTO BOOKS"
+							+ "("
+							+ "book_id,"
+							+ "isbn,"
+							+ "title,"
+							+ "author,"
+							+ "publisher,"
+							+ "edition_number,"
+							+ "total_pages"
+							+ ")"
+							+ " VALUES (BOOK_ID_SEQ.nextVal, ?, ?, ?, ?, ?, ?)";
+		Object[] params = new Object[]{
+									book.getIsbn(),
+									book.getTitle(),
+									book.getAuthor(),
+									book.getPublisher(),
+									book.getEditionNumber(),
+									book.getTotalPages()
+									};
+		int rowCount = 0;
+		try {
+			rowCount = jdbcTemplate.update(addBookSql, params);
+		}
+		catch(DataAccessException dae) {
+			logger.info("Data Access Exception while adding the book to bookstore.",dae);
+			throw dae;
+		}
+		catch(Exception e) {
+			logger.info("Unknown Exception while adding the book to bookstore.",e);
+			throw e;
+		}
+		return rowCount;
+	}
+	
+	public int deleteBookByIsbn(String isbn) {
+		int rowCount = 0;
+		try {
+			rowCount = jdbcTemplate.update("DELETE FROM BOOKS WHERE isbn=?", new Object[] {isbn});
+		}
+		catch(DataAccessException dae) {
+			logger.info("Data Access Exception while deleting the book from bookstore.",dae);
+			throw dae;
+		}
+		catch(Exception e) {
+			logger.info("Unknown Exception while deleting the book from bookstore.",e);
+			throw e;
+		}
+		return rowCount;
+	}
+}</pre>
+Implementation of Row mapper class is as below:
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.repository;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.springframework.jdbc.core.RowMapper;
+
+import com.rayfocus.api.bookstore.model.Book;
+
+public class BookStoreRowMapper implements RowMapper&lt;Book&gt;{
+
+	@Override
+	public Book mapRow(ResultSet rSet, int rowNum) throws SQLException {
+		Book book = new Book.Builder().bookId(rSet.getInt("BOOK_ID"))
+									.isbn(rSet.getString("ISBN"))
+									.title(rSet.getString("TITLE"))
+									.author(rSet.getString("AUTHOR"))
+									.publisher(rSet.getString("AUTHOR"))
+									.editionNumber(rSet.getInt("EDITION_NUMBER"))
+									.totalPages(rSet.getInt("TOTAL_PAGES"))
+									.build();
+		return book;
+	}
+}</pre>
+<strong>3.5.5 And the Response builder class</strong>
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.http;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+public class HttpResponse {
+	
+	private final HttpStatus statusCode;
+	private final String statusMessage;
+	private final String responseDesc;
+	private final Object responseData;
+
+	private HttpResponse(Builder builder) {
+		this.statusCode = builder.statusCode;
+		this.statusMessage = builder.statusMessage;
+		this.responseDesc = builder.responseDesc;
+		this.responseData = builder.responseData;
+	}
+	
+	// Response builder class
+	public static class Builder{
+		private HttpStatus statusCode = HttpStatus.OK;
+		private String statusMessage = "SUCCESS";
+		private String responseDesc = "Request processed successfully";
+		private Object responseData = new Object();
+		
+		public Builder statusCode(HttpStatus val) {
+			statusCode = val;
+			return this;
+		}
+		public Builder statusMessage(String val) {
+			statusMessage = val;
+			return this;
+		}
+		public Builder responseDesc(String val) {
+			responseDesc = val;
+			return this;
+		}
+		public Builder responseData(Object val) {
+			responseData = val;
+			return this;
+		}
+		
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		public ResponseEntity&lt;HttpResponse&gt; build() {
+			return new ResponseEntity(new HttpResponse(this), statusCode);
+		}
+	}
+
+	/** Getters */
+	public HttpStatus getStatusCode() {
+		return statusCode;
+	}
+
+	public String getStatusMessage() {
+		return statusMessage;
+	}
+
+	public String getResponseDesc() {
+		return responseDesc;
+	}
+
+	public Object getResponseData() {
+		return responseData;
+	}
+}</pre>
+<h4><strong>4. Test the OAuth2 and Resource Server</strong></h4>
+Okay! We have completed developing our OAuth2 and Resource Server. We will test them to see how it works. Let&#8217;s make use of Postman client for this purpose.
+
+<strong>4.1 Get the OAuth2 access token</strong>
+
+For this we have to make a request to <code>http://localhost:8088/oauth/token</code>. The port number is 8088 since we have configured it in the OAuth2 server&#8217;s application.properties file.
+
+First, we are providing the user credentials in the Authorization tab as shown in the below listing.
+
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08085649/get-oauth2-token_1.png" alt="" width="951" height="359" class="aligncenter size-full wp-image-875" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08085649/get-oauth2-token_1.png 951w, https://static.rayfocus.com/wp-content/uploads/2018/09/08085649/get-oauth2-token_1-300x113.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08085649/get-oauth2-token_1-768x290.png 768w" sizes="(max-width: 951px) 100vw, 951px" />
+
+Next, we need to pass additional information such as grant type, scope, username and password as HTTP form parameters.
+<ul>
+ 	<li>grant_type &#8211; Grant type is password since we are using resource owner password credentials grant for this example.</li>
+ 	<li>scope &#8211; Scope is either webclient or mobileclient. Since we have configured these two in the <code>data.sql</code> available in the OAuth2 server&#8217;s resources folder.</li>
+ 	<li>username &#8211; Name of the user logging in.</li>
+ 	<li>password &#8211; password of the user logging in.</li>
+</ul>
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08090440/get-oauth2-token_2.png" alt="" width="950" height="327" class="aligncenter size-full wp-image-876" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08090440/get-oauth2-token_2.png 950w, https://static.rayfocus.com/wp-content/uploads/2018/09/08090440/get-oauth2-token_2-300x103.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08090440/get-oauth2-token_2-768x264.png 768w" sizes="(max-width: 950px) 100vw, 950px" />
+
+Now we can send the request to OAuth2 server. The response should be as shown in the below listing and it contains below attributes.
+<ul>
+ 	<li>access_token &#8211; The Oauth2 token that has to be provided with the each service call to the protected resource.</li>
+ 	<li>token_type &#8211; The type of the OAuth2 token being provided.</li>
+ 	<li>refresh_token &#8211; The refresh token which can be presented to OAuth2 server to reissue a access token after it has been expired.</li>
+ 	<li>expires_in &#8211; The number of seconds for which the access token is valid. We have configured it as 3600 for this example.</li>
+ 	<li>scope &#8211; The scope that this OAuth2 token is valid for.</li>
+</ul>
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08102333/get-oauth2-token-response1.png" alt="" width="841" height="196" class="aligncenter size-full wp-image-881" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08102333/get-oauth2-token-response1.png 841w, https://static.rayfocus.com/wp-content/uploads/2018/09/08102333/get-oauth2-token-response1-300x70.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08102333/get-oauth2-token-response1-768x179.png 768w" sizes="(max-width: 841px) 100vw, 841px" />
+
+&nbsp;
+
+<strong>4.2 Access the protected resource</strong>
+
+We have received the access token from OAuth2 server. Now we can access the protected resource by passing the token in the request header with key value <code>Authorization</code>. We have configured the port for resource server as 7077. So we can now access the book from book-store API with the URL <code>http://localhost:7077/book-store/book?isbn=978-3-598-21506-3</code>
+<ul>
+ 	<li>Authorization &#8211; The header contains the value of the format <code>Bearer &lt;access_token_from_oauth2_server&gt;</code>.</li>
+</ul>
+&nbsp;
+
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08102432/get-book-request1.png" alt="" width="947" height="246" class="aligncenter size-full wp-image-882" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08102432/get-book-request1.png 947w, https://static.rayfocus.com/wp-content/uploads/2018/09/08102432/get-book-request1-300x78.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08102432/get-book-request1-768x200.png 768w" sizes="(max-width: 947px) 100vw, 947px" />
+
+The response from API call is as shown in the below listing.
+
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08101058/get-book-response.png" alt="" width="838" height="299" class="aligncenter size-full wp-image-880" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08101058/get-book-response.png 838w, https://static.rayfocus.com/wp-content/uploads/2018/09/08101058/get-book-response-300x107.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08101058/get-book-response-768x274.png 768w" sizes="(max-width: 838px) 100vw, 838px" />
+
+<strong>4.3 Testing the role specific access</strong>
+
+To recollect, we have configured the Http DELETE operation only for Admin users. Let&#8217;s test this out.
+
+Access the Delete Book operation as <code>bookstore.user</code>. This user doesn&#8217;t have Admin role.
+
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08102551/delete-book-invalid-access.png" alt="" width="942" height="372" class="aligncenter size-full wp-image-883" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08102551/delete-book-invalid-access.png 942w, https://static.rayfocus.com/wp-content/uploads/2018/09/08102551/delete-book-invalid-access-300x118.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08102551/delete-book-invalid-access-768x303.png 768w" sizes="(max-width: 942px) 100vw, 942px" />
+
+Now, access the DELETE book API call as Admin user <code>bookstore.admin</code>. For this you need another access token from OAuth2 server by providing the username and password of Admin user. Refer the section 4.1 where we have done the same for <code>bookstore.user</code>.
+
+After getting the access token for Admin credentials, provide them in the request header for DELETE operation. The response should be successful now.
+
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08103218/delete-book-admin-access.png" alt="" width="947" height="364" class="aligncenter size-full wp-image-884" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08103218/delete-book-admin-access.png 947w, https://static.rayfocus.com/wp-content/uploads/2018/09/08103218/delete-book-admin-access-300x115.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08103218/delete-book-admin-access-768x295.png 768w" sizes="(max-width: 947px) 100vw, 947px" />
+
+The access token provided in this case is for Admin user. The response status is <code>204 No Content</code> since we have configured our API to return the No Content for DELETE operation.
+<h4><strong>Conclusion</strong></h4>
+Great! We have completed our development and testing of OAuth2 and Resource server.
+<ul>
+ 	<li>We have developed our OAuth2 server and configured it to provide access tokens.</li>
+ 	<li>Then we have protected our Resource server using OAuth2.</li>
+ 	<li>The resource server is configured to check the validity of the access token by calling the endpoint exposed by OAuth2 server(/oauth/user).</li>
+ 	<li>Also, we have configured the role specific access for the specific operations like Http DELETE.</li>
+</ul>
+Hope this post have helped you to understand the OAuth2 concepts by leveraging the Spring security libraries. The complete source code of this example is available in the downloads section for reference.
+
+If you have any questions, please share it in the comments section.
+<h4><strong>Downloads</strong></h4>
+<a href="http://downloads.rayfocus.com/code-samples/SpringSecurity_Using_OAuth2_Example.zip" target="_blank" rel="noopener">SpringSecurity_Using_OAuth2_Example.zip</a>
+<h4><strong>References</strong></h4>
+<ol>
+ 	<li><a href="https://www.manning.com/books/spring-microservices-in-action" target="_blank" rel="noopener">Spring Microservices in Action &#8211; chapter 7</a></li>
+ 	<li><a href="https://tools.ietf.org/html/rfc6749" target="_blank" rel="noopener">The OAuth 2.0 Authorization Framework &#8211; rfc6749</a></li>
+</ol>
+
+<ul></ul>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/secure-your-spring-rest-api-using-oauth2/">Secure your Spring REST API using OAuth2</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/secure-your-spring-rest-api-using-oauth2/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Integrate Spring Boot With Amazon DynamoDB</title>
+		<link>https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/</link>
+					<comments>https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Mon, 11 Jun 2018 19:39:15 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[Spring framework]]></category>
+		<category><![CDATA[Amazon DynamoDB]]></category>
+		<category><![CDATA[Spring Boot]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=770</guid>
+
+					<description><![CDATA[<p>In this post, let&#8217;s see how to integrate Spring Boot with Amazon DynamoDB. I have been exploring the option of creating the REST API using Spring Boot backed by DynamoDB. I will share the information that I have learned during the development process with a simple project named Tasklet API.<a class="moretag" href="https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/">Integrate Spring Boot With Amazon DynamoDB</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, let&#8217;s see how to integrate Spring Boot with Amazon DynamoDB. I have been exploring the option of creating the REST API using Spring Boot backed by DynamoDB. I will share the information that I have learned during the development process with a simple project named Tasklet API.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-775" src="https://static.rayfocus.com/wp-content/uploads/2018/05/31181051/springboot-dynamodb.png" alt="" width="494" height="222" srcset="https://static.rayfocus.com/wp-content/uploads/2018/05/31181051/springboot-dynamodb.png 494w, https://static.rayfocus.com/wp-content/uploads/2018/05/31181051/springboot-dynamodb-300x135.png 300w" sizes="(max-width: 494px) 100vw, 494px" /></p>
+<p>Let&#8217;s build our project on top of the example we have used in the <a href="https://blogs.rayfocus.com/spring-boot-hello-world-example/" target="_blank" rel="noopener">spring boot starter post</a>. The complete project we are going to develop in this post can be downloaded from <a href="http://downloads.rayfocus.com/code-samples/spring-boot-with-dynamodb.zip" target="_blank" rel="noopener">here</a> or from the downloads section available at the end of this post.</p>
+<h4>Prerequisite tools</h4>
+<ol>
+<li style="list-style-type: none;">
+<ol>
+<li>Java 1.8 or higher</li>
+<li>Eclipse IDE</li>
+<li>Maven</li>
+</ol>
+</li>
+</ol>
+<h4>DynamoDB library for Java</h4>
+<p>To make the integration between Spring based applications and DynamoDB easier, we can make use of the community module <a href="https://github.com/derjust/spring-data-dynamodb" target="_blank" rel="noopener">Spring Data DynamoDB</a>. I assume that you have imported the <a href="http://downloads.rayfocus.com/code-samples/rayfocus-api.tasklet.zip" target="_blank" rel="noopener">project</a> used in the spring boot starter post.</p>
+<p>Add the below dependency for <code>spring-data-dynamodb</code> in pom.xml</p><pre class="crayon-plain-tag">&lt;dependency&gt;
+	&lt;groupId&gt;com.github.derjust&lt;/groupId&gt;
+	&lt;artifactId&gt;spring-data-dynamodb&lt;/artifactId&gt;
+	&lt;version&gt;5.0.2&lt;/version&gt;
+&lt;/dependency&gt;</pre><p>Using the Tasklet API, users should be able to add, read, edit and delete the <code>Tasks.</code>  As next step we need to create the data model class which represent the Task itself.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.model;
+
+import java.util.List;
+
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@DynamoDBTable(tableName = "Tasks")
+public class Task {
+
+	private String taskId;
+	private String taskName;
+	private String taskStatus;
+	private List&lt;SubTask&gt; taskContent;
+	private String userId;
+	private String createdOn;
+
+	@JsonCreator
+	public Task(@JsonProperty("task_id") String taskId, @JsonProperty("task_name") String taskName,
+			@JsonProperty("task_status") String taskStatus, @JsonProperty("task_content") List&lt;SubTask&gt; taskContent,
+			@JsonProperty("user_id") String userId, @JsonProperty("created_on") String createdOn) {
+		this.taskId = taskId;
+		this.taskName = taskName;
+		this.taskStatus = taskStatus;
+		this.taskContent = taskContent;
+		this.userId = userId;
+		this.createdOn = createdOn;
+	}
+
+	public Task() 
+	{
+		// default constructor
+	}
+
+	/** Getters */
+	@DynamoDBHashKey(attributeName = "task_id")
+	public String getTaskId() {
+		return taskId;
+	}
+
+	@DynamoDBAttribute(attributeName = "task_name")
+	public String getTaskName() {
+		return taskName;
+	}
+	
+	@DynamoDBAttribute(attributeName = "task_status")
+	public String getTaskStatus() {
+		return taskStatus;
+	}
+
+	@DynamoDBAttribute(attributeName = "task_content")
+	public List&lt;SubTask&gt; getTaskContent() {
+		return taskContent;
+	}
+
+	@DynamoDBAttribute(attributeName = "user_id")
+	public String getUserId() {
+		return userId;
+	}
+
+	@DynamoDBAttribute(attributeName = "created_on")
+	public String getCreatedOn() {
+		return createdOn;
+	}
+
+	/** Setters */
+	public void setTaskId(String taskId) {
+		this.taskId = taskId;
+	}
+
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
+	}
+
+	public void setTaskStatus(String taskStatus) {
+		this.taskStatus = taskStatus;
+	}
+
+	public void setTaskContent(List&lt;SubTask&gt; taskContent) {
+		this.taskContent = taskContent;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public void setCreatedOn(String createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	
+	@Override
+	public String toString() {
+		return "Task [taskId=" + taskId + ", taskName=" + taskName + ", taskStatus=" + taskStatus + ", taskContent="
+				+ taskContent + ", userId=" + userId + ", createdOn=" + createdOn + "]";
+	}
+
+}</pre><p>We have to represent the sub tasks as well for which another Model class <code>SubTask</code> to be defined.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.model;
+
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBDocument;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@DynamoDBDocument
+public class SubTask {
+	
+	private String taskItem;
+	private String status;
+
+	@JsonCreator
+	public SubTask(@JsonProperty("task_item") String taskItem, 
+			       @JsonProperty("status") String status) {
+		this.taskItem = taskItem;
+		this.status = status;
+	}
+
+	public SubTask() 
+	{
+		// default constructor
+	}
+	
+	/** Getters */
+	@DynamoDBAttribute(attributeName = "task_item")
+	public String getTaskItem() {
+		return taskItem;
+	}
+
+	@DynamoDBAttribute(attributeName = "status")
+	public String getStatus() {
+		return status;
+	}
+
+	/** Setters */
+	public void setTaskItem(String taskItem) {
+		this.taskItem = taskItem;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+}</pre><p><strong>DynamoDB Config</strong></p>
+<p>To access the DynamoDB from Spring Boot application, we need to create and register Spring beans for DynamoDB client.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.db.config;
+
+import org.socialsignin.spring.data.dynamodb.repository.config.EnableDynamoDBRepositories;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+
+@Configuration
+@EnableDynamoDBRepositories(basePackages = "com.rayfocus.api.tasklet.db.repository")
+public class DynamoDBConfig {
+
+	@Value("${amazon.aws.accesskey}")
+	private String awsAccessKey;
+
+	@Value("${amazon.aws.secretkey}")
+	private String awsSecretKey;
+
+	@Bean
+	public AmazonDynamoDB amazonDynamoDB(AWSCredentials awsCredentials) {
+		@SuppressWarnings("deprecation")
+		AmazonDynamoDB amazonDynamoDB = new AmazonDynamoDBClient(awsCredentials);
+		return amazonDynamoDB;
+	}
+
+	@Bean
+	public AWSCredentials awsCredentials() {
+		return new BasicAWSCredentials(awsAccessKey, awsSecretKey);
+	}
+
+}</pre><p>To complete the configuration, add the entries for AWS access key and secret key in the <code>application.properties</code>.</p><pre class="crayon-plain-tag">amazon.aws.accesskey=[AWS_ACCESS_KEY]
+amazon.aws.secretkey=[AWS_SECRET_KEY]</pre><p><strong>Note:</strong>  When deploying the application into Amazon EC2 instance or Amazon ECS, we can make use of the IAM roles to access the other AWS services like DynamoDB or S3, instead of storing credentials in properties file. At this point of time, to develop this project let&#8217;s make use of credentials.</p>
+<h4>IAM Policy for accessing DynamoDB</h4>
+<p>For this project, I have created a IAM user named TaskletAPI and attached the below custom IAM policy. I have restricted the IAM policy to have access only for DynamoDB operations on a specific table named <code>Tasks</code>.</p><pre class="crayon-plain-tag">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:UpdateGlobalTable",
+                "dynamodb:UpdateItem",
+                "dynamodb:CreateTable",
+                "dynamodb:DescribeTable",
+                "dynamodb:DescribeGlobalTable",
+                "dynamodb:GetItem",
+                "dynamodb:CreateGlobalTable",
+                "dynamodb:UpdateTable"
+            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:&lt;aws_account_id&gt;:table/Tasks"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": "dynamodb:ListTables",
+            "Resource": "*"
+        }
+    ]
+}</pre><p></p>
+<h4>Repository interface for CRUD operations</h4>
+<p>Since we have <code>spring-data-dynamodb</code> in our classpath, we can make use of CRUD repository for our database operations. With <code>@EnableScan<code></code></code> annotation, the repository implementation will be registered as a component in the Spring container.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.db.repository;
+
+import java.util.List;
+
+import org.socialsignin.spring.data.dynamodb.repository.EnableScan;
+import org.springframework.data.repository.CrudRepository;
+
+import com.rayfocus.api.tasklet.model.Task;
+
+@EnableScan
+public interface TaskRepository extends CrudRepository&lt;Task, String&gt; {
+	List&lt;Task&gt; findByUserId(String userId);
+}</pre><p></p>
+<h4>REST controller</h4>
+<p>Okay. Now we are all set to write our controller class for handling the incoming requests. Let&#8217;s write handler methods for writing/fetching user task to/from DynamoDB. Our controller class looks as shown in below listing.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.rayfocus.api.tasklet.http.HttpResponse;
+import com.rayfocus.api.tasklet.model.Task;
+import com.rayfocus.api.tasklet.service.TaskletService;
+
+@RestController
+@RequestMapping("/tasklet")
+public class TaskletController {
+
+	@Autowired
+	TaskletService taskletService;
+
+	@PostMapping("/task")
+	public ResponseEntity&lt;HttpResponse&gt; saveTask(@RequestBody Task newTask,
+			@RequestParam(value = "version", required = false) String apiVersion) {
+		return taskletService.saveTask(newTask);
+	}
+
+	@GetMapping("/task/{userid}")
+	public ResponseEntity&lt;HttpResponse&gt; getTasksByUserId(@PathVariable("userid") String userId,
+			@RequestParam(value = "version", required = false) String apiVersion) {
+		return taskletService.getTaskByUserId(userId);
+	}
+}</pre><p><code>@PostMapping</code> annotation indicates that the HTTP POST request with URI <code>http://&lt;domain&gt;:&lt;port&gt;/tasklet/task</code> will be handled and the data will be saved to database. The call is then delegated to service class from the controller.</p>
+<p>Similarly, <code>@GetMapping</code> annotation on method <code>getTaskByUserId</code> indicates that HTTP GET request with URI <code>http://&lt;domain&gt;:&lt;port&gt;/tasklet/task/{userid}</code>will be handled and the data will be returned after fetching from database.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+
+import com.rayfocus.api.tasklet.db.repository.TaskRepository;
+import com.rayfocus.api.tasklet.http.HttpResponse;
+import com.rayfocus.api.tasklet.model.Task;
+import com.rayfocus.api.tasklet.model.TaskMetaData;
+
+@Component
+public class TaskletService {
+
+	@Autowired
+	TaskRepository taskRepository;
+
+	public ResponseEntity&lt;HttpResponse&gt; saveTask(Task newTask) {
+		Task savedTask = taskRepository.save(newTask);
+
+		TaskMetaData taskMetaData = null;
+		if (savedTask == null) {
+			taskMetaData = new TaskMetaData(newTask.getTaskId(), newTask.getTaskName());
+			return new ResponseEntity&lt;HttpResponse&gt;(
+					new HttpResponse("500", "ERROR", "Task creation failed", taskMetaData),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		taskMetaData = new TaskMetaData(savedTask.getTaskId(), savedTask.getTaskName());
+		return new ResponseEntity&lt;HttpResponse&gt;(
+				new HttpResponse("200", "SUCCESS", "Task created successfully", taskMetaData), HttpStatus.OK);
+	}
+	
+	public ResponseEntity&lt;HttpResponse&gt; getTaskByUserId(String userId){
+		List&lt;Task&gt; tasks = taskRepository.findByUserId(userId);
+		if (tasks == null) {
+			return new ResponseEntity&lt;HttpResponse&gt;(
+					new HttpResponse("500", "ERROR", "Error fetching task details", tasks),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity&lt;HttpResponse&gt;(new HttpResponse("200", "SUCCESS", "Task Details", tasks),
+				HttpStatus.OK);
+	}
+}</pre><p>HttpResponse and TaskMetaData are helper classes to form the ResponseEntity.</p>
+<p><strong>HttpResponse.java</strong></p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.http;
+
+public class HttpResponse {
+	private final String statusCode;
+	private final String statusMessage;
+	private final String responseDesc;
+
+	private final Object responseData;
+
+	public HttpResponse(String statusCode, String statusMessage, String responseDesc, Object responseData) {
+		this.statusCode = statusCode;
+		this.statusMessage = statusMessage;
+		this.responseDesc = responseDesc;
+		this.responseData = responseData;
+	}
+
+	public String getStatusCode() {
+		return statusCode;
+	}
+
+	public String getStatusMessage() {
+		return statusMessage;
+	}
+
+	public String getResponseDesc() {
+		return responseDesc;
+	}
+
+	public Object getResponseData() {
+		return responseData;
+	}
+
+}</pre><p><strong>TaskMetaData.java</strong></p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.model;
+
+public class TaskMetaData {
+	private final String taskId;
+	private final String taskName;
+
+	public TaskMetaData(String taskId, String taskName) {
+		this.taskId = taskId;
+		this.taskName = taskName;
+	}
+
+	public String getTaskId() {
+		return taskId;
+	}
+
+	public String getTaskName() {
+		return taskName;
+	}
+
+}</pre><p></p>
+<h4>Managing API versions</h4>
+<p>If we need to manage the API versions going further, we can do that using Query params in the request URI. For example, if we have this application running on port 8080, then issue the request as below:</p>
+<p><strong>with query param</strong></p>
+<p><code>http://localhost:8080/tasklet/task?version=2</code></p>
+<p>In this case, we can route to the appropriate service method for processing the request.</p>
+<p><strong>without query param</strong></p>
+<p><code>http://localhost:8080/tasklet/task</code></p>
+<p>If we define the query param as optional, then by default we can route to the latest api version service method if the <code>version</code> param is not present in request.</p>
+<h4>Unit testing</h4>
+<p>We have completed developing our <code>Tasklet</code> service. Let&#8217;s write some unit tests to ensure that the application is working as expected.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet;
+
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import com.amazonaws.services.dynamodbv2.util.TableUtils;
+import com.amazonaws.services.dynamodbv2.util.TableUtils.TableNeverTransitionedToStateException;
+import com.rayfocus.api.tasklet.http.HttpResponse;
+import com.rayfocus.api.tasklet.model.SubTask;
+import com.rayfocus.api.tasklet.model.Task;
+import com.rayfocus.api.tasklet.model.TaskMetaData;
+import com.rayfocus.api.tasklet.service.TaskletService;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest
+public final class TaskletServiceTests {
+
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+
+	@Autowired
+	private AmazonDynamoDB amazonDynamoDB;
+
+	@Autowired
+	private TaskletService taskletService;
+	
+	private static boolean taskTableExist = false;
+
+	@Before
+	public void setUp() throws TableNeverTransitionedToStateException, InterruptedException {
+		if( ! taskTableExist ) {
+			if(TableUtils.createTableIfNotExists(amazonDynamoDB, new DynamoDBMapper(amazonDynamoDB).generateCreateTableRequest(Task.class)
+					.withProvisionedThroughput(new ProvisionedThroughput(2L, 2L)))) {
+				logger.info("~~~ Waiting for Tasks table to be active ~~~");
+				TableUtils.waitUntilActive(amazonDynamoDB, "Tasks");
+			}
+			else {
+				logger.info("~~~ Tasks table already exists ~~~");
+			}
+			taskTableExist = true;
+		}
+	}
+
+	@Test
+	public void testSaveTask() {
+		logger.info("Saving the taskable items");
+
+		List&lt;SubTask&gt; subTasks = new ArrayList&lt;SubTask&gt;(
+				Arrays.asList(new SubTask("Vegetables", "INCOMPLETE"), new SubTask("Fruits", "COMPLETE")));
+		Task newTask = new Task("456", "Buy Groceries", "Active", subTasks, "users@taskletAPI.com", "11-JUN-2018");
+
+		ResponseEntity&lt;HttpResponse&gt; response = taskletService.saveTask(newTask);
+
+		assertTrue("Task saved successfully.", response.getBody().getStatusCode() == "200");
+		assertTrue("Task Id matches", ((TaskMetaData) response.getBody().getResponseData()).getTaskId() == "456");
+		logger.info("Save task done");
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testGetTaskByUserId() {
+		logger.info("Fetching the task items");
+
+		ResponseEntity&lt;HttpResponse&gt; response = taskletService.getTaskByUserId("users@taskletAPI.com");
+
+		assertTrue("Task fetched successfully.", response.getBody().getStatusCode() == "200");
+		assertTrue("User Id matches", ((List&lt;Task&gt;) response.getBody().getResponseData()).get(0).getUserId()
+				.equals("users@taskletAPI.com"));
+		logger.info("Get task done");
+	}
+}</pre><p><strong>Testing with Postman API client</strong></p>
+<p>Before testing with Postman client, make sure the application is up and running. It should run on the default port 8080 since we haven&#8217;t explicitly configured the server&#8217;s port.</p>
+<p>Launch the Postman client and make a HTTP POST request to <code>http://localhost:8080/tasklet/task?version=1</code> .  Input the below sample request.</p><pre class="crayon-plain-tag">{
+  "created_on": "11-JUN-2018",
+  "task_content": [
+    {
+      "status": "INCOMPLETE",
+      "task_item": "Vegetables"
+    },
+    {
+      "status": "COMPLETE",
+      "task_item": "Cakes &amp; Fruits"
+    },
+    {
+      "status": "COMPLETE",
+      "task_item": "Get Rice"
+    }
+  ],
+  "task_id": "123",
+  "task_name": "Buy Groceries",
+  "task_status": "Active",
+  "user_id": "users@taskletAPI.com"
+}</pre><p>You should see the response similar to the one shown in the below listing.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-795" src="https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp.png" alt="" width="1090" height="698" srcset="https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp.png 1090w, https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp-300x192.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp-768x492.png 768w, https://static.rayfocus.com/wp-content/uploads/2018/06/11124720/tasklet-sample-req-resp-1024x656.png 1024w" sizes="(max-width: 1090px) 100vw, 1090px" /></p>
+<h4>Conclusion</h4>
+<p>We have seen how to integrate Spring Boot with Amazon DynamoDB . Finally, we have written unit tests to test our Tasklet API service. We will add more features of Spring Boot and Spring Cloud to our application in the upcoming posts. Stay tuned!</p>
+<p>The source code we have worked on so far is available in the downloads section. If you have any questions, feel free to post it in the comments section. Thank you.</p>
+<hr />
+<p><strong>Download source code : </strong><a href="http://downloads.rayfocus.com/code-samples/spring-boot-with-dynamodb.zip" target="_blank" rel="noopener"><span style="text-decoration: underline;">spring-boot-with-dynamodb.zip</span></a></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/">Integrate Spring Boot With Amazon DynamoDB</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/integrate-spring-boot-with-amazon-dynamodb/feed/</wfw:commentRss>
+			<slash:comments>10</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Spring Boot &#8211; Hello World Example</title>
+		<link>https://blogs.rayfocus.com/spring-boot-hello-world-example/</link>
+					<comments>https://blogs.rayfocus.com/spring-boot-hello-world-example/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sat, 28 Apr 2018 09:08:08 +0000</pubDate>
+				<category><![CDATA[Spring framework]]></category>
+		<category><![CDATA[Spring Boot]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=737</guid>
+
+					<description><![CDATA[<p>Spring Boot is developed by Pivotal Software to make the applications development easier. With Spring Boot we can create stand-alone, production-grade applications easily with minimum configuration. In this post, let&#8217;s see how to build a simple REST API endpoint using the Spring Boot. Create the project structure To create the<a class="moretag" href="https://blogs.rayfocus.com/spring-boot-hello-world-example/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/spring-boot-hello-world-example/">Spring Boot &#8211; Hello World Example</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Spring Boot is developed by Pivotal Software to make the applications development easier. With Spring Boot we can create stand-alone, production-grade applications easily with minimum configuration. In this post, let&#8217;s see how to build a simple REST API endpoint using the Spring Boot.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-761" src="https://static.rayfocus.com/wp-content/uploads/2018/04/30032120/spring-boot.png" alt="" width="310" height="163" srcset="https://static.rayfocus.com/wp-content/uploads/2018/04/30032120/spring-boot.png 310w, https://static.rayfocus.com/wp-content/uploads/2018/04/30032120/spring-boot-300x158.png 300w" sizes="(max-width: 310px) 100vw, 310px" /></p>
+<h4>Create the project structure</h4>
+<p>To create the project structure, let&#8217;s make use of <a href="https://start.spring.io" target="_blank" rel="noopener">Spring Initializr</a>.</p>
+<p><strong>What you will need to build the application</strong></p>
+<ol>
+<li>Java 1.8</li>
+<li>Maven</li>
+<li>Any IDE of your choice</li>
+</ol>
+<p>Give the project name and artifact details to the Spring Initializr to create the project structure for building the application.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-745" src="https://static.rayfocus.com/wp-content/uploads/2018/04/23032350/spring-initializr-021.png" alt="" width="793" height="557" srcset="https://static.rayfocus.com/wp-content/uploads/2018/04/23032350/spring-initializr-021.png 793w, https://static.rayfocus.com/wp-content/uploads/2018/04/23032350/spring-initializr-021-300x211.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/04/23032350/spring-initializr-021-768x539.png 768w" sizes="(max-width: 793px) 100vw, 793px" /></p>
+<p><strong>Note: </strong>If you have Jdk version other than 1.8 in your system, then choose the same version in the Spring Initializr console.</p>
+<h4>Building the sample application</h4>
+<p>We will build a simple REST service which should be able to handle <code>GET</code> requests for resource path <code>/simpletask</code> and return a <code>200 OK</code> JSON response.</p>
+<p><strong>Sample response to expect</strong></p><pre class="crayon-plain-tag">{
+    "taskId": 1,
+    "taskName": "Simple HelloWorld Task!"
+}</pre><p><strong>Create a model class</strong></p>
+<p>Let&#8217;s create a model class to represent the <code>Task</code> which will returned as JSON response.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.model;
+
+public class Task {
+	
+	private final long taskId;
+	private final String taskName;
+
+	public Task(long taskId, String taskName) {
+		super();
+		this.taskId = taskId;
+		this.taskName = taskName;
+	}
+
+	public long getTaskId() {
+		return taskId;
+	}
+
+	public String getTaskName() {
+		return taskName;
+	}
+	
+}</pre><p><strong>Create a REST controller</strong></p>
+<p>As a next step, let&#8217;s create a controller class to handle the <code>GET</code> requests. Spring framework provides a handy <code>@RestController</code>annotation which marks the class as a controller for handling the HTTP requests. Below listing shows the controller class to handle the requests for <code>/simpletask</code>.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet.controller;
+
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.rayfocus.api.tasklet.model.Task;
+
+@RestController
+public class SimpleTaskController {
+
+	private final AtomicLong idCounter = new AtomicLong();
+
+	@RequestMapping("/simpletask")
+	public Task simpleTask(@RequestParam(value = "name", defaultValue = "HelloWorld") String taskName) {
+		return new Task(idCounter.incrementAndGet(), "Simple " + taskName + " Task!");
+	}
+}</pre><p>The <code>@RequestParam</code> annotation binds the query string parameter in request URL to the <code>taskName</code> parameter in simpleTask() method. Also if you notice the response object <code>Task</code> is converted to JSON  automatically using the Jackson library present in the classpath.</p>
+<h4>Build an executable JAR</h4>
+<p>The Spring Boot application can be packaged as an executable JAR file with Java main() method acting as an entry point.</p><pre class="crayon-plain-tag">package com.rayfocus.api.tasklet;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class Application {
+
+	public static void main(String[] args) {
+		SpringApplication.run(Application.class, args);
+	}
+}</pre><p>The <code>@SpringBootApplication</code> annotation will add the following features implicitly.</p>
+<ul>
+<li><code>@EnableAutoConfiguration</code> instructs the Spring Boot to start adding/creating beans based on the classpath and other property settings.</li>
+<li><code>@ComponentScan</code> helps Spring to look up the components and services in the base package and to make the appropriate controller to be available for handling the requests.</li>
+</ul>
+<p>Since we have used Maven to create this sample application, issue the following commands to package and execute the application.</p>
+<p>Traverse to the project folder and issue the below command to package the application as executable JAR.</p><pre class="crayon-plain-tag">\rayfocus-api.tasklet&gt;mvn clean package</pre><p>After packaging the application, execute it as below.</p><pre class="crayon-plain-tag">\rayfocus-api.tasklet&gt;java -jar target/rayfocus-api.tasklet-0.0.1-SNAPSHOT.jar</pre><p>Alternatively you can use <code>mvnw spring-boot:run</code> which does both packaging and executing the application in a single step.</p>
+<h4>Test the Application</h4>
+<p>Access the service at <a href="http://localhost:8080/simpletask" target="_blank" rel="noopener"><code>http://localhost:8080/simpletask</code></a> and you should see the below output.</p><pre class="crayon-plain-tag">{"taskId":1,"taskName":"Simple HelloWorld Task!"}</pre><p>Now access the service by providing the query parameter string <code>name</code> as <a href="http://localhost:8080/simpletask?name=SpringBootREST" target="_blank" rel="noopener"><code>http://localhost:8080/simpletask?name=SpringBootREST</code></a>. The output should be as below.</p><pre class="crayon-plain-tag">{"taskId":2,"taskName":"Simple SpringBootREST Task!"}</pre><p>Since we have configured the controller to handle the query parameter and to increment the taskId for every request, the <code>taskId</code> is changed from 1 to 2 and <code>taskName</code> is changed to <code>Simple SpringBootREST Task!</code></p>
+<h4>Conculsion</h4>
+<p>We have successfully built a simple REST service using Spring Boot. We have learned how to make use of Spring Initializr to create project structure, using controller to handle the web requests, package and execute the application.</p>
+<p>In the upcoming posts we will add more features to our application and learn more about Spring Boot. Stay tuned!<br />
+If you have any questions, feel free to post it in the comments section. Thank you!</p>
+<hr />
+<p><strong>Download source code : </strong><span style="text-decoration: underline;"><a href="http://downloads.rayfocus.com/code-samples/rayfocus-api.tasklet.zip" rel="noopener">spring-boot-example.zip</a></span></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/spring-boot-hello-world-example/">Spring Boot &#8211; Hello World Example</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/spring-boot-hello-world-example/feed/</wfw:commentRss>
+			<slash:comments>1</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Getting started with Spring Integration</title>
+		<link>https://blogs.rayfocus.com/getting-started-with-spring-integration/</link>
+					<comments>https://blogs.rayfocus.com/getting-started-with-spring-integration/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Thu, 08 Jun 2017 06:00:27 +0000</pubDate>
+				<category><![CDATA[Spring framework]]></category>
+		<category><![CDATA[Java]]></category>
+		<category><![CDATA[Spring Integration]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=4</guid>
+
+					<description><![CDATA[<p>In this post, we will see what Spring Integration is about and how to get started with it. What is Spring Integration? Spring Integration is an open source framework for enterprise application integration. It is built on top of Spring framework. Hence it is very easy to adopt Spring Integration<a class="moretag" href="https://blogs.rayfocus.com/getting-started-with-spring-integration/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/getting-started-with-spring-integration/">Getting started with Spring Integration</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, we will see what Spring Integration is about and how to get started with it.</p>
+<h4><strong>What is Spring Integration?</strong></h4>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-764" src="https://static.rayfocus.com/wp-content/uploads/2017/06/30032459/spring-integration.png" alt="" width="298" height="169" /></p>
+<p>Spring Integration is an open source framework for enterprise application integration. It is built on top of Spring framework. Hence it is very easy to adopt Spring Integration in the projects which are already using the Spring framework.</p>
+<p>Spring Integration facilitates asynchronous, message driven behavior within a Spring based application. Spring Integration components are loosely coupled for modularity and testability.</p>
+<h4><strong>Main components of Spring Integration</strong></h4>
+<p>We will see some of the main components of Spring Integration which is the core of the framework.</p>
+<p><strong>Message</strong></p>
+<p>In Spring Integration, Message is a generic wrapper for any java object combined with metadata used by the framework while handling that object. It consists of payload and headers. Payload can be of any type and the headers hold commonly required information such as id, timestamp, correlation id and return address.</p>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/01_MessagePayload.png" alt="" width="238" height="191" /></strong></p>
+<p><strong>Message Channel</strong></p>
+<p>A Message Channel represents the pipe of the pipe-and-filters architecture. Producers send message to a channel and consumers receive message from a channel. The Message Channel therefore decouples the messaging components and also provides a convenient point for interception and monitoring of Messages.</p>
+<p><img loading="lazy" decoding="async" class="size-medium wp-image-49 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/023_MessageChannel.png" alt="" width="400" height="45" /></p>
+<p><strong>Message Endpoint</strong></p>
+<p>A Message Endpoint represents the filter of a pipes-and-filters architecture. The endpoint&#8217;s primary role is to connect application code to messaging framework and to do so in a non-invasive manner. Some of the endpoints are Transformer, Router, Splitter, Aggregator, Service Activator, Gateways.</p>
+<h4><strong>Getting started</strong></h4>
+<p>We will now create a simple Hello World application using Spring Integration.</p>
+<h4><strong>Prerequisite tools and libraries</strong></h4>
+<p style="padding-left: 30px;">1. Maven 3<br />
+2. Eclipse IDE 4.4.2<br />
+3. JDK 1.6 or higher<br />
+4. Spring Integration Core 4.3.9.RELEASE<br />
+5. Spring Integration Stream 4.3.9.RELEASE</p>
+<p><strong>Step 1 :</strong> Create a simple maven project in Eclipse IDE. Add the following dependencies to pom.xml</p><pre class="crayon-plain-tag">&lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.integration&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-integration-core&lt;/artifactId&gt;
+            &lt;version&gt;4.3.9.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.integration&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-integration-stream&lt;/artifactId&gt;
+            &lt;version&gt;4.3.9.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;junit&lt;/groupId&gt;
+            &lt;artifactId&gt;junit&lt;/artifactId&gt;
+            &lt;version&gt;4.12&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-test&lt;/artifactId&gt;
+            &lt;version&gt;4.3.8.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+  &lt;/dependencies&gt;</pre><p><strong>Step 2 :</strong> Now add the Spring configuration file spring-integration-config.xml in src/main/resources. This should have enabled  the Spring project nature as well in the Eclipse IDE.</p><pre class="crayon-plain-tag">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:int="http://www.springframework.org/schema/integration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:stream="http://www.springframework.org/schema/integration/stream"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd 
+                        http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+                        http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd"&gt;
+
+    &lt;!-- Simple Message Processing --&gt;
+    &lt;int:channel id="inputChannel" /&gt;
+
+    &lt;int:service-activator input-channel="inputChannel"
+        output-channel="printChannel" ref="messageProcessor" /&gt;
+
+    &lt;!-- Stream output --&gt;
+
+    &lt;int:channel id="printChannel" /&gt;
+
+    &lt;stream:stdout-channel-adapter
+        append-newline="true" channel="printChannel" /&gt;
+
+    &lt;!-- Bean definitions --&gt;
+    &lt;bean id="messageProcessor"
+        class="com.rayfocus.spring.integration.SimpleMessageProcessor" /&gt;
+&lt;/beans&gt;</pre><p><strong>Spring Integration graph :</strong></p>
+<p><img loading="lazy" decoding="async" class="size-medium wp-image-194 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/integ-graph-01.PNG" alt="" width="400" height="100" /></p>
+<p style="text-align: left;"><strong>Note :</strong> In order to see the Spring Integration graph in Eclipse IDE, make sure that the spring plugin for eclipse is installed.</p>
+<p><strong>Step 3 :</strong>  Declare the Interface to have methods for processing the message.</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration;
+
+import org.springframework.messaging.Message;
+
+public interface MessageProcessor
+{
+    Message&lt;String&gt; addMessageGreetings(Message&lt;String&gt; inputMessage);
+}</pre><p><strong>Step 4 :</strong>  Now, lets code the Simple message processor implementation.</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration;
+
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+
+public class SimpleMessageProcessor implements MessageProcessor
+{
+    @ServiceActivator
+    public Message&lt;String&gt; addMessageGreetings( Message&lt;String&gt; inputMessage )
+    {
+        String payloadMessage = inputMessage.getPayload();
+        String greetingsMessage = "Welcome " + payloadMessage
+                + ", Greetings from Spring Integration! ";
+        return MessageBuilder.withPayload( greetingsMessage ).build();
+    }
+}</pre><p>If you have noticed the service-activator declaration, it will pass on the message to printChannel.</p>
+<p>From printChannel, the message will be passed on to stdout-channel-adapter. So the message returned from addMessageGreetings method will be directed to the standard output console.</p>
+<p>Lets see this in action</p>
+<p><strong>Step 5 :</strong>  Create a GreetingsApp.java class as below</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration.app;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+
+public class GreetingsApp
+{
+
+    public static void main( String[] args )
+    {
+        String config = "spring-integration-config.xml";
+        ApplicationContext context = new ClassPathXmlApplicationContext( config );
+        MessageChannel inputChannel = context.getBean( "inputChannel",
+                MessageChannel.class );
+        Message&lt;String&gt; inputMessage = MessageBuilder.withPayload( "UserName" )
+                .build();
+        inputChannel.send( inputMessage );
+        ( ( ClassPathXmlApplicationContext ) context ).close();
+    }
+
+}</pre><p>Execute the GreetingsApp.java and you should see the below output printed to console.</p><pre class="crayon-plain-tag">Welcome UserName, Greetings from Spring Integration!</pre><p>So, how this works?</p>
+<p>When we send the String message to channel component inputChannel, the message is then passed on to service activator.</p>
+<p>In the service activator, we can write the business related code. In our case, we just referred to the SimpleMessageProcessor instance where we created the greetings message.<br />
+The returned message from service activator is then passed on the printChannel.</p>
+<p>The printChannel forms the input for stdout-channel-adapter as per our configuration. Hence the greeting message will get printed to the console.</p>
+<p>If we take a look in to the GreetingsApp.java, which is the client class from where we send the spring integration message, we are dealing with the spring integration components directly. We are depending on the use of the channel component inputChannel to send the message.</p>
+<p>We can remove those direct dependencies using the component gateway proxy to our configuration.</p>
+<p><strong>Step 6 : </strong>Integrating using Gateway Proxy</p>
+<p>Add the below component entry to configuration xml.</p><pre class="crayon-plain-tag">&lt;!-- Messaging Gateway --&gt;
+    &lt;int:gateway id="gatewayProxy"
+        service-interface="com.rayfocus.spring.integration.MessageProcessor"
+        default-request-channel="gatewayInputChannel"
+        default-reply-channel="gatewayOutputChannel" /&gt;
+
+    &lt;int:channel id="gatewayInputChannel" /&gt;
+
+    &lt;int:service-activator input-channel="gatewayInputChannel"
+        ref="gatewayMessageProcessor" output-channel="gatewayOutputChannel" /&gt;
+
+    &lt;int:channel id="gatewayOutputChannel" /&gt;
+
+    &lt;bean id="gatewayMessageProcessor"
+        class="com.rayfocus.spring.integration.GatewayMessageProcessor" /&gt;</pre><p><strong>Spring Integration graph :</strong></p>
+<p><img loading="lazy" decoding="async" class="size-medium wp-image-199 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/integ-graph-02.PNG" alt="" width="600" height="300" /></p>
+<p>You should now see the additional gateway components in the Spring Integration graph.</p>
+<p>For the service-activator component, GatewayMessageProcessor.java will implement the MessageProcessor interface and do the same work of creating the greeting message. In this case, its a different greeting message.</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration;
+
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+
+public class GatewayMessageProcessor implements MessageProcessor
+{
+
+    @ServiceActivator
+    public Message&lt;String&gt; addMessageGreetings( Message&lt;String&gt; inputMessage )
+    {
+        String payloadMessage = inputMessage.getPayload();
+        String greetingsMessage = "Welcome " + payloadMessage
+                + ", Greetings from Spring Integration Gateway Proxy! ";
+        return MessageBuilder.withPayload( greetingsMessage ).build();
+    }
+}</pre><p><strong>Step 7 :</strong> Now create a client class GatewayGreetingsApp.java</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration.app;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import com.rayfocus.spring.integration.MessageProcessor;
+
+public class GatewayGreetingsApp
+{
+
+    public static void main( String[] args )
+    {
+        String config = "spring-integration-config.xml";
+        ApplicationContext context = new ClassPathXmlApplicationContext( config );
+        MessageProcessor messageProcessor = context.getBean( "gatewayProxy",
+                MessageProcessor.class );
+        Message&lt;String&gt; greetingsMessage = messageProcessor.addMessageGreetings( MessageBuilder.withPayload(
+                "GatewayUser" ).build() );
+        System.out.println(greetingsMessage.getPayload());
+        ( ( ClassPathXmlApplicationContext ) context ).close();
+
+    }
+}</pre><p>When the GatewayGreetingsApp.java is executed you should see the below output printed to console.</p><pre class="crayon-plain-tag">Welcome GatewayUser, Greetings from Spring Integration Gateway Proxy!</pre><p>If you note the configuration for gateway proxy, we are not directing the output of service activator to stdout-channel-adapter. Instead the message is passed on to the gatewayOutputChannel from which the gateway will listen to and receive the response.</p>
+<p>Then in GatewayGreetingsApp.java, response message is received of type Message&lt;String&gt;. The output is then printed using System.out.</p>
+<p>In real time cases, the response can be used for performing any other activities like passing to another spring integration component, logging to database.<br />
+In our example, we just printed it to console using System.out.</p>
+<h4><strong>Conclusion</strong></h4>
+<p>This ends our tutorial on getting started with spring integration. You can refer the Spring Integration API <a href="http://docs.spring.io/spring-integration/reference/html/" target="_blank" rel="noopener">documentation</a> to dig deep and find out what the Spring Integration offers to solve the integration problems.</p>
+<p>Hope this post helped you in getting started with spring integration. If you have any questions or concerns please post it in the comments section.</p>
+<p>Thank you!</p>
+<hr />
+<p><strong>Download source code : </strong><a href="http://downloads.rayfocus.com/code-samples/spring-integration-sample.zip">spring-integration-sample.zip</a></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/getting-started-with-spring-integration/">Getting started with Spring Integration</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/getting-started-with-spring-integration/feed/</wfw:commentRss>
+			<slash:comments>8</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

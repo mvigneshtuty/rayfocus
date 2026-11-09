@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Amazon EBS &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/category/amazon-web-services/amazon-ebs/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Sat, 22 Dec 2018 09:34:10 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Automate your Amazon EBS Snapshot Creation and Deletion using EBS Lifecycle Manager</title>
+		<link>https://blogs.rayfocus.com/automate-your-amazon-ebs-snapshot-creation-and-deletion-using-ebs-lifecycle-manager/</link>
+					<comments>https://blogs.rayfocus.com/automate-your-amazon-ebs-snapshot-creation-and-deletion-using-ebs-lifecycle-manager/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sat, 22 Dec 2018 08:52:55 +0000</pubDate>
+				<category><![CDATA[Amazon EBS]]></category>
+		<category><![CDATA[Amazon Web Services]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=731</guid>
+
+					<description><![CDATA[<p>AWS provides an option to take snapshots of the EBS volume. EBS snapshots come handy when we want to recover our EBS volumes from any unforeseen disasters or failures. It would be even nice if you can automate your Amazon EBS snapshot creation and deletion. It&#8217;s quite simple using the<a class="moretag" href="https://blogs.rayfocus.com/automate-your-amazon-ebs-snapshot-creation-and-deletion-using-ebs-lifecycle-manager/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/automate-your-amazon-ebs-snapshot-creation-and-deletion-using-ebs-lifecycle-manager/">Automate your Amazon EBS Snapshot Creation and Deletion using EBS Lifecycle Manager</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>AWS provides an option to take snapshots of the EBS volume. EBS snapshots come handy when we want to recover our EBS volumes from any unforeseen disasters or failures. It would be even nice if you can automate your Amazon EBS snapshot creation and deletion. It&#8217;s quite simple using the EBS Lifecycle Manager service provided by AWS.</p>
+<p><img fetchpriority="high" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/12/22093101/amazon_ebs.png" alt="" width="404" height="254" class="aligncenter wp-image-925 size-full" srcset="https://static.rayfocus.com/wp-content/uploads/2018/12/22093101/amazon_ebs.png 404w, https://static.rayfocus.com/wp-content/uploads/2018/12/22093101/amazon_ebs-300x189.png 300w" sizes="(max-width: 404px) 100vw, 404px" /></p>
+<h4><strong>Create the Snapshot Lifecycle Policy</strong></h4>
+<ul>
+<li>Go to EC2 console and access the <strong>Lifecycle Manager</strong> under the section Elastic Block Storage in the left navigation pane.</li>
+<li>You should get a page similar to the image below.</li>
+</ul>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/12/22082826/rayfocus_ebs_snapshots.png" alt="" width="833" height="660" class="aligncenter wp-image-921 size-full" srcset="https://static.rayfocus.com/wp-content/uploads/2018/12/22082826/rayfocus_ebs_snapshots.png 833w, https://static.rayfocus.com/wp-content/uploads/2018/12/22082826/rayfocus_ebs_snapshots-300x238.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/12/22082826/rayfocus_ebs_snapshots-768x608.png 768w" sizes="(max-width: 833px) 100vw, 833px" /></p>
+<ul>
+<li>For the volumes to be targeted for taking snapshots, the tags associated with the volumes can be used.</li>
+<li>For example, in the example shown above volumes with tag <code>Identifier: ebs_prod_rayfocus</code> will be considered for snapshot creation as per the configuration.</li>
+<li>Input the details for the duration between each snapshot creation. Currently the snapshots can be configured to be taken every 12 or 24 hours.</li>
+<li>Then, the snapshot creation time in UTC.</li>
+<li>Another useful option is the ability to configure the number of snapshots to retain as a whole. This can vary per the use case and the need.</li>
+<li>You have to attach the IAM policy which gives the necessary permissions to access the EC2 resources and to manage the snapshots.</li>
+<li>The IAM role can also be generated automatically using the Lifecycle rule. AWS automatically creates one and uses it to manage the snapshots.</li>
+</ul>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/12/22083856/addnl_config_ebs_snapshots.png" alt="" width="961" height="678" class="aligncenter wp-image-922 size-full" srcset="https://static.rayfocus.com/wp-content/uploads/2018/12/22083856/addnl_config_ebs_snapshots.png 961w, https://static.rayfocus.com/wp-content/uploads/2018/12/22083856/addnl_config_ebs_snapshots-300x212.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/12/22083856/addnl_config_ebs_snapshots-768x542.png 768w" sizes="(max-width: 961px) 100vw, 961px" /></p>
+<ul>
+<li>Just hit the <code>Create Policy</code> and it&#8217;s all set for managing the EBS snapshots.</li>
+<li>The IAM default role created should be similar to the one shown below.</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateSnapshot",
+                "ec2:DeleteSnapshot",
+                "ec2:DescribeVolumes",
+                "ec2:DescribeSnapshots"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateTags"
+            ],
+            "Resource": "arn:aws:ec2:*::snapshot/*"
+        }
+    ]
+}</pre><p></p>
+<h4><strong>Conclusion</strong></h4>
+<p>Before the introduction of the EBS Lifecycle Manager service by AWS, we have to write custom tools to manage the EBS snapshots. But now it&#8217;s lot more easier and simple to manage EBS snapshots without any hassle. If you are using any other approaches to manage the snapshots please let know in the comments section.</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/automate-your-amazon-ebs-snapshot-creation-and-deletion-using-ebs-lifecycle-manager/">Automate your Amazon EBS Snapshot Creation and Deletion using EBS Lifecycle Manager</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/automate-your-amazon-ebs-snapshot-creation-and-deletion-using-ebs-lifecycle-manager/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

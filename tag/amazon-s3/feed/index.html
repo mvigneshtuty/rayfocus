@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Amazon S3 &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/tag/amazon-s3/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Tue, 08 Aug 2017 18:26:26 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Getting started with Amazon S3</title>
+		<link>https://blogs.rayfocus.com/getting-started-with-amazon-s3/</link>
+					<comments>https://blogs.rayfocus.com/getting-started-with-amazon-s3/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Thu, 29 Jun 2017 18:50:00 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[Amazon S3]]></category>
+		<category><![CDATA[AWS]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=108</guid>
+
+					<description><![CDATA[<p>In this post, we will see what is Amazon S3 service and how to get started with it. What is Amazon S3? Amazon Simple Storage Service (Amazon S3) is storage for the internet. With Amazon S3 you can store any amount of data and access it from anywhere on the<a class="moretag" href="https://blogs.rayfocus.com/getting-started-with-amazon-s3/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/getting-started-with-amazon-s3/">Getting started with Amazon S3</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, we will see what is Amazon S3 service and how to get started with it.</p>
+<h4><strong>What is Amazon S3?</strong></h4>
+<p>Amazon Simple Storage Service (Amazon S3) is storage for the internet. With Amazon S3 you can store any amount of data and access it from anywhere on the web.</p>
+<p>You can use the Amazon S3 service via AWS management console, AWS SDK and AWS command line interface(CLI). Under the hood Amazon S3 is exposed as a web service and Amazon provides many different options to use it.</p>
+<h4><strong>Getting started</strong></h4>
+<p>To get started with Amazon S3 or any of the AWS services, you must activate your AWS account.</p>
+<h4><strong>Activate your AWS account</strong></h4>
+<ul>
+<li>Open <a href="https://aws.amazon.com/" target="_blank" rel="noopener">https://aws.amazon.com/</a> and then choose Create an AWS Account.</li>
+<li>Follow the online instructions to complete the signup.</li>
+</ul>
+<p>After activating your AWS account, login to AWS management console.</p>
+<h4><strong>Create S3 bucket</strong></h4>
+<p>In the AWS management console, navigate to the S3 service under storage category.</p>
+<p><strong><img fetchpriority="high" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-service.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>After opening the S3 console click on Create bucket.</li>
+<li>Choose a unique DNS-compliant bucket name. The S3 bucket name that you choose must be unique across all existing bucket names in Amazon S3.</li>
+</ul>
+<p><strong><img decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-create-bucket.png" alt="" width="500" height="500" /></strong></p>
+<p><strong>Note :</strong> You can not use the same bucket name used in the above example since S3 bucket names must be unique.</p>
+<ul>
+<li>For the Region, choose Asia Pacific (Mumbai) or any other region where you want your bucket to reside.</li>
+<li>Click Create. You should have your bucket created by now.</li>
+</ul>
+<h4><strong>Add an Object to S3 bucket</strong></h4>
+<ul>
+<li>To add an object to bucket, select the bucket that you have just created. In our case its admin-s3-rayfocus.</li>
+<li>Click on Upload button.</li>
+</ul>
+<p><strong><img decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-upload-object.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>Then click on Add files and select the file that you want to upload. In our case we will add a HTML file.</li>
+<li>After selecting the file, Click Upload button.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-add-object.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>Now you have added the object to your bucket.</li>
+</ul>
+<p><strong>Note : </strong>To create index.html</p>
+<ul>
+<li>Copy the below html content and save it with filename as index.html.</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">&lt;!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN"&gt;
+&lt;html&gt;
+&lt;head&gt;
+	&lt;title&gt;Amazon S3&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+	&lt;h1&gt;Welcome to Amazon Simple Storage Service&lt;/h1&gt;
+	&lt;p&gt;Have a great day!&lt;/p&gt;
+	&lt;br/&gt;
+	&lt;hr&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre><p></p>
+<h4><strong>View an Object in S3 bucket</strong></h4>
+<ul>
+<li>Click on the bucket that you have just created.</li>
+<li>After opening the bucket, select the checkbox next to the Object that you have uploaded.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-view-object.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>Click on Download button.</li>
+</ul>
+<h4><strong>Host a Static website using S3</strong></h4>
+<ul>
+<li>To host a static website using S3, click on the bucket you have created.</li>
+<li>Click the tab Properties and select Static website hosting.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-static-website.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>For the index document, type the Object name index.html created earlier. Click Save.</li>
+<li>Copy the endpoint</li>
+<li>Click on the Object index.html and select Make public.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-object-access.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>You have now granted the public access for the Object in your bucket.</li>
+</ul>
+<p><strong>Access the S3 Static website</strong></p>
+<ul>
+<li>Paste the endpoint in the browser address bar and access it.</li>
+<li>You should see the below html page rendered.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-welcome.png" alt="" width="500" height="500" /></strong></p>
+<h4>Delete an Object from S3 bucket</h4>
+<ul>
+<li>To delete an object, select the checkbox next to it.</li>
+<li>In the Delete objects dialog box click Delete.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-delete-object.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>This will delete the Object from your S3 bucket.</li>
+</ul>
+<h4>Delete S3 bucket</h4>
+<ul>
+<li>To delete S3 bucket, click the bucket icon next to the name of the bucket.</li>
+<li>Now click Delete bucket.</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-delete-bucket.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li style="list-style-type: none;">
+<ul>
+<li>In the Delete bucket dialog box, type in the name of the bucket that you want to delete. Click Confirm.</li>
+</ul>
+</li>
+</ul>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/S3-delete-bucket-02.png" alt="" width="500" height="500" /></strong></p>
+<ul>
+<li>This will delete the S3 bucket.</li>
+</ul>
+<h4>What next? Integrating S3 with other AWS services</h4>
+<p>You can integrate Amazon S3 with other AWS services like Route 53 and Cloud front.</p>
+<ul>
+<li>If you have custom domain name, configure Route 53 to point to the S3 static website endpoint.</li>
+<li>Integrate S3 with Cloud front to speed up your static and dynamic web content distribution for users.</li>
+</ul>
+<h4>Conclusion</h4>
+<p>Now you know how to use the Amazon S3 service and to host a static website using it. If you have any questions or concerns post it the comments section.</p>
+<p>Thank you!</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/getting-started-with-amazon-s3/">Getting started with Amazon S3</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/getting-started-with-amazon-s3/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

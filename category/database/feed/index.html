@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Database &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/category/database/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Sun, 28 Oct 2018 11:54:02 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Oracle flashback query to the rescue</title>
+		<link>https://blogs.rayfocus.com/oracle-flashback-query-to-the-rescue/</link>
+					<comments>https://blogs.rayfocus.com/oracle-flashback-query-to-the-rescue/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sun, 28 Oct 2018 11:43:55 +0000</pubDate>
+				<category><![CDATA[Database]]></category>
+		<category><![CDATA[Oracle]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=904</guid>
+
+					<description><![CDATA[<p>In this post, I would like to mention one of the feature of oracle database i.e Oracle flashback query. Recently we as a team involved in the activity of bad data correction. One fine day, for some bug in the PL/SQL code, the good data got deleted as well. Well!<a class="moretag" href="https://blogs.rayfocus.com/oracle-flashback-query-to-the-rescue/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/oracle-flashback-query-to-the-rescue/">Oracle flashback query to the rescue</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, I would like to mention one of the feature of oracle database i.e Oracle flashback query. Recently we as a team involved in the activity of bad data correction. One fine day, for some bug in the PL/SQL code, the good data got deleted as well. Well! Going wrong with the DELETE would happen and we have to overcome it.</p>
+<h4><strong>Oracle flashback query</strong></h4>
+<p>With the Oracle flashback query we can specify the <code>as of</code> timestamp and retrieve the database values of the table which has been affected by erroneous update/delete.</p>
+<p>For example, we have a table <code>RETRO_T</code></p>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/10/28112114/rs_after-delete-300x41.png" alt="" width="300" height="41" class="aligncenter size-medium wp-image-906" srcset="https://static.rayfocus.com/wp-content/uploads/2018/10/28112114/rs_after-delete-300x41.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/10/28112114/rs_after-delete.png 477w" sizes="(max-width: 300px) 100vw, 300px" /></p>
+<p>The above result set is after the deletion of record with <code>retro_type=Active</code>.</p>
+<p>The transaction is committed. But we need to retrieve the data. We can execute the oracle flashback query to get them back.</p>
+<p>If you know the timestamp of when the data is in correct state, then you can provide the timestamp to the query.</p><pre class="crayon-plain-tag">SELECT * FROM RETRO_T
+AS OF timestamp (to_timestamp('28-10-2018 11:10:00','dd-mm-yyyy hh24:mi:ss'));</pre><p>The result set would be as below:</p>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/10/28112811/rs_with-flashback-300x55.png" alt="" width="300" height="55" class="aligncenter size-medium wp-image-907" srcset="https://static.rayfocus.com/wp-content/uploads/2018/10/28112811/rs_with-flashback-300x55.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/10/28112811/rs_with-flashback.png 477w" sizes="(max-width: 300px) 100vw, 300px" /></p>
+<p>To insert the record back, we could ideally run the below query:</p><pre class="crayon-plain-tag">INSERT INTO RETRO_T
+(
+    SELECT * FROM RETRO_T
+    AS OF 
+    timestamp to_timestamp('28-10-2018 11:10:00','dd-mm-yyyy hh24:mi:ss')
+    WHERE retro_type = 'Active'
+);</pre><p></p>
+<h4><strong>Flashback feature retention target</strong></h4>
+<p>By default, the flashback retention target is one day (<span>1440 minutes</span>). Based on the need this can be adjusted. To be able to perform 72 hour flashback, we can change the retention target to 4320 minutes as below:</p><pre class="crayon-plain-tag">ALTER SYSTEM SET DB_FLASHBACK_RETENTION_TARGET=4320;</pre><p></p>
+<h4><strong>Conclusion</strong></h4>
+<p>Oracle flashback is one of the powerful feature to overcome those erroneous database operations. Most importantly to overcome quickly!</p>
+<h4><strong>References</strong></h4>
+<p>http://www.dba-oracle.com/t_rman_149_flasbback_query.htm</p>
+<p>https://docs.oracle.com/cd/B12037_01/server.101/b10734/rcmflash.htm</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/oracle-flashback-query-to-the-rescue/">Oracle flashback query to the rescue</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/oracle-flashback-query-to-the-rescue/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Spring Batch &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/category/spring-framework/spring-batch/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Wed, 05 Oct 2022 12:04:54 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Scaling with Spring Batch &#8211; Multi threaded step</title>
+		<link>https://blogs.rayfocus.com/scaling-with-spring-batch-multi-threaded-step/</link>
+					<comments>https://blogs.rayfocus.com/scaling-with-spring-batch-multi-threaded-step/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Wed, 05 Oct 2022 12:04:54 +0000</pubDate>
+				<category><![CDATA[Parallel Processing]]></category>
+		<category><![CDATA[Spring Batch]]></category>
+		<category><![CDATA[Spring framework]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=1071</guid>
+
+					<description><![CDATA[<p>In this post, we will go through the scaling options available in the Spring Batch framework. For introduction on how to write a Spring Batch job, you can refer the previous post which provides details on how to read files from S3 bucket. It&#8217;s all based on your use case<a class="moretag" href="https://blogs.rayfocus.com/scaling-with-spring-batch-multi-threaded-step/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/scaling-with-spring-batch-multi-threaded-step/">Scaling with Spring Batch &#8211; Multi threaded step</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, we will go through the scaling options available in the Spring Batch framework.<br />
+For introduction on how to write a Spring Batch job, you can refer the previous post which provides details on how to read files from S3 bucket.</p>
+<h5>It&#8217;s all based on your use case</h5>
+<p>Spring Batch provides lot of options to implement a Job with parallel processing. But it does not mean you must choose one of them. Your decision to use parallel processing should be driven by your use case. Most of the times, a single threaded Job would be suffice for many of the use cases. So, first try out with a single threaded Job. If that is not enough and you have valid point for parallel processing, then pick one of the scaling options provided by Spring Batch.</p>
+<h5>Different types of Scaling options</h5>
+<ol>
+<li>Multi threaded step</li>
+<li>Parallel step</li>
+<li>Asynchronous Item processor/Item writer</li>
+<li>Remote partitioning</li>
+<li>Remote chunking</li>
+</ol>
+<p>Even in the previous post, we have used one of the scaling technique &#8220;Asynchronous item processor/writer&#8221;. But we will go through the details of that scaling option in a separate post.</p>
+<p>In this post, we will go through the &#8220;Multi threaded step&#8221; scaling technique.</p>
+<h5>Multi threaded step</h5>
+<p><img fetchpriority="high" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2022/10/05104537/multi-threaded_1-300x244.png" alt="" class="size-medium wp-image-1078 aligncenter" width="300" height="244" srcset="https://static.rayfocus.com/wp-content/uploads/2022/10/05104537/multi-threaded_1-300x244.png 300w, https://static.rayfocus.com/wp-content/uploads/2022/10/05104537/multi-threaded_1.png 650w" sizes="(max-width: 300px) 100vw, 300px" /></p>
+<p>The configuration to achieve the multi threaded step is straight forward. In general, Spring Batch process the record in chunks.</p>
+<p>Let&#8217;s say the chunk size is 100.<br />
+With single threaded step(which is the default), the first 100 record is processed. Once completed, the next 100 and goes on.<br />
+With multiple threaded step of 2 threads for example, two chunks are processed in parallel i.e total 200 records. Once competed, it continues to pick the next two chunks and goes on.</p>
+<p>Adding task executor to the step makes it multi threaded.</p><pre class="crayon-plain-tag">@Bean
+    public Step dataProcessStep() throws Exception {
+        Step step = this.stepBuilderFactory.get("dataProcess-step")
+                .&lt;TransactionData, TransactionData&gt;chunk(chunkSize)
+                .reader(dataReader())
+                .faultTolerant().skipLimit(100)
+                .processor(dataProcessor(null))
+                .writer(dataWriter(null))
+                .taskExecutor(taskExecutor())
+                .build();
+        ((TaskletStep) step).setStepExecutionListeners(new StepExecutionListener[]{
+                stepExecutionListener()
+        });
+        return step;
+    }</pre><p></p>
+<h5>Task executor config</h5>
+<p></p><pre class="crayon-plain-tag">@Bean
+    public TaskExecutor taskExecutor()
+    {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(threadPoolSize);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setThreadNamePrefix("exec-");
+        return executor;
+    }</pre><p></p>
+<h5>What else?</h5>
+<p>Ideally, that&#8217;s it needed to configure a multi threaded step. You can refer the complete code sample for multi-threaded scaling option here in <a href="https://bitbucket.org/rayfocus-blogs/spring-batch.code-samples/src/develop/multithreaded-step/" target="_blank" rel="noopener">Git</a>.</p>
+<p><strong>Prerequisites to run the code sample:</strong></p>
+<ul>
+<li>MySQL database in local machine (If not you can use H2 database and change data source config accordingly)</li>
+<li>Spring batch metadata tables (Script file is added under the src/main/resources in the code sample)</li>
+<li>Database table to persist the data by ItemWriter (Script file is added under the src/main/resources in the code sample)</li>
+</ul>
+<h5>References</h5>
+<ol>
+<li>&#8220;High performance batch processing&#8221; session by Michael Minella and Mahmoud Ben Hassine (https://www.youtube.com/watch?v=J6IPlfm7N6w)</li>
+</ol>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/scaling-with-spring-batch-multi-threaded-step/">Scaling with Spring Batch &#8211; Multi threaded step</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/scaling-with-spring-batch-multi-threaded-step/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Read CSV files from S3 using Spring Batch</title>
+		<link>https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/</link>
+					<comments>https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Fri, 26 Nov 2021 11:25:30 +0000</pubDate>
+				<category><![CDATA[Spring Batch]]></category>
+		<category><![CDATA[Spring framework]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=1047</guid>
+
+					<description><![CDATA[<p>In this post, let&#8217;s see how to read files from S3 using spring batch. We will read CSV files as stream without loading the entire data in memory and process each item. For Item writer, we&#8217;ll use just the no operation item writer since we will not write the items<a class="moretag" href="https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/">Read CSV files from S3 using Spring Batch</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, let&#8217;s see how to read files from S3 using spring batch.<br />
+We will read CSV files as stream without loading the entire data in memory and process each item. For Item writer, we&#8217;ll use just the no operation item writer since we will not write the items to file or any database tables.</p>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2021/11/05103102/spring-batch.png" alt="" class="aligncenter size-full wp-image-1048" width="200" height="200" srcset="https://static.rayfocus.com/wp-content/uploads/2021/11/05103102/spring-batch.png 200w, https://static.rayfocus.com/wp-content/uploads/2021/11/05103102/spring-batch-150x150.png 150w" sizes="(max-width: 200px) 100vw, 200px" /></p>
+<h3>Job configuration</h3>
+<p>Let&#8217;s start with the Job configuration.<flow><flow> </flow></flow></p><pre class="crayon-plain-tag">@Bean
+    public Job processMovieDataFromS3Job() throws Exception {
+        FlowBuilder&lt;Flow&gt; dataProcessFlowBuilder = new FlowBuilder&lt;Flow&gt;("dataProcess-flow");
+        Flow dataProcessFlow = dataProcessFlowBuilder
+                .start(movieDataProcessStep())
+                    .on(ExitStatus.COMPLETED.getExitCode()).end()
+                .from(movieDataProcessStep())
+                    .on(ANY_OTHER_EXIT_STATUS).fail()
+                .end();
+        return jobBuilderFactory.get("movieDataProcess-job")
+                .incrementer(new RunIdIncrementer())
+                .start(dataProcessFlow)
+                .end()
+                .listener(movieJobExecutionListener())
+                .build();
+    }</pre><p>Next, we will define a step to read and process data from CSV present in S3</p><pre class="crayon-plain-tag">@Bean
+    public Step movieDataProcessStep() throws Exception {
+        Step step = this.stepBuilderFactory.get("dataProcess-step")
+                .&lt;Movie, Movie&gt;chunk(chunkSize)
+                .reader(movieDataReader())
+                .processor(asyncMovieDataProcessor())
+                .writer(asyncMovieItemWriter())
+                .build();
+        ((TaskletStep) step).setStepExecutionListeners(new StepExecutionListener[]{
+                movieStepExecutionListener()
+        });
+        return step;
+    }</pre><p>In the step, we will use <code>read-process-write</code> pattern.</p>
+<h5>Item reader</h5>
+<p>For Reader config, we will use SynchronizedItemReader delegating to MultiResourceItemReader. To the MultiResourceItemReader, we will add list of resources. Resources in this case is the files in S3.</p>
+<p>Update the value of <code>sourceBucket</code> and <code>sourceObjectPrefix</code> based on the S3 bucket details of your use case.</p><pre class="crayon-plain-tag">@Bean(destroyMethod="")
+    @StepScope
+    public SynchronizedItemStreamReader&lt;Movie&gt; movieDataReader() {
+        SynchronizedItemStreamReader synchronizedItemStreamReader = new SynchronizedItemStreamReader();
+        List&lt;Resource&gt; resourceList = new ArrayList&lt;&gt;();
+        String sourceBucket = rawDataS3Bucket;
+        String sourceObjectPrefix = rawDataS3ObjectPrefix
+                .concat("MOVIES")
+                .concat(FORWARD_SLASH);
+        log.info("sourceObjectPrefix::"+sourceObjectPrefix);
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+                .withBucketName(sourceBucket)
+                .withPrefix(sourceObjectPrefix);
+        ObjectListing sourceObjectsListing;
+        do{
+            sourceObjectsListing = amazonS3Client.listObjects(listObjectsRequest);
+            for (S3ObjectSummary sourceFile : sourceObjectsListing.getObjectSummaries()){
+
+                if(!(sourceFile.getSize() &gt; 0)
+                        || (!sourceFile.getKey().endsWith(DOT.concat(inputDataFileExtension)))
+                ){
+                    // Skip if file is empty (or) file extension is not "csv"
+                    continue;
+                }
+                log.info("Reading "+sourceFile.getKey());
+                resourceList.add(resourceLoader.getResource(S3_PROTOCOL_PREFIX.concat(sourceBucket).concat(FORWARD_SLASH)
+                        .concat(sourceFile.getKey())));
+            }
+            listObjectsRequest.setMarker(sourceObjectsListing.getNextMarker());
+        }while(sourceObjectsListing.isTruncated());
+
+        Resource[] resources = resourceList.toArray(new Resource[resourceList.size()]);
+        MultiResourceItemReader&lt;Movie&gt; multiResourceItemReader = new MultiResourceItemReader&lt;&gt;();
+        multiResourceItemReader.setName("movie-multiResource-Reader");
+        multiResourceItemReader.setResources(resources);
+        multiResourceItemReader.setDelegate(movieFileItemReader());
+        synchronizedItemStreamReader.setDelegate(multiResourceItemReader);
+        return synchronizedItemStreamReader;
+    }</pre><p>For this example, I have created a sample movie data set. Flat file item reader config to parse CSV file as below</p><pre class="crayon-plain-tag">@Bean
+    @StepScope
+    public FlatFileItemReader&lt;Movie&gt; movieFileItemReader()
+    {
+        FlatFileItemReader&lt;Movie&gt; reader = new FlatFileItemReader&lt;&gt;();
+        reader.setLinesToSkip(1);
+        DefaultLineMapper&lt;Movie&gt; movieDataLineMapper = new DefaultLineMapper();
+        DelimitedLineTokenizer tokenizer = new DelimitedLineTokenizer();
+        tokenizer.setNames(new String[] {
+                "name","genre","releaseYear","releasePlatform"
+        });
+        movieDataLineMapper.setFieldSetMapper(movieFieldSetMapper());
+        movieDataLineMapper.setLineTokenizer(tokenizer);
+        reader.setLineMapper(movieDataLineMapper);
+        reader.setRecordSeparatorPolicy(new DefaultRecordSeparatorPolicy());
+        return reader;
+    }
+
+    @Bean
+    public FieldSetMapper&lt;Movie&gt; movieFieldSetMapper(){
+        return new MovieFieldSetMapper();
+    }</pre><p></p>
+<h5>Item processor</h5>
+<p>For item processor, we will configure with async capabilities.  This is not needed for the sample data set for the example in this post. However, when you want to process a huge data set async processing will be very helpful.</p><pre class="crayon-plain-tag">// ASYNC ITEM PROCESSOR
+    @Bean
+    @StepScope
+    public ItemProcessor asyncMovieDataProcessor(){
+        AsyncItemProcessor&lt;Movie, Movie&gt; asyncItemProcessor = new AsyncItemProcessor&lt;&gt;();
+        asyncItemProcessor.setDelegate(movieDataProcessor(null));
+        asyncItemProcessor.setTaskExecutor(asyncMovieTaskExecutor());
+        return asyncItemProcessor;
+    }
+
+    // DELEGATE ITEM PROCESSOR
+    @Bean
+    @StepScope
+    public ItemProcessor&lt;Movie, Movie&gt; movieDataProcessor(@Value("#{stepExecution}") StepExecution stepExecution) {
+        MovieDataProcessor movieDataProcessor = new MovieDataProcessor();
+        return movieDataProcessor;
+    }
+
+    // TASK EXECUTOR
+
+    @Bean
+    public TaskExecutor asyncMovieTaskExecutor()
+    {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(threadPoolSize);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setThreadNamePrefix("movieExec-");
+        return executor;
+    }</pre><p></p>
+<h5>Item writer</h5>
+<p>Then, for item writer we configure it with async. This is to support the item processor which process the items in multiple threads and we need to handle the Future which gets returned.</p><pre class="crayon-plain-tag">// WRITER
+    @Bean
+    @StepScope
+    public ItemWriter asyncMovieItemWriter() throws Exception{
+        SimpleAsyncItemWriter&lt;Movie&gt; simpleAsyncItemWriter = new SimpleAsyncItemWriter&lt;&gt;();
+        simpleAsyncItemWriter.setDelegate(movieNoOpItemWriter());
+        return simpleAsyncItemWriter;
+    }
+
+    @Bean
+    @StepScope
+    public ItemWriter movieNoOpItemWriter() {
+        return new NoOpItemWriter();
+    }</pre><p></p>
+<h5>Database</h5>
+<p>We will use H2 in memory database.</p><pre class="crayon-plain-tag">// H2 dependency
+implementation group: 'com.h2database', name: 'h2', version: '1.4.193'
+
+// Data source config
+spring.batch.datasource.jdbc-url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+spring.batch.datasource.driverClassName=org.h2.Driver
+spring.batch.datasource.username=sa
+spring.batch.datasource.password=</pre><p></p>
+<h3>Running the application</h3>
+<p>To run the application, just execute <code>Run</code> from ReadFileFromS3BatchApplication.java file.</p>
+<p>I have created two movie data set CSV files for this example. The data set files are available under resources folder in the project for reference. The execution logs are as below</p>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-1024x335.png" alt="" class="aligncenter size-large wp-image-1062" width="750" height="245" srcset="https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-1024x335.png 1024w, https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-300x98.png 300w, https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-768x251.png 768w, https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-1536x503.png 1536w, https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs.png 1632w" sizes="(max-width: 750px) 100vw, 750px" /></p>
+<p>&nbsp;</p>
+<h3>Conclusion</h3>
+<p>In this article, we have explored how to read files from S3 bucket using spring batch. The key note is we have processed the files as stream without loading them in memory.<br />
+The complete source code is available over on <a href="https://bitbucket.org/rayfocus-blogs/spring-batch.code-samples/src/develop/read-files-fromS3/" target="_blank" rel="noopener">Git</a></p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/">Read CSV files from S3 using Spring Batch</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

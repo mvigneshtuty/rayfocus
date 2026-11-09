@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>CloudWatch Events &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/tag/cloudwatch-events/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Thu, 17 Aug 2017 12:48:14 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Automated EBS snapshots using Amazon CloudWatch Events</title>
+		<link>https://blogs.rayfocus.com/automated-ebs-snapshots-using-cloudwatch-events/</link>
+					<comments>https://blogs.rayfocus.com/automated-ebs-snapshots-using-cloudwatch-events/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Thu, 17 Aug 2017 12:26:38 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[CloudWatch Events]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=497</guid>
+
+					<description><![CDATA[<p>Amazon CloudWatch is a monitoring service for AWS cloud resources and the applications running on it. CloudWatch helps you to collect and track metrics for your AWS resources. You can configure alarm to help you react when changes happen to your resources. For example, you can create a alarm when<a class="moretag" href="https://blogs.rayfocus.com/automated-ebs-snapshots-using-cloudwatch-events/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/automated-ebs-snapshots-using-cloudwatch-events/">Automated EBS snapshots using Amazon CloudWatch Events</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Amazon CloudWatch is a monitoring service for AWS cloud resources and the applications running on it. CloudWatch helps you to collect and track metrics for your AWS resources. You can configure alarm to help you react when changes happen to your resources. For example, you can create a alarm when your EC2 instance is utilizing more CPU than the normal usage limit.</p>
+<p>You can do more than creating alarm by leveraging the CloudWatch Events feature. In this tutorial, we are going to see the one such use case of CloudWatch Events where you can automate the EBS(Elastic Block Storage) snapshots creation.</p>
+<h4>What is CloudWatch Events?</h4>
+<p>Amazon CloudWatch Events helps you to respond to the changes in your AWS resources and to take the necessary corrective actions. With CloudWatch Events you can schedule automated actions using cron or rate expressions.</p>
+<h4>Prerequisites for this tutorial</h4>
+<ol>
+<li>You must have an active AWS account and access to AWS management console.</li>
+<li>An EBS volume for which snapshot creation will be automated. Ideally you can have a EBS backed EC2 instance. You can refer the post <a href="https://blogs.rayfocus.com/how-to-launch-amazon-ec2-linux-instance/" target="_blank" rel="noopener">launching EC2 instance</a> for detailed steps to spin up the EC2 instance.</li>
+</ol>
+<h4>Create CloudWatch Events rule</h4>
+<ul>
+<li>Open the CloudWatch console (<a href="https://console.aws.amazon.com/cloudwatch/" target="_blank" rel="noopener">https://console.aws.amazon.com/cloudwatch/</a>).</li>
+<li>For this example, I&#8217;m using the region EU (Frankfurt).</li>
+<li>Choose <strong>Events </strong>in the left navigation pane. Then choose Create rule.</li>
+<li>For the Event Source, choose <strong>Schedule</strong>.</li>
+<li>For this example, we are going to schedule the EBS snapshots at fixed rate interval. So choose the <code>Fixed rate of</code> option and enter the value as 5 minutes.</li>
+</ul>
+<p><img fetchpriority="high" decoding="async" class="aligncenter size-full wp-image-500" src="https://static.rayfocus.com/wp-content/uploads/2017/08/15164633/create-rule.png" alt="" width="825" height="361" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/15164633/create-rule.png 825w, https://static.rayfocus.com/wp-content/uploads/2017/08/15164633/create-rule-300x131.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/08/15164633/create-rule-768x336.png 768w" sizes="(max-width: 825px) 100vw, 825px" /></p>
+<ul>
+<li>Choose <strong>Add target</strong>. Select the <code>EC2 CreateSnapshot API call</code> from the drop down.</li>
+<li>For Volume ID, grab your EBS volume ID and paste it here. Then choose <strong>Configure details</strong>.</li>
+</ul>
+<p><img decoding="async" class="aligncenter size-full wp-image-503" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17083204/add-targets.png" alt="" width="812" height="404" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17083204/add-targets.png 812w, https://static.rayfocus.com/wp-content/uploads/2017/08/17083204/add-targets-300x149.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/08/17083204/add-targets-768x382.png 768w" sizes="(max-width: 812px) 100vw, 812px" /></p>
+<p><strong>Note:</strong> To get EBS volume ID, go to EC2 console and choose Volumes under ELASTIC BLOCK STORE in left navigation pane.</p>
+<ul>
+<li>In the next step, provide the details for Rule definition. Enter the name for Rule and optional description.</li>
+</ul>
+<p><img decoding="async" class="aligncenter size-full wp-image-506" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17111417/rule-def.png" alt="" width="750" height="228" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17111417/rule-def.png 750w, https://static.rayfocus.com/wp-content/uploads/2017/08/17111417/rule-def-300x91.png 300w" sizes="(max-width: 750px) 100vw, 750px" /></p>
+<ul>
+<li>For AWS permissions, choose<strong> Create new role</strong>. Then select Basic events execution role. This automatically creates a new IAM role which will allow CloudWatch to access your EC2 resources.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-507" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17112111/aws-permissions.png" alt="" width="820" height="232" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17112111/aws-permissions.png 820w, https://static.rayfocus.com/wp-content/uploads/2017/08/17112111/aws-permissions-300x85.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/08/17112111/aws-permissions-768x217.png 768w" sizes="(max-width: 820px) 100vw, 820px" /></p>
+<ul>
+<li>Now you will be taken to IAM console which will request your permission to access the resources in your AWS account.</li>
+<li>Give the Role Name of your choice. For this example, I have given the name as <code>My_AWS_Events_Role</code>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-508" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17112837/grant-permissions.png" alt="" width="727" height="363" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17112837/grant-permissions.png 727w, https://static.rayfocus.com/wp-content/uploads/2017/08/17112837/grant-permissions-300x150.png 300w" sizes="(max-width: 727px) 100vw, 727px" /></p>
+<ul>
+<li>You can review the policy document which is attached for this IAM role.</li>
+<li>Choose View Policy Document. You should see the policy listed in JSON format.</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Describe*",
+        "ec2:RebootInstances",
+        "ec2:StopInstances",
+        "ec2:TerminateInstances",
+        "ec2:CreateSnapshot"
+      ],
+      "Resource": "*"
+    }
+  ]
+}</pre><p></p>
+<ul>
+<li>You can edit the policy document as per your need. For example, you might not want to allow the <code>ec2:TerminateInstances</code> action for the role. For this tutorial, I&#8217;m leaving the default policy document unchanged. Now choose <strong>Allow</strong>.</li>
+<li>Now you will be taken back to Configure rule details page with the IAM role selected.</li>
+<li>Choose <strong>Create rule</strong>.</li>
+<li>You should now see the Success message for rule created.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-510" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17114136/rule-created.png" alt="" width="451" height="429" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17114136/rule-created.png 451w, https://static.rayfocus.com/wp-content/uploads/2017/08/17114136/rule-created-300x285.png 300w" sizes="(max-width: 451px) 100vw, 451px" /></p>
+<h4><strong>Check your EBS Snapshots</strong></h4>
+<p>You have created the CloudWatch Events rule to automate the EBS snapshots creation at a fixed interval of 5 minutes. Now go ahead to the EC2 console and check the <strong>Snapshots </strong>under ELASTIC BLOCK STORE in the left navigation pane.</p>
+<p>After a 5 minutes interval, you should see the EBS snapshot created.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter wp-image-512 size-full" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17121235/snapshot-snap.png" alt="" width="530" height="458" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17121235/snapshot-snap.png 530w, https://static.rayfocus.com/wp-content/uploads/2017/08/17121235/snapshot-snap-300x259.png 300w" sizes="(max-width: 530px) 100vw, 530px" /></p>
+<h4>Clean up your resources</h4>
+<p><strong>Disable or delete the CloudWatch Events rule</strong></p>
+<p>Go to the CloudWatch console and disable or delete the events rule.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-513" src="https://static.rayfocus.com/wp-content/uploads/2017/08/17121532/cloudwatch-cleanup.png" alt="" width="363" height="361" srcset="https://static.rayfocus.com/wp-content/uploads/2017/08/17121532/cloudwatch-cleanup.png 363w, https://static.rayfocus.com/wp-content/uploads/2017/08/17121532/cloudwatch-cleanup-150x150.png 150w, https://static.rayfocus.com/wp-content/uploads/2017/08/17121532/cloudwatch-cleanup-300x298.png 300w" sizes="(max-width: 363px) 100vw, 363px" /></p>
+<p><strong>Clean up the EC2 instance and EBS volume</strong></p>
+<p>In case if you have launched the EC2 instance for this tutorial, stop or terminate those in order to stop incurring charges.</p>
+<p>Make sure to delete the EBS volume if you have created it for this tutorial. Also delete the EBS snapshot which is created automatically if you do not need it.</p>
+<p><strong>Delete the AWS Events IAM role</strong></p>
+<p>Go to the IAM console and delete the IAM role (<code>My_AWS_Events_Role</code>) created as part of this tutorial.</p>
+<h4>Conclusion</h4>
+<p>You can do more with the CloudWatch Events. Go through the <a href="http://docs.aws.amazon.com/AmazonCloudWatch/latest/events/WhatIsCloudWatchEvents.html" target="_blank" rel="noopener">AWS documentation</a> to explore the various options possible with CloudWatch Events. For example, using Events you can invoke AWS Lambda function to update DNS entries when your EC2 instance is ready.</p>
+<p>If you have any questions , please post in the comments section. Thank you!</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/automated-ebs-snapshots-using-cloudwatch-events/">Automated EBS snapshots using Amazon CloudWatch Events</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/automated-ebs-snapshots-using-cloudwatch-events/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

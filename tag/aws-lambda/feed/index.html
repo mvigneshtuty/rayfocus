@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>AWS Lambda &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/tag/aws-lambda/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Tue, 23 Jan 2018 18:16:51 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Serverless framework with AWS &#8211; Example</title>
+		<link>https://blogs.rayfocus.com/serverless-framework-with-aws-example/</link>
+					<comments>https://blogs.rayfocus.com/serverless-framework-with-aws-example/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sun, 05 Nov 2017 16:41:05 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[AWS Lambda]]></category>
+		<category><![CDATA[Serverless]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=591</guid>
+
+					<description><![CDATA[<p>Serverless is the architectural style in which the applications relies heavily on Backend as a Service(Baas) and Function as a Service(Faas). In Baas, the third party remote application services are integrated tightly into the client side of apps, for example Firebase. Whereas in FaaS, the server side logic is written<a class="moretag" href="https://blogs.rayfocus.com/serverless-framework-with-aws-example/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/serverless-framework-with-aws-example/">Serverless framework with AWS &#8211; Example</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Serverless is the architectural style in which the applications relies heavily on Backend as a Service(Baas) and Function as a Service(Faas). In Baas, the third party remote application services are integrated tightly into the client side of apps, for example <a href="https://firebase.google.com/docs/database/" target="_blank" rel="noopener">Firebase</a>. Whereas in FaaS, the server side logic is written as functions code using the services provided by Cloud, for example <a href="https://aws.amazon.com/lambda/" target="_blank" rel="noopener">AWS Lambda</a>.</p>
+<h4><strong>What is Serverless framework?</strong></h4>
+<p>With the Serverless architecture being defined, what is that Serverless framework?</p>
+<p><a href="https://serverless.com/" target="_blank" rel="noopener">Serverless framework</a> is the tool which helps to build serverless applications and to deploy and manage it effectively. In short, we can focus on our application with out worrying about infrastructure.</p>
+<h4>Serverless framework with AWS</h4>
+<p>In this post, let&#8217;s see a simple example of using Serverless framework with AWS as Cloud service provider.</p>
+<p>Before start using the Serverless framework we need the following tools available.</p>
+<ol>
+<li><a href="https://aws.amazon.com/" target="_blank" rel="noopener">AWS account</a></li>
+<li><a href="http://docs.aws.amazon.com/cli/latest/userguide/installing.html" target="_blank" rel="noopener">AWS CLI  </a>and configuring the Credentials</li>
+<li><a href="https://nodejs.org" target="_blank" rel="noopener">NodeJS</a></li>
+<li><a href="https://serverless.com/framework/docs/providers/aws/guide/installation/" target="_blank" rel="noopener">Serverless framework</a></li>
+</ol>
+<p>After having the necessary tools, let&#8217;s start writing the application.</p>
+<p>The source code for this application  is available <a href="http://downloads.rayfocus.com/code-samples/aws-serverless-example.zip">here</a>. The download link is also provided at the end of this post.</p>
+<h4>Serverless Application</h4>
+<p>In this simple serverless example application, we are going to hit the API gateway from the html page. The API gateway will then trigger the Lambda function which will return the response. Then we will handle the response and display the output in html page.</p>
+<p>Yes. Probably the simplest example possible. And we are going to use the serverless framework to create the resources needed for this application.</p>
+<p><strong>serverless.yml</strong></p>
+<p>The serverless framework supports writing the configurations in YAML. So in serverless framework, we can define the resources needed for our application as a configuration. Then the framework will automate the resource creation using CloudFormation internally.</p>
+<p>Below listing shows the configuration for our application.</p><pre class="crayon-plain-tag">service: aws-serverless
+
+frameworkVersion: "&gt;=1.8.0 &lt;2.0.0"
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  versionFunctions: false
+
+functions:
+  main:
+    handler: backend/index.handler
+    environment:
+      USER_NAME: GuestUser
+    events:
+      - http:
+          path: /
+          method: get
+          cors: true</pre><p>The serverless.yml have the sections for defining the framework version, Cloud service provider, runtime environment, the Lambda function details and it&#8217;s event triggers.</p>
+<p><strong>Lambda function</strong></p>
+<p>Now we can start writing our Lambda function which will execute when the request is received from API gateway. Basically it&#8217;s a place to write our business logic for the request received from browser client.</p>
+<p>In the serverless.yml, if you notice the line <strong><code>handler: backend/index.handler</code></strong> which indicates that the framework is going to expect a <code>index.js </code>file inside a folder named <code>backend</code>. In the index.js file, there should be a function named <code>handler</code> exported as module.</p>
+<p>Below listing shows our code for Lambda function.</p><pre class="crayon-plain-tag">'use strict';
+
+const user_name = process.env['USER_NAME'];
+
+module.exports.handler = (event, context, callback) =&gt; {
+    console.log(JSON.stringify(event));
+    console.log('Input User Name Value : ' + user_name);
+    const welcomeMsg = `Hello ${user_name},
+                        Welcome to Serverless Architectures. It's AWSome!`;
+    const response = { 'message': welcomeMsg };
+    const respified = {
+        statusCode: 200,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify(response)
+    }
+    callback(
+        null,
+        respified
+    );
+}</pre><p></p>
+<h4><strong>Deploy the application</strong></h4>
+<p>To deploy the application, go to the project folder which contains the serverless.yml file. Then open the command prompt.</p>
+<p>Issue the command <code>sls deploy</code> .  Alternatively you can give <code>serverless deploy</code> , both will do the same action of deploying the resources.</p>
+<p><img fetchpriority="high" decoding="async" class="aligncenter size-full wp-image-603" src="https://static.rayfocus.com/wp-content/uploads/2017/11/04184954/sls-deploy.png" alt="" width="682" height="526" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/04184954/sls-deploy.png 682w, https://static.rayfocus.com/wp-content/uploads/2017/11/04184954/sls-deploy-300x231.png 300w" sizes="(max-width: 682px) 100vw, 682px" /></p>
+<p>The resources are now created and deployed into the AWS Cloud. The framework outputs the API gateway endpoint in the console. This is because we have mentioned API gateway as a event trigger for Lambda function in the configuration file. Make a note of the endpoint URL, which we will use in our example shortly.</p>
+<p><strong>Note: </strong>The API gateway URL listed above in the image might not be available for you for testing. However you can configure the one for you on following this example.</p>
+<p>If you notice the functions name in the console, it&#8217;s <strong><code>aws-serverless-dev-main</code></strong></p>
+<p><code>aws-serverless</code> is the service name mentioned in configuration.  <code>dev</code> is the default staging name for our application. We can configure other names such as <code>prod, pre-prod. main</code> is the function name configured in serverless.yml.</p>
+<p>In the cloud formation console, you can view the stack created by serverless framework internally. In the Events, you can also see the entries of resource creation such as Lambda function, API gateway, IAM roles.</p>
+<p><img decoding="async" class="aligncenter size-full wp-image-606" src="https://static.rayfocus.com/wp-content/uploads/2017/11/04191135/cloudformation-stack1.png" alt="" width="974" height="586" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/04191135/cloudformation-stack1.png 974w, https://static.rayfocus.com/wp-content/uploads/2017/11/04191135/cloudformation-stack1-300x180.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/11/04191135/cloudformation-stack1-768x462.png 768w" sizes="(max-width: 974px) 100vw, 974px" /></p>
+<h4><strong>A simple client</strong></h4>
+<p>We are almost done. Now to test our application, we need a simple client which will run on browser and invoke the API gateway.</p>
+<p>Below listing shows our <code>index.html</code> file.</p><pre class="crayon-plain-tag">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+	&lt;head&gt;
+        &lt;title&gt;Serverless framework&lt;/title&gt;
+        &lt;style&gt;
+            .text-style {
+                color: maroon;
+            }
+            #welcome-img{
+                display: none;
+            }
+        &lt;/style&gt;
+	&lt;/head&gt;
+    &lt;body&gt;
+        &lt;div class="container" role="main" align="center"&gt;
+            &lt;h1&gt;Serverless framework with AWS - Example&lt;/h1&gt;
+            &lt;div&gt;
+                &lt;form class="col-md-4" id="features" action=""&gt;
+                    &lt;p&gt;
+                        &lt;h2&gt;
+                            &lt;span id="welcome-message" class="text-style"&gt;Click the below button to get welcome message&lt;/span&gt;
+                        &lt;h2&gt;
+                    &lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;button type="button" id="welcomeMessageButton" onclick= "getWelcomeMessage()" class="btn btn-info"&gt;Get Welcome Message&lt;/button&gt;
+                        &lt;button type="button" id="resetButton" onclick="resetMessage()" class="btn btn-info"&gt;Reset&lt;/button&gt;
+                    &lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;img id="welcome-img" src="https://static.rayfocus.com/wp-content/uploads/2017/11/04200430/serverless.png"&gt;
+                    &lt;/p&gt;
+                &lt;/form&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;script type="text/javascript"&gt;
+    
+            function getWelcomeMessage(){
+                invokeAPI(function(data){
+                    document.getElementById('welcome-message').innerHTML = data;
+                    document.getElementById('welcome-img').style.display = 'block';
+                });
+                
+            }
+    
+            function invokeAPI(callback){
+                var endpointURL = 'YOUR_API_GATEWAY_URL';
+                fetch(endpointURL, {
+                        method: 'get',
+                        mode: 'cors',
+                        headers: new Headers({
+                            'Accept': 'application/json'
+                        })
+                    }).then(response =&gt; {
+                        console.log('response untouched', response);
+                        if(response.status === 200){
+                            response.json().then(respified =&gt; {
+                                console.log('JSON response', respified)
+                                callback(respified.message);
+                            }).catch(err =&gt; {
+                                console.log('Error parsing the respone as JSON.', err);
+                                callback(err);
+                            });
+                        }
+                        else{
+                            throw `Invalid response received with status code ${response.status}`;
+                        }
+                    }).catch(err =&gt; {
+                        console.log('Error invoking API gateway endpoint.',err);
+                        callback(err);
+                    })
+                }
+    
+            function resetMessage(){
+                var defaultWelcomeMessage = 'Click the below button to get welcome message';
+                document.getElementById('welcome-message').innerHTML = defaultWelcomeMessage;
+                document.getElementById('welcome-img').style.display = 'none';
+            }
+    
+        &lt;/script&gt;
+	&lt;/body&gt;
+&lt;/html&gt;</pre><p><strong>Note:</strong> Replace the <code>YOUR_API_GATEWAY_URL</code> string with the URL that you will get when configuring the API gateway.</p>
+<h4>Test the application</h4>
+<p>Finally it&#8217;s all done. Now we can test our application. Open the index.html in a web browser. You should see the below screen rendered.</p>
+<p><img decoding="async" class="aligncenter size-full wp-image-611" src="https://static.rayfocus.com/wp-content/uploads/2017/11/05144729/index-html.png" alt="" width="804" height="275" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/05144729/index-html.png 804w, https://static.rayfocus.com/wp-content/uploads/2017/11/05144729/index-html-300x103.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/11/05144729/index-html-768x263.png 768w" sizes="(max-width: 804px) 100vw, 804px" /></p>
+<p>Click on the <code>Get Welcome Message</code> button. You should get the welcome message and the welcome image displayed as below.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-612" src="https://static.rayfocus.com/wp-content/uploads/2017/11/05144913/welcome-html.png" alt="" width="929" height="883" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/05144913/welcome-html.png 929w, https://static.rayfocus.com/wp-content/uploads/2017/11/05144913/welcome-html-300x285.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/11/05144913/welcome-html-768x730.png 768w" sizes="(max-width: 929px) 100vw, 929px" /></p>
+<h4>Clean up the resources</h4>
+<p>With serverless framework, it&#8217;s very simple to cleanup the resources we have created for the application. Just issue the command <code>sls remove</code>. The CloudFormation stack will be deleted and you are all done cleaning up.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-613" src="https://static.rayfocus.com/wp-content/uploads/2017/11/05150348/sls-remove.png" alt="" width="538" height="218" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/05150348/sls-remove.png 538w, https://static.rayfocus.com/wp-content/uploads/2017/11/05150348/sls-remove-300x122.png 300w" sizes="(max-width: 538px) 100vw, 538px" /></p>
+<h4>Conclusion</h4>
+<p>We have seen a simple example of using serverless framework. While developing this application, we haven&#8217;t used the AWS management console to get the things done. That is one of the key advantage of serverless framework. Because it means the creation , deployment and management of resources are automated.</p>
+<p>What&#8217;s next? We can start building the applications using serverless architectures and automate the resource management using serverless framework.</p>
+<p>Thank you for reading this post. If you have any questions, please share it in the comments section.</p>
+<hr />
+<p><strong>Download source code : </strong><span style="text-decoration: underline;"><a href="http://downloads.rayfocus.com/code-samples/aws-serverless-example.zip" rel="noopener">aws-serverless-example.zip</a></span></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/serverless-framework-with-aws-example/">Serverless framework with AWS &#8211; Example</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/serverless-framework-with-aws-example/feed/</wfw:commentRss>
+			<slash:comments>2</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Transcode your favourite videos using AWS Lambda and Elastic Transcoder</title>
+		<link>https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/</link>
+					<comments>https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Thu, 28 Sep 2017 18:31:24 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[Amazon Elastic Transcoder]]></category>
+		<category><![CDATA[AWS Lambda]]></category>
+		<category><![CDATA[Java]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=522</guid>
+
+					<description><![CDATA[<p>Video transcoding has been made easier and effective using the Elastic Transcoder service from Amazon. In this post, we will see how to make use of Elastic Transcoder to transcode the videos we upload to Amazon S3 bucket. Also, we will make use of AWS Lambda which will invoke the<a class="moretag" href="https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/">Transcode your favourite videos using AWS Lambda and Elastic Transcoder</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Video transcoding has been made easier and effective using the Elastic Transcoder service from Amazon. In this post, we will see how to make use of Elastic Transcoder to transcode the videos we upload to Amazon S3 bucket. Also, we will make use of AWS Lambda which will invoke the Elastic Transcoder whenever a new Object is added to S3 bucket.</p>
+<h4>Create S3 Buckets</h4>
+<p>In this example, we will use two S3 buckets say input and output bucket. The object (video file to be transcoded) will be uploaded into input bucket. The output bucket will have the transcoded videos. For this example, the input bucket is created with the name <code>input.videos-to-transcode</code> and the output bucket is <code>output.transcoded-videos</code>. Both the buckets are created in the US-EAST region(N. Virginia).</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-560" src="https://static.rayfocus.com/wp-content/uploads/2017/09/26072249/create-bucket.png" alt="" width="867" height="813" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/26072249/create-bucket.png 867w, https://static.rayfocus.com/wp-content/uploads/2017/09/26072249/create-bucket-300x281.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/09/26072249/create-bucket-768x720.png 768w" sizes="(max-width: 867px) 100vw, 867px" /></p>
+<p>For detailed steps on working with S3 buckets, refer the post <a href="https://blogs.rayfocus.com/getting-started-with-amazon-s3/" target="_blank" rel="noopener">Getting started with S3</a>.</p>
+<p><strong>Note: </strong>Since the Bucket name is unique through out, you have to choose a different bucket name other than the one mentioned in this example.</p>
+<h4>Elastic Transcoder</h4>
+<p>In Elastic Transcoder, pipelines are the queues to which the transcoding jobs can be added. Elastic Transcoder process the jobs in the order in which it is placed in the pipeline. Let&#8217;s configure the pipeline using the <a href="https://console.aws.amazon.com/elastictranscoder/" target="_blank" rel="noopener">Elastic Transcoder console</a>.</p>
+<p><strong>Create a pipeline</strong></p>
+<ul>
+<li>In the Elastic Transcoder console, choose Create a new Pipeline.</li>
+<li>Configure the pipeline by providing the input and output bucket details as below.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-563" src="https://static.rayfocus.com/wp-content/uploads/2017/09/26101209/configure-pipeline.png" alt="" width="684" height="773" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/26101209/configure-pipeline.png 684w, https://static.rayfocus.com/wp-content/uploads/2017/09/26101209/configure-pipeline-265x300.png 265w" sizes="(max-width: 684px) 100vw, 684px" /></p>
+<ul>
+<li>For IAM role, choose <strong>Create console default role</strong>. AWS will automatically create the IAM role Elastic_Transcoder_Default_Role.</li>
+<li>You can review the IAM policy attached to the default role.</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Sid": "1",
+      "Effect": "Allow",
+      "Action": [
+        "s3:Put*",
+        "s3:ListBucket",
+        "s3:*MultipartUpload*",
+        "s3:Get*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "2",
+      "Effect": "Allow",
+      "Action": "sns:Publish",
+      "Resource": "*"
+    },
+    {
+      "Sid": "3",
+      "Effect": "Deny",
+      "Action": [
+        "s3:*Delete*",
+        "s3:*Policy*",
+        "sns:*Remove*",
+        "sns:*Delete*",
+        "sns:*Permission*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}</pre><p></p>
+<ul>
+<li>For Notifications and Encryption sections, leave the default values.</li>
+<li>Choose <strong>Create Pipeline</strong>.</li>
+<li>You will now have the pipeline created with status as Active. Make a note of the pipeline id.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-568" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28140310/pipeline-id.png" alt="" width="487" height="208" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28140310/pipeline-id.png 487w, https://static.rayfocus.com/wp-content/uploads/2017/09/28140310/pipeline-id-300x128.png 300w" sizes="(max-width: 487px) 100vw, 487px" /></p>
+<h4>AWS Lambda Function</h4>
+<p>To summarize the things we have done so far, we have created input and output S3 buckets for placing the video files. Then we have configured the Elastic Transcoder pipeline. Now we need to connect these two pieces i.e S3 buckets and Elastic Transcoder so that when we upload some objects(video file) in S3 bucket the transcoding needs to be done for the video files. So how can we do that?</p>
+<p>Here comes the AWS Lambda to our rescue. Yes. Lambda acts as a glue between the S3 bucket and the Elastic Transcoder. This is done by configuring the events for new object creation in S3 bucket which will trigger the Lambda function. Then the Lambda function will create the Elastic Transcoder Job and add that to the Transcoder pipeline we have created. Elastic Transcoder then process the Job and produces the transcoded videos in the output S3 bucket.</p>
+<p><strong>Creating IAM role(Execution role) for Lambda</strong></p>
+<p>Before creating the Lambda function, let&#8217;s create an IAM role which will be associated with Lambda when it executes.</p>
+<ul>
+<li>Access the <a href="https://console.aws.amazon.com/iam" target="_blank" rel="noopener">IAM console</a>.</li>
+<li>Select <strong>Roles  </strong>in the left navigation pane and choose Create role.</li>
+<li>For role type, choose AWS service and select Lambda. Then select <strong>Next: Permissions</strong>.</li>
+<li>For Attach permissions policy, search for <strong>AWSLambdaBasicExecutionRole </strong>and select it.</li>
+<li>Then search for <strong>AmazonElasticTranscoderJobsSubmitter </strong>and select it.</li>
+<li>Choose <strong>Next: Review</strong>.</li>
+<li>Then provide the name for the role. For this example, it&#8217;s lambda-exec-role_video-transcoder.</li>
+<li>Choose <strong>Create role</strong>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-571" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28154301/select-lambda-role.png" alt="" width="677" height="605" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28154301/select-lambda-role.png 677w, https://static.rayfocus.com/wp-content/uploads/2017/09/28154301/select-lambda-role-300x268.png 300w" sizes="(max-width: 677px) 100vw, 677px" /></p>
+<h4><strong>Author the Lambda Function</strong></h4>
+<p>Now it&#8217;s time to write the Lambda function itself. In this example, we will use Java language to write the function. For this, you need Java 8, Eclipse IDE, AWS Toolkit for Eclipse, Maven.</p>
+<p>You can get the source code for this example from <a href="http://downloads.rayfocus.com/code-samples/example_videos-transcoding.zip" target="_blank" rel="noopener">here</a>. Also the download link is available at the end of this post.</p>
+<p><strong>Step 1 :</strong></p>
+<p>Add the below dependencies and plugins in your <code>pom.xml</code></p><pre class="crayon-plain-tag">&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+	&lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+	&lt;groupId&gt;com.rayfocus.aws.lambda&lt;/groupId&gt;
+	&lt;artifactId&gt;videotranscoder&lt;/artifactId&gt;
+	&lt;version&gt;4.0.0&lt;/version&gt;
+	&lt;dependencies&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.amazonaws&lt;/groupId&gt;
+			&lt;artifactId&gt;aws-lambda-java-core&lt;/artifactId&gt;
+			&lt;version&gt;1.1.0&lt;/version&gt;
+			&lt;scope&gt;compile&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.amazonaws&lt;/groupId&gt;
+			&lt;artifactId&gt;aws-lambda-java-events&lt;/artifactId&gt;
+			&lt;version&gt;1.3.0&lt;/version&gt;
+			&lt;scope&gt;compile&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;junit&lt;/groupId&gt;
+			&lt;artifactId&gt;junit&lt;/artifactId&gt;
+			&lt;version&gt;4.11&lt;/version&gt;
+			&lt;scope&gt;test&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.amazonaws&lt;/groupId&gt;
+			&lt;artifactId&gt;aws-java-sdk-elastictranscoder&lt;/artifactId&gt;
+			&lt;version&gt;1.9.1&lt;/version&gt;
+		&lt;/dependency&gt;
+	&lt;/dependencies&gt;
+	&lt;build&gt;
+		&lt;plugins&gt;
+			&lt;plugin&gt;
+				&lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+				&lt;artifactId&gt;maven-shade-plugin&lt;/artifactId&gt;
+				&lt;version&gt;3.1.0&lt;/version&gt;
+				&lt;configuration&gt;
+					&lt;!-- put your configurations here --&gt;
+				&lt;/configuration&gt;
+				&lt;executions&gt;
+					&lt;execution&gt;
+						&lt;phase&gt;package&lt;/phase&gt;
+						&lt;goals&gt;
+							&lt;goal&gt;shade&lt;/goal&gt;
+						&lt;/goals&gt;
+					&lt;/execution&gt;
+				&lt;/executions&gt;
+			&lt;/plugin&gt;
+		&lt;/plugins&gt;
+	&lt;/build&gt;
+&lt;/project&gt;</pre><p><strong>Step 2:</strong> Then create a class TranscodeJobCreator.java which will handle the requests by implementing the RequestHandler interface.</p><pre class="crayon-plain-tag">package com.rayfocus.aws.lambda.videotranscoder;
+
+import java.util.Arrays;
+import java.util.List;
+
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.elastictranscoder.AmazonElasticTranscoderClient;
+import com.amazonaws.services.elastictranscoder.model.CreateJobOutput;
+import com.amazonaws.services.elastictranscoder.model.CreateJobRequest;
+import com.amazonaws.services.elastictranscoder.model.JobInput;
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+
+import com.amazonaws.services.lambda.runtime.events.S3Event;
+
+@SuppressWarnings("deprecation")
+public class TranscodeJobCreator implements RequestHandler&lt;S3Event, Object&gt; {
+
+	private static final AmazonElasticTranscoderClient elasticTranscoder;
+
+	private static final String TRANSCODE_GENERIC_1080p_PRESET_ID = "1351620000001-000001";
+	private static final String TRANSCODE_GENERIC_720p_PRESET_ID = "1351620000001-000010";
+	private static final String TRANSCODE_WEB_720p_PRESET_ID = "1351620000001-100070";
+
+	private static final String OUTPUT_KEY_PREFIX = "output-videos/";
+	private static final String ELASTIC_TRANSCODER_PIPELINE_ID = "ELASTIC_TRANSCODER_PIPELINE_ID";
+	private static final String OUTPUT_VIDEO_FORMAT = "OUTPUT_VIDEO_FORMAT"; 
+
+	static {
+		//elasticTranscoder = new AmazonElasticTranscoderClient(AwsAuth.getProfileCredentials("aws-access"));
+		//elasticTranscoder = new AmazonElasticTranscoderClient(AwsAuth.getProfileCredentials());
+		elasticTranscoder = new AmazonElasticTranscoderClient();
+		Region usEast1 = Region.getRegion(Regions.US_EAST_1);
+		elasticTranscoder.setRegion(usEast1);
+	}
+
+	public Object handleRequest(S3Event input, Context context) {
+		context.getLogger().log("Input: " + input);
+		context.getLogger().log("PipelineId: " + System.getenv(ELASTIC_TRANSCODER_PIPELINE_ID));
+		
+		// Get the S3 input object key for Transcoder Job
+		String inputKey = input.getRecords().get(0).getS3().getObject().getKey();
+		inputKey = inputKey.replaceAll(" ", "+");
+		context.getLogger().log("Input Key: " + inputKey);
+		
+		// Create the Transcoder Job input
+		JobInput transcoderJobInput = new JobInput().withKey(inputKey);
+
+		// Create the output key for Transcoder Job
+		String outputKey = inputKey.split("\\.")[0];
+		
+		// Loggers
+		context.getLogger().log("OutputKey: " + outputKey);
+		
+		// Configure the Transcoder Job output
+		CreateJobOutput generic1080p = new CreateJobOutput().withKey(outputKey + "-1080p" + "." + System.getenv(OUTPUT_VIDEO_FORMAT))
+				.withPresetId(TRANSCODE_GENERIC_1080p_PRESET_ID);
+		CreateJobOutput generic720p = new CreateJobOutput().withKey(outputKey + "-720p" + "." + System.getenv(OUTPUT_VIDEO_FORMAT))
+				.withPresetId(TRANSCODE_GENERIC_720p_PRESET_ID);
+		CreateJobOutput web720p = new CreateJobOutput().withKey(outputKey + "-web-720p" + "." + System.getenv(OUTPUT_VIDEO_FORMAT))
+				.withPresetId(TRANSCODE_WEB_720p_PRESET_ID);
+		List&lt;CreateJobOutput&gt; transcoderJobOutputs = Arrays.asList(generic1080p, generic720p, web720p);
+
+		// Create the Transcoder Job request
+		CreateJobRequest createJobRequest = new CreateJobRequest()
+				.withPipelineId(System.getenv(ELASTIC_TRANSCODER_PIPELINE_ID)).withInput(transcoderJobInput)
+				.withOutputKeyPrefix(OUTPUT_KEY_PREFIX).withOutputs(transcoderJobOutputs);
+
+		// Create the Transcoder Job
+		elasticTranscoder.createJob(createJobRequest);
+		
+		return "{'status':'done'}";
+	}
+}</pre><p><strong>Step 3: </strong>Compile and build the project using Maven goal as <strong><code>package</code></strong>. After successful build then run the Maven build again using the goal as <strong><code>package shade:shade</code></strong>. In the target folder of the project, you should have the jar <code>videotranscoder-4.0.0.jar</code>.<img loading="lazy" decoding="async" class="aligncenter size-full wp-image-570" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28153957/transcoder-jar.png" alt="" width="321" height="232" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28153957/transcoder-jar.png 321w, https://static.rayfocus.com/wp-content/uploads/2017/09/28153957/transcoder-jar-300x217.png 300w" sizes="(max-width: 321px) 100vw, 321px" /></p>
+<h4><strong>Deploy the Lambda Function</strong></h4>
+<p>Now that we have written the Lambda function, we need to deploy it so that the function can be triggered when certain events occur.</p>
+<ul>
+<li>Access the <a href="https://console.aws.amazon.com/lambda" target="_blank" rel="noopener">Lambda console</a>. Choose region as N. Virginia.</li>
+<li>Select Create function. Choose Author from scratch.</li>
+<li>We will configure the Trigger in the following steps. For now leave it and choose Next.</li>
+<li>Give a name for the function. For this example, it&#8217;s <code>func_transcode-videos</code>.</li>
+<li>Select the Runtime as Java 8.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-573" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28161607/function-name.png" alt="" width="545" height="275" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28161607/function-name.png 545w, https://static.rayfocus.com/wp-content/uploads/2017/09/28161607/function-name-300x151.png 300w" sizes="(max-width: 545px) 100vw, 545px" /></p>
+<ul>
+<li>Now for Code entry type, upload the <code>videotranscoder-4.0.0.jar</code> available in the project&#8217;s target folder.</li>
+<li>Select Upload and choose the jar file.</li>
+<li>For Environment variables, we need two entries to be provided as we have used it in the handler code we have written.</li>
+<li>For ELASTIC_TRANSCODER_PIPELINE_ID, give the value of pipeline id.</li>
+<li>For OUTPUT_VIDEO_FORMAT, we choose <code>mp4</code> for this example.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-574" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28163330/func-upload.png" alt="" width="985" height="547" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28163330/func-upload.png 985w, https://static.rayfocus.com/wp-content/uploads/2017/09/28163330/func-upload-300x167.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/09/28163330/func-upload-768x426.png 768w" sizes="(max-width: 985px) 100vw, 985px" /></p>
+<ul>
+<li>For function handler give the value as <code>com.rayfocus.aws.lambda.videotranscoder.TranscodeJobCreator</code>.</li>
+<li>For Role, choose the existing role <code>lambda-exec-role_video-transcoder</code>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-575" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28164054/func-handler.png" alt="" width="545" height="402" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28164054/func-handler.png 545w, https://static.rayfocus.com/wp-content/uploads/2017/09/28164054/func-handler-300x221.png 300w" sizes="(max-width: 545px) 100vw, 545px" /></p>
+<ul>
+<li>In Advanced settings, change the Timeout value to 30 seconds so that Lambda function will have enough time to complete the execution. Leave the other settings unchanged.</li>
+<li>Then choose Next.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-576" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28164451/timeout-settings.png" alt="" width="422" height="301" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28164451/timeout-settings.png 422w, https://static.rayfocus.com/wp-content/uploads/2017/09/28164451/timeout-settings-300x214.png 300w" sizes="(max-width: 422px) 100vw, 422px" /></p>
+<ul>
+<li>Review the Lambda function details and select Create function.</li>
+<li>Now you should see the message for successful creation of Lambda function.</li>
+</ul>
+<h4>Configure the Triggers for AWS Lambda</h4>
+<ul>
+<li>To configure the triggers for Lambda, select the function created in previous step and choose Triggers section.</li>
+<li>Then select <strong>Add trigger</strong>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-577" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28165325/add-triggers.png" alt="" width="593" height="336" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28165325/add-triggers.png 593w, https://static.rayfocus.com/wp-content/uploads/2017/09/28165325/add-triggers-300x170.png 300w" sizes="(max-width: 593px) 100vw, 593px" /></p>
+<ul>
+<li>Select the trigger type as S3.</li>
+<li>Then select the input S3 bucket as event source. For Event type choose Object created(All).</li>
+<li>Enable the trigger and choose Submit.</li>
+<li>Now the trigger should be added successfully to the Lambda function.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-578" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28170040/configure-triggers.png" alt="" width="873" height="857" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28170040/configure-triggers.png 873w, https://static.rayfocus.com/wp-content/uploads/2017/09/28170040/configure-triggers-300x295.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/09/28170040/configure-triggers-768x754.png 768w" sizes="(max-width: 873px) 100vw, 873px" /></p>
+<h4>Test the Lambda Function</h4>
+<p>Now finally it&#8217;s time to test the video transcoding. Upload the sample video file into the input S3 bucket. You should get the transcoded videos in the output S3 bucket.</p>
+<p><strong>Input Video File<br />
+</strong></p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-583" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28175415/input-bucket1.png" alt="" width="468" height="432" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28175415/input-bucket1.png 468w, https://static.rayfocus.com/wp-content/uploads/2017/09/28175415/input-bucket1-300x277.png 300w" sizes="(max-width: 468px) 100vw, 468px" /></p>
+<p>&nbsp;</p>
+<p><strong>Transcoded Output Video Files<br />
+</strong></p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-584" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28175451/transcoded-output-in-bucket1.png" alt="" width="510" height="525" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28175451/transcoded-output-in-bucket1.png 510w, https://static.rayfocus.com/wp-content/uploads/2017/09/28175451/transcoded-output-in-bucket1-291x300.png 291w" sizes="(max-width: 510px) 100vw, 510px" /></p>
+<p>&nbsp;</p>
+<h4>Conclusion and What&#8217;s Next?</h4>
+<p>Congratulations! You have now done the video transcoding using Elastic Transcoder and AWS Lambda. We have seen how the Lambda function can be leveraged to achieve the transcoding functionality without configuring any servers by ourselves. This gives us the way to go ahead and explore more about the serverless architectures.</p>
+<p>We can have a thick client now talking to NoSQL database directly or by calling the API Gateway endpoint which will invoke Lambda function. The Lambda function will then do the database operations. There are plenty of options available to design the applications using serverless way in the Cloud.</p>
+<p>Let&#8217;s go serverless!</p>
+<p>That&#8217;s it for this post. If you face any errors in the example explained in this post, check the Cloud watch logs which will have the error details captured during Lambda invocations.</p>
+<p>If you have any questions or issues, please share it in the comments section.</p>
+<p>Thank you!</p>
+<hr />
+<p><strong>Download source code : </strong><a href="http://downloads.rayfocus.com/code-samples/example_videos-transcoding.zip">example_videos-transcoding.zip</a></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/">Transcode your favourite videos using AWS Lambda and Elastic Transcoder</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/feed/</wfw:commentRss>
+			<slash:comments>4</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

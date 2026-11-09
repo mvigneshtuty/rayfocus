@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Amazon SQS &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/category/amazon-web-services/amazon-sqs/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Mon, 16 Nov 2020 13:46:58 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Asynchronous pattern using Amazon SQS</title>
+		<link>https://blogs.rayfocus.com/asynchronous-pattern-using-amazon-sqs/</link>
+					<comments>https://blogs.rayfocus.com/asynchronous-pattern-using-amazon-sqs/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Mon, 16 Nov 2020 13:46:58 +0000</pubDate>
+				<category><![CDATA[Amazon SQS]]></category>
+		<category><![CDATA[Amazon Web Services]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=991</guid>
+
+					<description><![CDATA[<p>HTTP (HyperText Transfer Protocol),the underlying protocol in the world of web is commonly used for synchronous communications. However there are some use cases which needs the activities to be done in asynchronous way. Message brokers can help to integrate systems using asynchronous pattern. In this post, let see how Amazon<a class="moretag" href="https://blogs.rayfocus.com/asynchronous-pattern-using-amazon-sqs/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/asynchronous-pattern-using-amazon-sqs/">Asynchronous pattern using Amazon SQS</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>HTTP (HyperText Transfer Protocol),the underlying protocol in the world of web is commonly used for synchronous communications. However there are some use cases which needs the activities to be done in asynchronous way. Message brokers can help to integrate systems using asynchronous pattern. In this post, let see how Amazon SQS services provided by AWS(Amazon Web Services) can be used to design the asynchronous pattern.</p>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2020/08/17044553/amazon-sqs-300x123.png" alt="" class="aligncenter size-medium wp-image-1028" width="300" height="123" srcset="https://static.rayfocus.com/wp-content/uploads/2020/08/17044553/amazon-sqs-300x123.png 300w, https://static.rayfocus.com/wp-content/uploads/2020/08/17044553/amazon-sqs.png 351w" sizes="(max-width: 300px) 100vw, 300px" /></p>
+<h4>Synchronous pattern</h4>
+<p>Let&#8217;s see a simple example of synchronous communication using HTTP.</p>
+<p><img fetchpriority="high" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2020/09/06045912/sync-comm-traditional-02-1024x576.png" alt="" class="aligncenter size-large wp-image-1034" width="750" height="422" srcset="https://static.rayfocus.com/wp-content/uploads/2020/09/06045912/sync-comm-traditional-02-1024x576.png 1024w, https://static.rayfocus.com/wp-content/uploads/2020/09/06045912/sync-comm-traditional-02-300x169.png 300w, https://static.rayfocus.com/wp-content/uploads/2020/09/06045912/sync-comm-traditional-02-768x432.png 768w, https://static.rayfocus.com/wp-content/uploads/2020/09/06045912/sync-comm-traditional-02.png 1152w" sizes="(max-width: 750px) 100vw, 750px" /></p>
+<ul>
+<li>Client sends request to server.</li>
+<li>Server persists the data from request into database.</li>
+<li>Until the time server process the request and persist the data, client waits for the response from server.</li>
+</ul>
+<p>As we can see, the synchronous communication is simple and straight forward. But when there are heavy burst of requests, both client and server will have tremendous load. When server goes down with maximum load, there is a potential of message loss and requests getting timed out.</p>
+<h4>Asynchronous pattern</h4>
+<p>Let&#8217;s introduce Amazon SQS into the above synchronous pattern.</p>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2020/09/06050804/async-comm-using-sqs-01-1024x482.png" alt="" class="aligncenter size-large wp-image-1036" width="750" height="353" srcset="https://static.rayfocus.com/wp-content/uploads/2020/09/06050804/async-comm-using-sqs-01-1024x482.png 1024w, https://static.rayfocus.com/wp-content/uploads/2020/09/06050804/async-comm-using-sqs-01-300x141.png 300w, https://static.rayfocus.com/wp-content/uploads/2020/09/06050804/async-comm-using-sqs-01-768x361.png 768w, https://static.rayfocus.com/wp-content/uploads/2020/09/06050804/async-comm-using-sqs-01.png 1377w" sizes="(max-width: 750px) 100vw, 750px" /></p>
+<ul>
+<li>Client sends request to server.</li>
+<li>Server put the message into SQS queue.</li>
+<li>The server returns the acknowledgement response(&#8220;Your request has been submitted successfully for processing&#8221;) to client immediately.</li>
+<li>The consumer applications then pulls the message from SQS queue to do further computation.</li>
+</ul>
+<h4>Why Amazon SQS?</h4>
+<p>Alright! After taking a quick look into both synchronous and asynchronous patterns, let&#8217;s acknowledge that having message queues into our designs will help for distributed architectures. But why to choose Amazon SQS in particular?</p>
+<ul>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="1" data-aria-level="1"><span data-usefontface="false" data-contrast="none"><span>Amazon SQS is a fully managed message queuing service.</span></span><span>​</span></li>
+<li><span data-usefontface="false" data-contrast="none" class="TextRun SCXP235531703 BCX2" xml:lang="EN-US" lang="EN-US"><span class="NormalTextRun SCXP235531703 BCX2">Easy to scale and highly distributed without any administrative overhead.</span></span></li>
+<li><span data-usefontface="false" data-contrast="none" class="TextRun SCXP131604856 BCX2" xml:lang="EN-US" lang="EN-US"><span class="NormalTextRun SCXP131604856 BCX2">Integrates seamlessly </span></span><span data-usefontface="false" data-contrast="none" class="TextRun SCXP131604856 BCX2" xml:lang="EN-US" lang="EN-US"><span class="NormalTextRun SCXP131604856 BCX2">with Amazon Lambda. (</span></span>If the entire architecture stack is decided to be hosted in AWS cloud offering)</li>
+<li><span data-usefontface="false" data-contrast="none" class="TextRun SCXP234147282 BCX2" xml:lang="EN-US" lang="EN-US"><span class="NormalTextRun SCXP234147282 BCX2">SQS operations can be performed via AWS console, SDK of choice, Command line interface.</span></span></li>
+</ul>
+<h4>SQS &#8211; Visibility Timeout</h4>
+<p>One of the important concept to consider when choosing SQS is visibility timeout.</p>
+<p><img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2020/11/16111811/sqs-visibility-timeout-diagram.png" alt="" class="aligncenter size-full wp-image-1040" width="650" height="216" srcset="https://static.rayfocus.com/wp-content/uploads/2020/11/16111811/sqs-visibility-timeout-diagram.png 650w, https://static.rayfocus.com/wp-content/uploads/2020/11/16111811/sqs-visibility-timeout-diagram-300x100.png 300w" sizes="(max-width: 650px) 100vw, 650px" /></p>
+<ul>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="1" data-aria-level="1"><span data-usefontface="false" data-contrast="none"><span>Visibility timeout is the period for which the </span></span><span data-usefontface="false" data-contrast="none"><span>messages will be hidden from consumers.</span></span><span>​</span></li>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="2" data-aria-level="1"><span data-usefontface="false" data-contrast="none"><span>Once the message is consumed for first time, </span></span><span data-usefontface="false" data-contrast="none"><span>the visibility timeout starts. Default is 30 </span></span><span data-usefontface="false" data-contrast="none"><span>seconds. Maximum is 12 hours.</span></span><span>​</span></li>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="3" data-aria-level="1"><span data-usefontface="false" data-contrast="none"><span>Consumers of message have to explicitly </span></span><span data-usefontface="false" data-contrast="none"><span>delete the message after receiving.</span></span><span>​</span></li>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="4" data-aria-level="1"><span data-usefontface="false" data-contrast="none"><span>It&#8217;s good to have visibility timeout period to be </span></span><span data-usefontface="false" data-contrast="none"><span>configured with value more than the time </span></span><span data-usefontface="false" data-contrast="none"><span>consumer needed for processing the message.</span></span></li>
+</ul>
+<h4>Amazon SQS &#8211; Examples</h4>
+<p>Let&#8217;s see some examples to create queue, put messages to queue, consume messages from queue using AWS SDK for Java.</p><pre class="crayon-plain-tag">/* Create New Queue */
+    public void createQueueWithName(String queueName){
+        AmazonSQS sqsClient = SQSClientProvider.getForProfile("sqs_demo");
+        CreateQueueRequest create_queue_request = new CreateQueueRequest()
+                .withQueueName(queueName);
+               sqsClient.createQueue(create_queue_request);
+        System.out.println("Queue created with name :: "+queueName);
+    }</pre><p>Send messages to Queue</p><pre class="crayon-plain-tag">/* Send messages to Queue */
+    public void sendMessageTo(String queueName){
+        AmazonSQS sqsClient = SQSClientProvider.getForProfile("sqs_demo");
+        String queueUrl = SQSUtil.getQueueUrlFor(queueName);
+        String message = SQSUtil.getSimpleTextMessage();
+        sqsClient.sendMessage(queueUrl, message);
+        System.out.println("Message sent :: "+message);
+    }</pre><p>Send Batch messages to Queue</p><pre class="crayon-plain-tag">/* Send batch messages to Queue */
+    public void sendBatchMessages(String queueName){
+        AmazonSQS sqsClient = SQSClientProvider.getForProfile("sqs_demo");
+        String queueUrl = SQSUtil.getQueueUrlFor(queueName);
+        int numOfMessages = 0;
+        int numOfMessagesToAdd = 0;
+        int maxMessages = MAX_MESSAGES;
+        while(numOfMessages &lt; maxMessages){
+            if((numOfMessages + BATCH_COUNT) &lt; maxMessages){
+                numOfMessagesToAdd = BATCH_COUNT;
+            }else{
+                numOfMessagesToAdd = maxMessages - numOfMessages;
+            }
+
+            List&lt;SendMessageBatchRequestEntry&gt; batchMessages = SQSUtil.getBatchMessages(numOfMessages, numOfMessagesToAdd);
+            if(!batchMessages.isEmpty()){
+                SendMessageBatchRequest sendMessageBatchRequest =
+                        new SendMessageBatchRequest(queueUrl, batchMessages);
+                sqsClient.sendMessageBatch(sendMessageBatchRequest);
+                numOfMessages = numOfMessages+numOfMessagesToAdd;
+                System.out.println(numOfMessagesToAdd+" messages sent, Total messages in Queue: "+numOfMessages);
+            }
+        }
+    }</pre><p>SQS client provider</p><pre class="crayon-plain-tag">public class SQSClientProvider {
+
+    private static AmazonSQS sqsClient = null;
+
+    private SQSClientProvider(){
+        // Private constructor
+    }
+
+    public static AmazonSQS get(){
+        if(sqsClient == null){
+            sqsClient = AmazonSQSClientBuilder.standard()
+                    .withRegion(Regions.US_WEST_2).build();
+        }
+        return sqsClient;
+    }
+
+    public static AmazonSQS getForProfile(String profile){
+        if(sqsClient == null){
+            sqsClient = AmazonSQSClientBuilder.standard()
+                    .withCredentials(new ProfileCredentialsProvider(profile))
+                    .withRegion(Regions.US_WEST_2).build();
+        }
+        return sqsClient;
+    }
+}</pre><p>Util methods to build input messages</p><pre class="crayon-plain-tag">public static String getSimpleTextMessage(){
+        return "{\"id\":1, \"data\": \"Simple Text Message\" }";
+    }
+
+    public static List&lt;SendMessageBatchRequestEntry&gt; getBatchMessages(int startIndex, int batchCount){
+        List&lt;SendMessageBatchRequestEntry&gt; batchMessageEntries = new ArrayList&lt;&gt;();
+        SendMessageBatchRequestEntry batchMessage = null;
+        String messageBody = null;
+        for(int id=startIndex+1; id&lt;=(startIndex+batchCount); id++){
+            messageBody = "{\"id\": "+id+", \"data\": \"Batch Message number "+id+"\" }";
+            batchMessage = new SendMessageBatchRequestEntry("id"+Integer.toString(id), messageBody);
+            batchMessageEntries.add(batchMessage);
+        }
+        return batchMessageEntries;
+    }</pre><p>Consume messages from Queue</p><pre class="crayon-plain-tag">/* Receive messages from Queue */
+    public void receiveMessagesFrom(String queueName){
+        AmazonSQS sqsClient = SQSClientProvider.getForProfile("sqs_demo");
+        String queueUrl = SQSUtil.getQueueUrlFor(queueName);
+        System.out.println("Start - receive messages");
+        ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl)
+                .withMaxNumberOfMessages(3);
+        ReceiveMessageResult receiveMessageResult = sqsClient.receiveMessage(receiveMessageRequest);
+        List&lt;Message&gt; messages = receiveMessageResult.getMessages();
+        if(messages.isEmpty()){
+            System.out.println("No messages available");
+        }
+        for(Message msg: messages){
+            System.out.println(msg.getBody());
+            // From here message can be sent further to external systems
+        }
+    }</pre><p>Consume multiple messages from Queue. Poll for messages in a loop as a standalone consumer.</p><pre class="crayon-plain-tag">/* Receive multiple messages from Queue */
+    public void receiveBatchMessages(String queueName){
+        AmazonSQS sqsClient = SQSClientProvider.getForProfile("sqs_demo");
+        String queueUrl = SQSUtil.getQueueUrlFor(queueName);
+        System.out.println("Start - receive messages");
+        int pollcount = 1;
+        while(true){
+            System.out.println("\n*************Polling attempt************* on "+new Date()+"\n");
+            ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl)
+                    .withMaxNumberOfMessages(2)
+                    .withWaitTimeSeconds(5);
+            ReceiveMessageResult receiveMessageResult = sqsClient.receiveMessage(receiveMessageRequest);
+            List&lt;Message&gt; messages = receiveMessageResult.getMessages();
+            if(messages.isEmpty()){
+                System.out.println("No messages available");
+            }else{
+                for(Message msg: messages){
+                    // From here message can be sent further to external systems
+                    // Or persist messages to database
+                    // But the messages needs to be deleted after consumption
+                   // System.out.println(msg.getBody());
+
+                    DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(queueUrl, msg.getReceiptHandle());
+                    sqsClient.deleteMessage(deleteMessageRequest);
+                    System.out.println(msg.getBody() +" (Processed and deleted)");
+                }
+            }
+        }
+    }</pre><p></p>
+<h4>Amazon Lambda as event listener for SQS Queues</h4>
+<ul>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="6" data-aria-level="1"><span data-usefontface="false" data-contrast="none">SQS event can be made as a trigger for Amazon Lambda.</span><span>​</span></li>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="7" data-aria-level="1"><span data-usefontface="false" data-contrast="none">Based on the messages coming into SQS, Lambda can increase or decrease polling frequency.</span><span>​</span></li>
+<li data-charcodes="8226" data-font="Arial,Sans-Serif" data-buautonum="8" data-aria-posinset="8" data-aria-level="1"><span data-usefontface="false" data-contrast="none">Very helpful in reducing usage cost of SQS since we don&#8217;t have to keep on polling the queue all </span><span data-usefontface="false" data-contrast="none">the time.</span></li>
+</ul>
+<p>If Lambda is configured as event listener for SQS queues, then the event can be handled as below:</p>
+<p>To illustrate sending error messages to Dead Letter Queue(DLQ), message with id=3 is moved to DLQ.</p><pre class="crayon-plain-tag">/**
+     * Handles a Lambda Function request for SQS event
+     *
+     * @param input   The Lambda Function input
+     * @param context The Lambda execution environment context object.
+     * @return The Lambda Function output
+     */
+    @Override
+    public Void handleRequest(SQSEvent input, Context context) {
+        System.out.println("SQS event message ::"+input);
+        System.out.println("\n*************Receiving messages in Lambda event*************\n");
+        for(SQSEvent.SQSMessage msg : input.getRecords()){
+            String messageBody = msg.getBody();
+            // Parse message object
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                Message messageObj = objectMapper.readValue(messageBody, Message.class);
+                System.out.println("Message number ==&gt; "+messageObj.getId());
+                if(messageObj.getId() == 3){
+                    // For Test, if messageId == 3 move it to DLQ
+                    moveToDLQ(messageBody, msg.getReceiptHandle());
+                }else{
+                    System.out.println(messageBody +" (processed)");
+                }
+            } catch (IOException e) {
+                // Move the exceptional messages to DLQ
+                System.out.println("Exception while processing..moving to DLQ");
+                moveToDLQ(messageBody, msg.getReceiptHandle());
+            }
+        }
+        return null;
+    }
+
+    private void moveToDLQ(String messageBody, String receiptHandle ){
+        System.out.println("Sending message to DLQ");
+        SQSClientProvider.get().sendMessage("SQS_INPUT_DLQ",messageBody);
+        DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(SQSUtil.getQueueUrlFor("SQS_INPUTQ"),
+                receiptHandle);
+        SQSClientProvider.get().deleteMessage(deleteMessageRequest);
+    }</pre><p></p>
+<h4>Dead Letter Queue(DLQ)</h4>
+<p>DLQ is yet another SQS queue. It can be configured to receive messages which are not consumed after certain attempts or to send any error messages explicitly.</p>
+<p>When creating SQS queue, we can configure it&#8217;s DLQ as below:</p><pre class="crayon-plain-tag">public static CreateQueueRequest configureDLQ(CreateQueueRequest create_queue_request, String dlqName){
+        String queueUrl = getQueueUrlFor(dlqName);
+        GetQueueAttributesRequest getQueueAttributesRequest = new GetQueueAttributesRequest(queueUrl)
+                .withAttributeNames("QueueArn");
+        GetQueueAttributesResult queueAttributesResult = SQSClientProvider.getForProfile("sqs_demo").getQueueAttributes(getQueueAttributesRequest);
+        String dlqARN = "";
+        if(queueAttributesResult.getAttributes().keySet().contains("QueueArn")){
+            dlqARN = queueAttributesResult.getAttributes().get("QueueArn");
+        }
+        String redrivePolicyVal = "{\"deadLetterTargetArn\":\"".concat(dlqARN).concat("\",\"maxReceiveCount\":20}");
+        create_queue_request.addAttributesEntry("RedrivePolicy",redrivePolicyVal);
+        return create_queue_request;
+    }</pre><p></p>
+<h4>Alternatives to SQS</h4>
+<p>Other message brokers as an alternative to SQS are:</p>
+<ul>
+<li>Amazon MQ &#8211; <span data-usefontface="false" data-contrast="none"><span>Managed service provided by AWS based on Active MQ</span></span><span>​</span></li>
+<li>Apache Active MQ &#8211; Open source alternative</li>
+<li>Rabbit MQ &#8211; Open source alternative</li>
+<li>IBM MQ</li>
+</ul>
+<h4>Conclusion</h4>
+<p>We have looked into the details of SQS service from Amazon offering. SQS service helps to build a scalable message queueing architectures. But that&#8217;s not the only option. If our architecture stack is not based on AWS, then open source alternatives like Active MQ and Rabbit MQ provides a reliable messaging solution.</p>
+<h4>Downloads</h4>
+<p>The source code examples can be downloaded from below location:</p>
+<p><a href="http://downloads.rayfocus.com/code-samples/simple-sqs-demo.zip" target="_blank" rel="noopener noreferrer">simple-sqs-demo.zip</a></p>
+<h4>References</h4>
+<ol>
+<li><a href="https://www.manning.com/books/spring-microservices-in-action" target="_blank" rel="noopener noreferrer"></a><a href="https://docs.aws.amazon.com/sqs/index.html" target="_blank" rel="noopener noreferrer">Amazon SQS documentation</a></li>
+<li><a href="https://tools.ietf.org/html/rfc6749" target="_blank" rel="noopener noreferrer"></a><a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html" target="_blank" rel="noopener noreferrer">Amazon SQS developer guide</a></li>
+</ol>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/asynchronous-pattern-using-amazon-sqs/">Asynchronous pattern using Amazon SQS</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/asynchronous-pattern-using-amazon-sqs/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>
