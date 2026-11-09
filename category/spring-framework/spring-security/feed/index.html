@@ -1,0 +1,1298 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Spring Security &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/category/spring-framework/spring-security/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Sun, 09 Sep 2018 03:14:21 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Secure your Spring REST API using OAuth2</title>
+		<link>https://blogs.rayfocus.com/secure-your-spring-rest-api-using-oauth2/</link>
+					<comments>https://blogs.rayfocus.com/secure-your-spring-rest-api-using-oauth2/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sat, 08 Sep 2018 11:20:40 +0000</pubDate>
+				<category><![CDATA[Spring framework]]></category>
+		<category><![CDATA[Spring Security]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=821</guid>
+
+					<description><![CDATA[<p>In this post, let&#8217;s see the techniques about securing the Spring REST API using OAuth2. We will start by building an Authorization server to generate OAuth2 tokens. Then we will build our REST API which is the resource server. Finally, we will configure the security aspects for our resource server<a class="moretag" href="https://blogs.rayfocus.com/secure-your-spring-rest-api-using-oauth2/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/secure-your-spring-rest-api-using-oauth2/">Secure your Spring REST API using OAuth2</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[In this post, let&#8217;s see the techniques about securing the Spring REST API using OAuth2. We will start by building an Authorization server to generate OAuth2 tokens. Then we will build our REST API which is the resource server. Finally, we will configure the security aspects for our resource server to use OAuth2. We will then test our secured REST API using Postman HTTP client.
+
+<img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/09025900/spring-security-oauth2_2.png" alt="" width="229" height="216" class="aligncenter size-full wp-image-892" /><strong>Pre-requisite tools to build our application</strong>
+<ol>
+ 	<li>Java 1.8</li>
+ 	<li>Maven</li>
+ 	<li>Any IDE of your choice</li>
+ 	<li>Postman HTTP client</li>
+</ol>
+<h4><strong>1. Brief Intro to OAuth2 concept</strong></h4>
+Before starting our development works, let&#8217;s go through the OAuth2 concept in general. This will help us to understand the overall picture in a better way.
+
+The OAuth 2.0 authorization framework enables a third party application to obtain limited access to HTTP service (resource). It does this by introducing an authorization layer and separating the role of the client from that of the resource owner. In OAuth, the client requests access to resources controlled by the resource owner and hosted by the resource server, and is issued a different set of credentials than those of the resource
+owner.
+<h5><strong>1.1. Roles</strong></h5>
+OAuth defines four roles:
+
+<strong>resource owner</strong>
+An entity capable of granting access to a protected resource. When the resource owner is a person, it is referred to as an end-user.
+
+<strong>resource server</strong>
+The server hosting the protected resources, capable of accepting and responding to protected resource requests using access tokens.
+
+<strong>client</strong>
+An application making protected resource requests on behalf of the resource owner and with its authorization. The term &#8220;client&#8221; does not imply any particular implementation characteristics (e.g., whether the application executes on a server, a desktop, or other
+devices).
+
+<strong>authorization server</strong>
+The server issuing access tokens to the client after successfully authenticating the resource owner and obtaining authorization.
+<h5><strong>1.2 Protocol flow</strong></h5>
+<img fetchpriority="high" decoding="async" class="aligncenter size-full wp-image-832" src="https://static.rayfocus.com/wp-content/uploads/2018/08/21055620/oauth2-flow-02.png" alt="" width="525" height="312" srcset="https://static.rayfocus.com/wp-content/uploads/2018/08/21055620/oauth2-flow-02.png 525w, https://static.rayfocus.com/wp-content/uploads/2018/08/21055620/oauth2-flow-02-300x178.png 300w" sizes="(max-width: 525px) 100vw, 525px" />
+The OAuth 2.0 flow illustrated in above Figure includes the following steps:
+
+(A) The client requests an access token by authenticating with the authorization server and presenting an authorization grant [<code>Authorization Grant - credentials representing the resource owner's authorization.</code>].
+
+(B) The authorization server authenticates the client and validates the authorization grant, and if valid, issues an access token and a refresh token.
+
+(C) The client makes a protected resource request to the resource server by presenting the access token.
+
+(D) The resource server validates the access token, and if valid, serves the request.
+
+(E) Steps (C) and (D) repeat until the access token expires. If the client knows the access token expired, it skips to step (G); otherwise, it makes another protected resource request.
+
+(F) Since the access token is invalid, the resource server returns an invalid token error.
+
+(G) The client requests a new access token by authenticating with the authorization server and presenting the refresh token. The client authentication requirements are based on the client type and on the authorization server policies.
+
+(H) The authorization server authenticates the client and validates the refresh token, and if valid, issues a new access token (and, optionally, a new refresh token).
+<h5><strong>1.3 OAuth2 Grant types</strong></h5>
+Grant types can be either of four types.
+<ol>
+ 	<li>Authorization code</li>
+ 	<li>Implicit</li>
+ 	<li>Resource owner password credentials</li>
+ 	<li>Client credentials</li>
+</ol>
+We are going to use <code>Resource owner password credentials</code> grant type for this example.
+
+<img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08083917/oauth2-password-grant.png" alt="" width="484" height="273" class="aligncenter size-full wp-image-874" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08083917/oauth2-password-grant.png 484w, https://static.rayfocus.com/wp-content/uploads/2018/09/08083917/oauth2-password-grant-300x169.png 300w" sizes="(max-width: 484px) 100vw, 484px" />
+
+(A) The resource owner provides the client with its username and
+password.
+
+(B) The client requests an access token from the authorization
+server&#8217;s token endpoint by including the credentials received
+from the resource owner. When making the request, the client
+authenticates with the authorization server.
+
+(C) The authorization server authenticates the client and validates
+the resource owner credentials, and if valid, issues an access
+token.
+
+We will then use the access token in the request header when accessing the protected resource.
+<h4><strong>2. Developing the Authorization Server</strong></h4>
+Now that we have seen the OAuth2 concept, we will start developing our Authorization Server which issues access and refresh tokens to client upon successful authenticating the resource owner.
+
+Create a  simple Maven project and add the below dependencies in the <code>pom.xml</code>. Alternatively, you can use <a href="https://start.spring.io/" target="_blank" rel="noopener">spring initializr</a> to bootstrap the application at ease.
+
+<strong>2.1. Maven dependencies</strong>
+<pre class="crayon-plain-tag">&lt;parent&gt;
+		&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+		&lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+		&lt;version&gt;2.0.3.RELEASE&lt;/version&gt;
+		&lt;relativePath /&gt; &lt;!-- lookup parent from repository --&gt;
+          &lt;/parent&gt;
+           &lt;dependencies&gt;
+		&lt;!-- JDBC --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;!-- Security and OAuth2 --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.security.oauth&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-security-oauth2&lt;/artifactId&gt;
+			&lt;version&gt;2.3.3.RELEASE&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;!-- Web --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;!-- H2 --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.h2database&lt;/groupId&gt;
+			&lt;artifactId&gt;h2&lt;/artifactId&gt;
+			&lt;scope&gt;compile&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;!-- Test --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+			&lt;scope&gt;test&lt;/scope&gt;
+		&lt;/dependency&gt;
+	&lt;/dependencies&gt;</pre>
+<strong>2.2 Bootstrap class for Authorization server</strong>
+
+The following listing shows the code for bootstrap class.
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+
+@SpringBootApplication
+@EnableAuthorizationServer
+@EnableResourceServer
+public class Oauth2Application {
+
+	public static void main(String[] args) {
+		SpringApplication.run(Oauth2Application.class, args);
+	}
+}</pre>
+The annotation<code>@EnableAuthorizationServer</code> tells the Spring to expose REST endpoints which will be used in the Oauth2 process. Then with the annotation <code>@EnableResourceServer</code> , Spring will enable a security filter that authenticates the requests via an incoming OAuth2 token.
+
+<strong>2.3. REST Controller for exposing <code>oauth/user</code> endpoint</strong>
+
+Next, we will expose the endpoint <code>oauth/user</code> in the controller class. This endpoint will be used by the protected resources to validate the OAuth2 access token and to retrieve the roles associated with the user accessing the protected resource.
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class OAuth2Controller {
+
+	@RequestMapping(value = { "oauth/user" }, produces = "application/json")
+	public Map&lt;String, Object&gt; user(OAuth2Authentication user) {
+		Map&lt;String, Object&gt; userInfo = new HashMap&lt;&gt;();
+		userInfo.put("user", user.getUserAuthentication().getPrincipal());
+		userInfo.put("authorities", AuthorityUtils.authorityListToSet(user.getUserAuthentication().getAuthorities()));
+		return userInfo;
+	}
+}</pre>
+<strong>2.4 Register client applications with OAuth2 service</strong>
+
+In this step, we will configure the client applications which are authorized to use our OAuth2 service. We are going to use a JDBC based token store backed by embedded H2 database for this example. Below listing shows the code for <code>OAuth2Config.java</code>
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2.config;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+
+@Configuration
+public class OAuth2Config extends AuthorizationServerConfigurerAdapter {
+
+	@Autowired
+	private AuthenticationManager authenticationManager;
+
+	@Autowired
+	private UserDetailsService userDetailsService;
+
+	@Autowired
+	private DataSource dataSource;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private TokenStore tokenStore;
+	
+	@Override
+	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		endpoints.tokenStore(this.tokenStore)
+			.authenticationManager(authenticationManager)
+			.userDetailsService(userDetailsService);
+	}
+
+	@Override
+	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+		 clients.jdbc(dataSource)
+		 .passwordEncoder(passwordEncoder);
+	}
+	
+	@Bean
+	public DefaultTokenServices tokenServices() {
+		DefaultTokenServices tokenServices = new DefaultTokenServices();
+		tokenServices.setSupportRefreshToken(true);
+		tokenServices.setTokenStore(this.tokenStore);
+		tokenServices.setAccessTokenValiditySeconds(3600);
+		return tokenServices;
+	}
+	
+	@Bean
+	public TokenStore tokenStore() {
+		return new JdbcTokenStore(dataSource);
+	}
+}</pre>
+We have overridden two configure() methods from <code>AuthorizationServerConfigurerAdapter</code> class. The first one takes the parameter endpoints of type <code>AuthorizationServerEndpointsConfigurer</code>. In this method, we have declared the components <code>tokenStore</code>, <code>authenticationManager</code> and <code>userDetailsService</code> to be used by the Spring. Also, we have registered the <code>tokenStore</code> bean using the dataSource reference.
+
+The second configure method takes the parameter clients of type <code>ClientDetailsServiceConfigurer</code>. In this method, we are instructing the Spring to refer the client details from the H2 database by providing the necessary JDBC details. Spring will in turn query the entries in the table <code>OAUTH_CLIENT_DETAILS</code> to check whether the client application invoking the request is allowed to access the services protected by OAuth2 service.
+
+You may also note that we have provided the reference of <code>passwordEncoder</code>. This means we have encrypted and stored some client secrets in database. Spring will then use the passwordEncoder reference to resolve the encrypted values. We have also registered the <code>tokenServices</code> bean using the tokenStore reference and customized the access token validity to 3600 seconds.
+
+<strong>2.5 Configuring user details and roles</strong>
+
+In last step, we have configured the client application details and the secrets with OAuth2 service. Next, we need to set up the application user credentials and their roles. These details can be stored in-memory, JDBC data store or in LDAP server. For our example, we are going to use JDBC data store.
+
+Below listing shows the code for <code>WebSecurityConfig.java</code> which contains the configuration details.
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2.config;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@Configuration
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+	@Autowired
+	private DataSource dataSource;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
+	@Override
+	@Bean
+	public AuthenticationManager authenticationManagerBean() throws Exception {
+		return super.authenticationManagerBean();
+	}
+
+	@Override
+	@Bean
+	public UserDetailsService userDetailsServiceBean() throws Exception {
+		return super.userDetailsServiceBean();
+	}
+
+	@Bean
+	public BCryptPasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.jdbcAuthentication()
+			.dataSource(dataSource)
+			.usersByUsernameQuery("select username, password, enabled from USERS where username=?")
+			.authoritiesByUsernameQuery("select username, role from USER_ROLES where username=?")
+			.passwordEncoder(passwordEncoder);
+	}
+
+}</pre>
+We have registered two beans of type <code>AuthenticationManager</code> and <code>UserDetailsService</code>. Also to note, that we have used the default implementation provided by <code>WebSecurityConfigurerAdapter</code> class.
+
+Then, we have overridden configure() method which takes auth as parameter of type <code>AuthenticationManagerBuilder</code>. In this method, we have instructed the Spring to use JDBC dataSource for getting the details needed for authenticating the users. The user credentials will be referred from <code>USERS</code> table and their roles will be referred from <code>USER_ROLES</code> table.
+
+<strong>2.6 Schema details of OAuth2 tables for H2 database</strong>
+
+We have used the JDBC data store in our example. Hence we need the database schema in place to have the flow working properly. Below listing shows the schema.sql for H2 database.
+<pre class="crayon-plain-tag">--------------- H2 ---------------
+
+drop table if exists oauth_client_details;
+create table oauth_client_details (
+  client_id VARCHAR(255) PRIMARY KEY,
+  resource_ids VARCHAR(255),
+  client_secret VARCHAR(255),
+  scope VARCHAR(255),
+  authorized_grant_types VARCHAR(255),
+  web_server_redirect_uri VARCHAR(255),
+  authorities VARCHAR(255),
+  access_token_validity INTEGER,
+  refresh_token_validity INTEGER,
+  additional_information VARCHAR(4096),
+  autoapprove VARCHAR(255)
+);
+
+drop table if exists oauth_client_token;
+create table if not exists oauth_client_token (
+  token_id VARCHAR(255),
+  token LONGVARBINARY,
+  authentication_id VARCHAR(255) PRIMARY KEY,
+  user_name VARCHAR(255),
+  client_id VARCHAR(255)
+);
+
+drop table if exists oauth_access_token;
+create table if not exists oauth_access_token (
+  token_id VARCHAR(255),
+  token LONGVARBINARY,
+  authentication_id VARCHAR(255) PRIMARY KEY,
+  user_name VARCHAR(255),
+  client_id VARCHAR(255),
+  authentication LONGVARBINARY,
+  refresh_token VARCHAR(255)
+);
+
+drop table if exists oauth_refresh_token;
+create table if not exists oauth_refresh_token (
+  token_id VARCHAR(255),
+  token LONGVARBINARY,
+  authentication LONGVARBINARY
+);
+
+drop table if exists oauth_code;
+create table if not exists oauth_code (
+  code VARCHAR(255), authentication LONGVARBINARY
+);
+
+drop table if exists oauth_approvals;
+create table if not exists oauth_approvals (
+	userId VARCHAR(255),
+	clientId VARCHAR(255),
+	scope VARCHAR(255),
+	status VARCHAR(10),
+	expiresAt TIMESTAMP,
+	lastModifiedAt TIMESTAMP
+);
+
+drop table if exists ClientDetails;
+create table if not exists ClientDetails (
+  appId VARCHAR(255) PRIMARY KEY,
+  resourceIds VARCHAR(255),
+  appSecret VARCHAR(255),
+  scope VARCHAR(255),
+  grantTypes VARCHAR(255),
+  redirectUrl VARCHAR(255),
+  authorities VARCHAR(255),
+  access_token_validity INTEGER,
+  refresh_token_validity INTEGER,
+  additionalInformation VARCHAR(4096),
+  autoApproveScopes VARCHAR(255)
+);
+
+-- User details related tables
+drop table if exists users;
+create table if not exists users (
+  username VARCHAR(45) PRIMARY KEY,
+  password VARCHAR(100),
+  enabled BOOLEAN
+  );
+ 
+  drop table if exists user_roles;
+  create table if not exists user_roles (
+  user_role_id bigint auto_increment PRIMARY KEY,
+  username varchar(45),
+  role varchar(45),
+  FOREIGN KEY (username) REFERENCES users (username)
+  );</pre>
+The data which need to be populated is in the listing below:
+<pre class="crayon-plain-tag">-- OAuth Client Details
+INSERT INTO oauth_client_details
+	(client_id, 
+	client_secret, 
+	scope, 
+	authorized_grant_types,
+	web_server_redirect_uri, 
+	authorities, 
+	access_token_validity,
+	refresh_token_validity, 
+	additional_information, 
+	autoapprove)
+VALUES
+	('rayfocus-bookstore', 
+	'$2a$10$T1XME2CdpI1eGH0cmOwfjuCcDeu00Oec7ORfDWSPJcsYwW587ZH8a', 
+	'webclient,mobileclient',
+	'password,authorization_code,refresh_token', 
+	 null, 
+	 null, 
+	 3600, 
+	 3600, 
+	 null, 
+	 true);
+
+--Users	
+INSERT INTO users
+	(username,
+	password,
+	enabled)
+VALUES 
+	('bookstore.user',
+	'$2a$10$bffAVFOFkyQYCacKYrrW9OW2lLTTWjHjxc51kSnMEVfVGO2OgO6Rq', 
+	 true);
+INSERT INTO users
+	(username,
+	password,
+	enabled)
+VALUES 
+	('bookstore.admin',
+	'$2a$10$R6rgx0AcWDEIk2EJ2.NvueK6Gp3gBk66n58JEtfTctNjIJF7D6Wd2', 
+	 true);
+
+-- User Roles
+INSERT INTO user_roles 
+	(username, 
+	role)
+VALUES 
+	('bookstore.user', 
+	'ROLE_USER');
+INSERT INTO user_roles 
+	(username, 
+	role)
+VALUES 
+	('bookstore.admin', 
+	'ROLE_ADMIN');
+INSERT INTO user_roles 
+	(username, 
+	role)
+VALUES 
+	('bookstore.admin', 
+	'ROLE_USER');</pre>
+If the <code>schema.sql</code> and <code>data.sql</code> is in the classpath resource, then Spring will execute them when bootstrapping the application. You can notice that the credential values are encrypted and stored. For this example, to make the things simple I have used the <code>BCryptPasswordEncoder</code> to encrypt the values. Below listing shows the code for utility class <code>BCryptEncoderUtil.java</code> for your reference.
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2.util;
+
+import java.util.Arrays;
+
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+public class BCryptEncoderUtil {
+	
+	private static BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+	
+	public static void main(String[] args) {
+		
+		String[] toEncodePasswordStrings = {"userPassword","adminPassword","secretbook"};
+		
+		Arrays.asList(toEncodePasswordStrings).forEach(p -&gt; {
+			String encodedValue = passwordEncoder.encode(p);
+			System.out.println("Encoded value for {"+p +"} : "+encodedValue);
+		});
+	}
+}
+
+/**Result
+ * 
+Encoded value for {userPassword} : $2a$10$bffAVFOFkyQYCacKYrrW9OW2lLTTWjHjxc51kSnMEVfVGO2OgO6Rq
+Encoded value for {adminPassword} : $2a$10$R6rgx0AcWDEIk2EJ2.NvueK6Gp3gBk66n58JEtfTctNjIJF7D6Wd2
+Encoded value for {secretbook} : $2a$10$T1XME2CdpI1eGH0cmOwfjuCcDeu00Oec7ORfDWSPJcsYwW587ZH8a
+ * 
+ */</pre>
+<strong>2.7 Configuring the H2 console URL path</strong>
+
+For this example, we are using embedded H2 database. In order to access the H2 console, we have to do some configurations. First, we need the below entries to be added in <code>application.properties</code>
+<pre class="crayon-plain-tag">server.port=8088
+spring.h2.console.enabled=true
+spring.datasource.url=jdbc:h2:mem:bookstore</pre>
+We can further customize the URL path of the H2 console by programmatic configuration as shown in below listing.
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2.config;
+
+import java.sql.SQLException;
+
+import org.h2.server.web.WebServlet;
+import org.h2.tools.Server;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class H2Config {
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Bean
+	public ServletRegistrationBean h2servletRegistration() {
+	    ServletRegistrationBean registration = new ServletRegistrationBean(new WebServlet());
+	    registration.addUrlMappings("/h2-console/*");
+	    return registration;
+	}
+	
+	@Bean(initMethod = "start", destroyMethod = "stop")
+    public Server h2Server() throws SQLException {
+        return Server.createTcpServer("-tcp", "-tcpAllowOthers", "-tcpPort", "9092");
+    }
+}</pre>
+In the above listing we have registered a H2 tcp server bean on port 9092. The reason being we need to use common jdbc tokenStore for both OAuth and Resource servers. When configuring the resource server we will use this tcp port to connect to H2 database <code>spring.datasource.url=jdbc:h2:tcp://localhost:9092/mem:bookstore</code>
+
+<strong>2.7 Bypass the access check for H2 console</strong>
+
+The endpoints exposed by our OAuth2 service is protected and only the authenticated users can access it. However for this example, we can relax the rule for H2 console so that we can access it without any authentication.
+
+To do so, we need to use the <code>ResourceServerConfigurerAdapter</code> to configure the access rule. The below listing shows the code for <code>ResourceServerConfig.java</code>
+<pre class="crayon-plain-tag">package com.rayfocus.oauth2.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
+
+@Configuration
+public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
+
+	@Override
+	public void configure(HttpSecurity http) throws Exception {
+		http.authorizeRequests()
+			.antMatchers("/h2-console/**")
+			.permitAll()
+			.anyRequest()
+			.authenticated();
+		http.headers()
+			.frameOptions()
+			.disable();
+	}
+
+}</pre>
+<h4><strong>3. Develop the Resource Server</strong></h4>
+Okay! We have completed developing our Authorization server which issues access tokens for the authorized client applications. Now, we are ready to develop the resource server and to protect them using OAuth2.
+
+We will develop a book store API where users can get the details of book using ISBN, add new book to the store. The users with the admin role will additionally have access to delete a book using ISBN.
+<h5><strong>3.1 Maven dependencies</strong></h5>
+To start with, create a simple maven project and add the below dependencies in the <code>pom.xml</code>.
+<pre class="crayon-plain-tag">&lt;parent&gt;
+		&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+		&lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+		&lt;version&gt;2.0.3.RELEASE&lt;/version&gt;
+		&lt;relativePath /&gt; &lt;!-- lookup parent from repository --&gt;
+	&lt;/parent&gt;
+        &lt;dependencies&gt;
+		&lt;!-- Actuator --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;!-- JDBC --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-jdbc&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;!-- Web --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;!-- Security and OAuth2 --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+		&lt;/dependency&gt;
+		&lt;&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.security.oauth.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-security-oauth2-autoconfigure&lt;/artifactId&gt;
+			&lt;version&gt;2.0.3.RELEASE&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;!-- H2 --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.h2database&lt;/groupId&gt;
+			&lt;artifactId&gt;h2&lt;/artifactId&gt;
+			&lt;scope&gt;compile&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;!-- Test --&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+			&lt;scope&gt;test&lt;/scope&gt;
+		&lt;/dependency&gt;
+          &lt;/dependencies&gt;</pre>
+<h5><strong>3.2 Bootstrap class for Resource server</strong></h5>
+Below listing shows the code for resource server.
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
+
+@SpringBootApplication
+@EnableResourceServer
+public class BookstoreApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(BookstoreApplication.class, args);
+	}
+}</pre>
+The <code>@EnableResourceServer</code> annotation tells the Spring that it is protected resource and will enable a filter that intercepts all the requests to check whether a valid OAuth2 access token is present in the HTTP header. The validity of the access token is determined by making a call to the callback URL defined in the property <code>security.oauth2.resource.user-info-uri</code>. We will configure this shortly in the next sections.
+<h5><strong>3.3 Protecting the resource via user specific role</strong></h5>
+We can configure the access control rules using the <code>ResourceServerConfigurerAdapter</code> class in Spring. We need to extend this class and override the <code>configure()</code> method. The configure method will take parameter of type <code>HttpSecurity</code> class which will expose necessary methods to define our access rules. Below listing shows the code for ResourceServerConfig.java
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.config;
+
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
+import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+
+@Configuration
+public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
+
+	@Autowired
+	private DataSource dataSource;
+	
+	@Autowired
+	private TokenStore tokenStore;
+	
+	@Override
+	public void configure(HttpSecurity http) throws Exception {
+		// allows all requests for h2-console
+		// allows requests with DELETE operation only to those having ADMIN role
+		// allows all other requests only for authenticated users
+		http.authorizeRequests()
+			.antMatchers("/h2-console/**")
+			.permitAll()
+			.antMatchers(HttpMethod.DELETE, "/book-store/admin/**")
+			.hasRole("ADMIN")
+			.anyRequest()
+			.authenticated();
+		http.headers()
+			.frameOptions()
+			.disable();
+	}
+
+	@Override
+	public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+		resources.tokenStore(this.tokenStore);
+	}
+	
+	@Bean
+	public TokenStore tokenStore() {
+		return new JdbcTokenStore(dataSource);
+	}
+}</pre>
+With the configuration in the above listing, we have restricted the Http DELETE operation only for users having <code>ADMIN</code> role. Also, if the URL contains <code>/book-store/admin/**</code> then it will be allowed only for ADMIN users. All other endpoints are allowed for authenticated users. For the purpose of this example, we have allowed H2 console URL to all users with out any authentication.
+
+Also, we have used the same <code>tokenStore</code> we have used for OAuth2 server. This is important since the resource server has to validate the access token available in the incoming request.
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.config;
+
+import org.h2.server.web.WebServlet;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class H2Config {
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Bean
+	public ServletRegistrationBean h2servletRegistration() {
+	    ServletRegistrationBean registration = new ServletRegistrationBean(new WebServlet());
+	    registration.addUrlMappings("/h2-console/*");
+	    return registration;
+	}
+}</pre>
+<h4><strong>3.4 Application.properties for Resource Server</strong></h4>
+The <code>application.properties</code> for Resource server is listed as below:
+<pre class="crayon-plain-tag">server.port=7077
+spring.h2.console.enabled=true
+spring.datasource.url=jdbc:h2:tcp://localhost:9092/mem:bookstore
+logging.level.org.springframework.web=ERROR
+logging.level.org.hibernate=ERROR
+security.oauth2.resource.user-info-uri=http://localhost:8088/oauth/user</pre>
+Spring will use the URI configured for property <code>security.oauth2.resource.user-info-uri</code> to get the details about the User accessing the protected resource from OAuth2 server.
+<h4><strong>3.5 Developing the other aspects of Resource Server</strong></h4>
+We have configured the security aspects of the resource server so far. We will now quickly complete the development of endpoints for accessing the bookstore database.
+
+<strong>3.5.1 Controller class</strong>
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.controller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.rayfocus.api.bookstore.http.HttpResponse;
+import com.rayfocus.api.bookstore.model.Book;
+import com.rayfocus.api.bookstore.service.BookStoreService;
+
+@RestController
+@RequestMapping("/book-store")
+public class BookStoreController {
+	
+	Logger logger = LoggerFactory.getLogger(BookStoreController.class);
+	
+	@Autowired
+	private BookStoreService bookStoreService;
+	
+	@GetMapping("/book")
+	public ResponseEntity&lt;HttpResponse&gt; getBookByISBN( @RequestParam(value="isbn", required=true) String isbn ) {
+		return bookStoreService.getBookByISBN(isbn);
+		
+	}
+	
+	@PostMapping("/book")
+	public ResponseEntity&lt;HttpResponse&gt; addNewBook(@RequestBody Book book){
+		return bookStoreService.addNewBook(book);
+	}
+	
+	@DeleteMapping("/admin/book")
+	public ResponseEntity&lt;HttpResponse&gt; deleteBook( @RequestParam(value="isbn", required=true) String isbn ){
+		return bookStoreService.deleteBookByISBN(isbn);
+	}
+}</pre>
+<strong>3.5.2 POJO class representing the Book</strong>
+
+This class uses Builder pattern to create new Book object.
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class Book {
+	
+	private Integer bookId;
+	
+	private String isbn;
+	
+	private String title;
+	
+	private String author;
+	
+	private String publisher;
+	
+	private Integer editionNumber;
+	
+	private Integer totalPages;
+	
+	public Book() {
+		// default constructor
+	}
+
+	public Book(@JsonProperty("isbn") String isbn, 
+			    @JsonProperty("title") String title, 
+			    @JsonProperty("author") String author, 
+			    @JsonProperty("publisher") String publisher, 
+			    @JsonProperty("editionNumber") Integer editionNumber, 
+			    @JsonProperty("totalPages") Integer totalPages) 
+	{
+		this.isbn = isbn;
+		this.title = title;
+		this.author = author;
+		this.publisher = publisher;
+		this.editionNumber = editionNumber;
+		this.totalPages = totalPages;
+	}
+	
+	public Book(Builder builder) {
+		this.bookId = builder.bookId;
+		this.isbn = builder.isbn;
+		this.title = builder.title;
+		this.author = builder.author;
+		this.publisher = builder.publisher;
+		this.editionNumber = builder.editionNumber;
+		this.totalPages = builder.totalPages;
+	}
+	
+	   // Book builder class
+		public static class Builder{
+			
+			private Integer bookId;
+			
+			private String isbn;
+			
+			private String title;
+			
+			private String author;
+			
+			private String publisher;
+			
+			private Integer editionNumber;
+			
+			private Integer totalPages;
+			
+			public Builder bookId(Integer val) {
+				bookId = val;
+				return this;
+			}
+			public Builder isbn(String val) {
+				isbn = val;
+				return this;
+			}
+			public Builder title(String val) {
+				title = val;
+				return this;
+			}
+			public Builder author(String val) {
+				author = val;
+				return this;
+			}
+			public Builder publisher(String val) {
+				publisher = val;
+				return this;
+			}
+			public Builder editionNumber(Integer val) {
+				editionNumber = val;
+				return this;
+			}
+			public Builder totalPages(Integer val) {
+				totalPages = val;
+				return this;
+			}
+			
+			public Book build() {
+				return new Book(this);
+			}
+		}
+
+	/** Getters */
+	
+	public Integer getBookId() {
+		return bookId;
+	}
+
+	public String getIsbn() {
+		return isbn;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public String getAuthor() {
+		return author;
+	}
+
+	public String getPublisher() {
+		return publisher;
+	}
+
+	public Integer getEditionNumber() {
+		return editionNumber;
+	}
+
+	public Integer getTotalPages() {
+		return totalPages;
+	}
+	
+}</pre>
+<strong>3.5.3 Service class for processing the incoming request </strong>
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.service;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+
+import com.rayfocus.api.bookstore.http.HttpResponse;
+import com.rayfocus.api.bookstore.model.Book;
+import com.rayfocus.api.bookstore.repository.BookStoreRepository;
+import com.rayfocus.api.bookstore.util.BookStoreUtil;
+
+@Component
+public class BookStoreService {
+	
+	Logger logger = LoggerFactory.getLogger(BookStoreService.class);
+	
+	@Autowired
+	private BookStoreRepository bookStoreRepository;
+	
+	/** Get the book from Book Store based on the input ISBN 
+	 * @param isbn ISBN value in String
+	 * @return ResponseEntity object
+	 * */
+	public ResponseEntity&lt;HttpResponse&gt; getBookByISBN(String isbn) {
+		ResponseEntity&lt;HttpResponse&gt; serviceResponse;
+		try {
+			Book book = bookStoreRepository.findBookByIsbn(isbn);
+			serviceResponse = buildServiceResponse(book, BookStoreUtil.GET_BOOK_SUCCESS);
+		}
+		catch(Exception e) {
+			serviceResponse = buildExceptionResponse(e);
+		}
+		return serviceResponse;
+	}
+	
+	/** Add new book to the Book Store
+	 * @param book Book object
+	 * @return ResponseEntity object
+	 * */
+	public ResponseEntity&lt;HttpResponse&gt; addNewBook(Book book) {
+		ResponseEntity&lt;HttpResponse&gt; serviceResponse = null;
+		try {
+			bookStoreRepository.addBook(book);
+			serviceResponse = buildServiceResponse(book, BookStoreUtil.ADD_BOOK_SUCCESS);
+		}
+		catch(Exception e) {
+			serviceResponse = buildExceptionResponse(e);
+		}
+		return serviceResponse;
+	}
+	
+	/** Delete the book from Book Store based on the input ISBN
+	 * This operation has to be allowed for users with Admin access  
+	 * @param isbn ISBN value in String
+	 * @return ResponseEntity object
+	 * */
+	public ResponseEntity&lt;HttpResponse&gt; deleteBookByISBN(String isbn){
+		ResponseEntity&lt;HttpResponse&gt; serviceResponse = null;
+		try {
+			bookStoreRepository.deleteBookByIsbn(isbn);
+			serviceResponse = buildServiceResponse(null, BookStoreUtil.DELETE_BOOK_SUCCESS);
+		}
+		catch(Exception e) {
+			serviceResponse = buildExceptionResponse(e);
+		}
+		return serviceResponse;
+	}
+	
+	/** Build service response for success scenarios 
+	 * @param book Book object
+	 * @return ResponseEntity object
+	 * */
+	private ResponseEntity&lt;HttpResponse&gt; buildServiceResponse(Book book, String respDesc){
+		HttpStatus statusCode = HttpStatus.OK;
+		String statusMessage = "SUCCESS";
+		if(book == null) {
+			statusCode = HttpStatus.NO_CONTENT;
+			
+		}
+		return new HttpResponse.Builder().statusCode(statusCode)
+				.statusMessage(statusMessage)
+				.responseData(book)
+				.responseDesc(respDesc)
+				.build();
+	}
+	
+	/** Build service response for exception scenarios 
+	 * @param excp Exception object
+	 * @return ResponseEntity object
+	 * */
+	private ResponseEntity&lt;HttpResponse&gt; buildExceptionResponse(Exception excp){
+		logger.error("Exception while accessing BookStore", excp.getMessage());
+		if( excp instanceof EmptyResultDataAccessException) {
+			return new HttpResponse.Builder().statusCode(HttpStatus.OK)
+					.statusMessage("WARNING")
+					.responseData(null)
+					.responseDesc(BookStoreUtil.NO_BOOK_FOUND_FOR_ISBN)
+					.build();
+		}
+		return new HttpResponse.Builder().statusCode(HttpStatus.INTERNAL_SERVER_ERROR)
+				.statusMessage("ERROR")
+				.responseData(null)
+				.responseDesc(BookStoreUtil.DB_ERROR)
+				.build();
+	}
+}</pre>
+Utility class as in below listing.
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.util;
+
+public class BookStoreUtil {
+	public static final String GET_BOOK_SUCCESS = "GET Book Successful";
+	public static final String DB_ERROR = "Database access error";
+	public static final String NO_BOOK_FOUND_FOR_ISBN = "No book found for the requested ISBN";
+	public static final String ADD_BOOK_SUCCESS = "ADD New Book Successful";
+	public static final String DELETE_BOOK_SUCCESS = "DELETE Book Successful";
+}</pre>
+<strong>3.5.4 Repository classes for performing database operations</strong>
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.repository;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import com.rayfocus.api.bookstore.model.Book;
+
+@Repository
+public class BookStoreRepository {
+
+	Logger logger = LoggerFactory.getLogger(BookStoreRepository.class);
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+
+	public Book findBookByIsbn(String isbn) {
+		Book book = null;
+		try {
+			book = jdbcTemplate.queryForObject("SELECT * FROM BOOKS WHERE isbn=?", new Object[] { isbn },
+					new BookStoreRowMapper());
+		}
+		catch(DataAccessException dae) {
+			logger.info("Data Access Exception while retrieving the book from bookstore.",dae);
+			throw dae;
+		}
+		catch(Exception e) {
+			logger.info("Unknown Exception while retrieving the book from bookstore.",e);
+			throw e;
+		}
+		return book;
+	}
+	
+	public int addBook(Book book) {
+		String addBookSql = "INSERT INTO BOOKS"
+							+ "("
+							+ "book_id,"
+							+ "isbn,"
+							+ "title,"
+							+ "author,"
+							+ "publisher,"
+							+ "edition_number,"
+							+ "total_pages"
+							+ ")"
+							+ " VALUES (BOOK_ID_SEQ.nextVal, ?, ?, ?, ?, ?, ?)";
+		Object[] params = new Object[]{
+									book.getIsbn(),
+									book.getTitle(),
+									book.getAuthor(),
+									book.getPublisher(),
+									book.getEditionNumber(),
+									book.getTotalPages()
+									};
+		int rowCount = 0;
+		try {
+			rowCount = jdbcTemplate.update(addBookSql, params);
+		}
+		catch(DataAccessException dae) {
+			logger.info("Data Access Exception while adding the book to bookstore.",dae);
+			throw dae;
+		}
+		catch(Exception e) {
+			logger.info("Unknown Exception while adding the book to bookstore.",e);
+			throw e;
+		}
+		return rowCount;
+	}
+	
+	public int deleteBookByIsbn(String isbn) {
+		int rowCount = 0;
+		try {
+			rowCount = jdbcTemplate.update("DELETE FROM BOOKS WHERE isbn=?", new Object[] {isbn});
+		}
+		catch(DataAccessException dae) {
+			logger.info("Data Access Exception while deleting the book from bookstore.",dae);
+			throw dae;
+		}
+		catch(Exception e) {
+			logger.info("Unknown Exception while deleting the book from bookstore.",e);
+			throw e;
+		}
+		return rowCount;
+	}
+}</pre>
+Implementation of Row mapper class is as below:
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.repository;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.springframework.jdbc.core.RowMapper;
+
+import com.rayfocus.api.bookstore.model.Book;
+
+public class BookStoreRowMapper implements RowMapper&lt;Book&gt;{
+
+	@Override
+	public Book mapRow(ResultSet rSet, int rowNum) throws SQLException {
+		Book book = new Book.Builder().bookId(rSet.getInt("BOOK_ID"))
+									.isbn(rSet.getString("ISBN"))
+									.title(rSet.getString("TITLE"))
+									.author(rSet.getString("AUTHOR"))
+									.publisher(rSet.getString("AUTHOR"))
+									.editionNumber(rSet.getInt("EDITION_NUMBER"))
+									.totalPages(rSet.getInt("TOTAL_PAGES"))
+									.build();
+		return book;
+	}
+}</pre>
+<strong>3.5.5 And the Response builder class</strong>
+<pre class="crayon-plain-tag">package com.rayfocus.api.bookstore.http;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+public class HttpResponse {
+	
+	private final HttpStatus statusCode;
+	private final String statusMessage;
+	private final String responseDesc;
+	private final Object responseData;
+
+	private HttpResponse(Builder builder) {
+		this.statusCode = builder.statusCode;
+		this.statusMessage = builder.statusMessage;
+		this.responseDesc = builder.responseDesc;
+		this.responseData = builder.responseData;
+	}
+	
+	// Response builder class
+	public static class Builder{
+		private HttpStatus statusCode = HttpStatus.OK;
+		private String statusMessage = "SUCCESS";
+		private String responseDesc = "Request processed successfully";
+		private Object responseData = new Object();
+		
+		public Builder statusCode(HttpStatus val) {
+			statusCode = val;
+			return this;
+		}
+		public Builder statusMessage(String val) {
+			statusMessage = val;
+			return this;
+		}
+		public Builder responseDesc(String val) {
+			responseDesc = val;
+			return this;
+		}
+		public Builder responseData(Object val) {
+			responseData = val;
+			return this;
+		}
+		
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		public ResponseEntity&lt;HttpResponse&gt; build() {
+			return new ResponseEntity(new HttpResponse(this), statusCode);
+		}
+	}
+
+	/** Getters */
+	public HttpStatus getStatusCode() {
+		return statusCode;
+	}
+
+	public String getStatusMessage() {
+		return statusMessage;
+	}
+
+	public String getResponseDesc() {
+		return responseDesc;
+	}
+
+	public Object getResponseData() {
+		return responseData;
+	}
+}</pre>
+<h4><strong>4. Test the OAuth2 and Resource Server</strong></h4>
+Okay! We have completed developing our OAuth2 and Resource Server. We will test them to see how it works. Let&#8217;s make use of Postman client for this purpose.
+
+<strong>4.1 Get the OAuth2 access token</strong>
+
+For this we have to make a request to <code>http://localhost:8088/oauth/token</code>. The port number is 8088 since we have configured it in the OAuth2 server&#8217;s application.properties file.
+
+First, we are providing the user credentials in the Authorization tab as shown in the below listing.
+
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08085649/get-oauth2-token_1.png" alt="" width="951" height="359" class="aligncenter size-full wp-image-875" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08085649/get-oauth2-token_1.png 951w, https://static.rayfocus.com/wp-content/uploads/2018/09/08085649/get-oauth2-token_1-300x113.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08085649/get-oauth2-token_1-768x290.png 768w" sizes="(max-width: 951px) 100vw, 951px" />
+
+Next, we need to pass additional information such as grant type, scope, username and password as HTTP form parameters.
+<ul>
+ 	<li>grant_type &#8211; Grant type is password since we are using resource owner password credentials grant for this example.</li>
+ 	<li>scope &#8211; Scope is either webclient or mobileclient. Since we have configured these two in the <code>data.sql</code> available in the OAuth2 server&#8217;s resources folder.</li>
+ 	<li>username &#8211; Name of the user logging in.</li>
+ 	<li>password &#8211; password of the user logging in.</li>
+</ul>
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08090440/get-oauth2-token_2.png" alt="" width="950" height="327" class="aligncenter size-full wp-image-876" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08090440/get-oauth2-token_2.png 950w, https://static.rayfocus.com/wp-content/uploads/2018/09/08090440/get-oauth2-token_2-300x103.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08090440/get-oauth2-token_2-768x264.png 768w" sizes="(max-width: 950px) 100vw, 950px" />
+
+Now we can send the request to OAuth2 server. The response should be as shown in the below listing and it contains below attributes.
+<ul>
+ 	<li>access_token &#8211; The Oauth2 token that has to be provided with the each service call to the protected resource.</li>
+ 	<li>token_type &#8211; The type of the OAuth2 token being provided.</li>
+ 	<li>refresh_token &#8211; The refresh token which can be presented to OAuth2 server to reissue a access token after it has been expired.</li>
+ 	<li>expires_in &#8211; The number of seconds for which the access token is valid. We have configured it as 3600 for this example.</li>
+ 	<li>scope &#8211; The scope that this OAuth2 token is valid for.</li>
+</ul>
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08102333/get-oauth2-token-response1.png" alt="" width="841" height="196" class="aligncenter size-full wp-image-881" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08102333/get-oauth2-token-response1.png 841w, https://static.rayfocus.com/wp-content/uploads/2018/09/08102333/get-oauth2-token-response1-300x70.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08102333/get-oauth2-token-response1-768x179.png 768w" sizes="(max-width: 841px) 100vw, 841px" />
+
+&nbsp;
+
+<strong>4.2 Access the protected resource</strong>
+
+We have received the access token from OAuth2 server. Now we can access the protected resource by passing the token in the request header with key value <code>Authorization</code>. We have configured the port for resource server as 7077. So we can now access the book from book-store API with the URL <code>http://localhost:7077/book-store/book?isbn=978-3-598-21506-3</code>
+<ul>
+ 	<li>Authorization &#8211; The header contains the value of the format <code>Bearer &lt;access_token_from_oauth2_server&gt;</code>.</li>
+</ul>
+&nbsp;
+
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08102432/get-book-request1.png" alt="" width="947" height="246" class="aligncenter size-full wp-image-882" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08102432/get-book-request1.png 947w, https://static.rayfocus.com/wp-content/uploads/2018/09/08102432/get-book-request1-300x78.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08102432/get-book-request1-768x200.png 768w" sizes="(max-width: 947px) 100vw, 947px" />
+
+The response from API call is as shown in the below listing.
+
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08101058/get-book-response.png" alt="" width="838" height="299" class="aligncenter size-full wp-image-880" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08101058/get-book-response.png 838w, https://static.rayfocus.com/wp-content/uploads/2018/09/08101058/get-book-response-300x107.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08101058/get-book-response-768x274.png 768w" sizes="(max-width: 838px) 100vw, 838px" />
+
+<strong>4.3 Testing the role specific access</strong>
+
+To recollect, we have configured the Http DELETE operation only for Admin users. Let&#8217;s test this out.
+
+Access the Delete Book operation as <code>bookstore.user</code>. This user doesn&#8217;t have Admin role.
+
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08102551/delete-book-invalid-access.png" alt="" width="942" height="372" class="aligncenter size-full wp-image-883" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08102551/delete-book-invalid-access.png 942w, https://static.rayfocus.com/wp-content/uploads/2018/09/08102551/delete-book-invalid-access-300x118.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08102551/delete-book-invalid-access-768x303.png 768w" sizes="(max-width: 942px) 100vw, 942px" />
+
+Now, access the DELETE book API call as Admin user <code>bookstore.admin</code>. For this you need another access token from OAuth2 server by providing the username and password of Admin user. Refer the section 4.1 where we have done the same for <code>bookstore.user</code>.
+
+After getting the access token for Admin credentials, provide them in the request header for DELETE operation. The response should be successful now.
+
+<img loading="lazy" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2018/09/08103218/delete-book-admin-access.png" alt="" width="947" height="364" class="aligncenter size-full wp-image-884" srcset="https://static.rayfocus.com/wp-content/uploads/2018/09/08103218/delete-book-admin-access.png 947w, https://static.rayfocus.com/wp-content/uploads/2018/09/08103218/delete-book-admin-access-300x115.png 300w, https://static.rayfocus.com/wp-content/uploads/2018/09/08103218/delete-book-admin-access-768x295.png 768w" sizes="(max-width: 947px) 100vw, 947px" />
+
+The access token provided in this case is for Admin user. The response status is <code>204 No Content</code> since we have configured our API to return the No Content for DELETE operation.
+<h4><strong>Conclusion</strong></h4>
+Great! We have completed our development and testing of OAuth2 and Resource server.
+<ul>
+ 	<li>We have developed our OAuth2 server and configured it to provide access tokens.</li>
+ 	<li>Then we have protected our Resource server using OAuth2.</li>
+ 	<li>The resource server is configured to check the validity of the access token by calling the endpoint exposed by OAuth2 server(/oauth/user).</li>
+ 	<li>Also, we have configured the role specific access for the specific operations like Http DELETE.</li>
+</ul>
+Hope this post have helped you to understand the OAuth2 concepts by leveraging the Spring security libraries. The complete source code of this example is available in the downloads section for reference.
+
+If you have any questions, please share it in the comments section.
+<h4><strong>Downloads</strong></h4>
+<a href="http://downloads.rayfocus.com/code-samples/SpringSecurity_Using_OAuth2_Example.zip" target="_blank" rel="noopener">SpringSecurity_Using_OAuth2_Example.zip</a>
+<h4><strong>References</strong></h4>
+<ol>
+ 	<li><a href="https://www.manning.com/books/spring-microservices-in-action" target="_blank" rel="noopener">Spring Microservices in Action &#8211; chapter 7</a></li>
+ 	<li><a href="https://tools.ietf.org/html/rfc6749" target="_blank" rel="noopener">The OAuth 2.0 Authorization Framework &#8211; rfc6749</a></li>
+</ol>
+
+<ul></ul>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/secure-your-spring-rest-api-using-oauth2/">Secure your Spring REST API using OAuth2</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/secure-your-spring-rest-api-using-oauth2/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

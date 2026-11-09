@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Serverless &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/tag/serverless/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Sun, 05 Nov 2017 17:01:25 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>Serverless framework with AWS &#8211; Example</title>
+		<link>https://blogs.rayfocus.com/serverless-framework-with-aws-example/</link>
+					<comments>https://blogs.rayfocus.com/serverless-framework-with-aws-example/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sun, 05 Nov 2017 16:41:05 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[AWS Lambda]]></category>
+		<category><![CDATA[Serverless]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=591</guid>
+
+					<description><![CDATA[<p>Serverless is the architectural style in which the applications relies heavily on Backend as a Service(Baas) and Function as a Service(Faas). In Baas, the third party remote application services are integrated tightly into the client side of apps, for example Firebase. Whereas in FaaS, the server side logic is written<a class="moretag" href="https://blogs.rayfocus.com/serverless-framework-with-aws-example/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/serverless-framework-with-aws-example/">Serverless framework with AWS &#8211; Example</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Serverless is the architectural style in which the applications relies heavily on Backend as a Service(Baas) and Function as a Service(Faas). In Baas, the third party remote application services are integrated tightly into the client side of apps, for example <a href="https://firebase.google.com/docs/database/" target="_blank" rel="noopener">Firebase</a>. Whereas in FaaS, the server side logic is written as functions code using the services provided by Cloud, for example <a href="https://aws.amazon.com/lambda/" target="_blank" rel="noopener">AWS Lambda</a>.</p>
+<h4><strong>What is Serverless framework?</strong></h4>
+<p>With the Serverless architecture being defined, what is that Serverless framework?</p>
+<p><a href="https://serverless.com/" target="_blank" rel="noopener">Serverless framework</a> is the tool which helps to build serverless applications and to deploy and manage it effectively. In short, we can focus on our application with out worrying about infrastructure.</p>
+<h4>Serverless framework with AWS</h4>
+<p>In this post, let&#8217;s see a simple example of using Serverless framework with AWS as Cloud service provider.</p>
+<p>Before start using the Serverless framework we need the following tools available.</p>
+<ol>
+<li><a href="https://aws.amazon.com/" target="_blank" rel="noopener">AWS account</a></li>
+<li><a href="http://docs.aws.amazon.com/cli/latest/userguide/installing.html" target="_blank" rel="noopener">AWS CLI  </a>and configuring the Credentials</li>
+<li><a href="https://nodejs.org" target="_blank" rel="noopener">NodeJS</a></li>
+<li><a href="https://serverless.com/framework/docs/providers/aws/guide/installation/" target="_blank" rel="noopener">Serverless framework</a></li>
+</ol>
+<p>After having the necessary tools, let&#8217;s start writing the application.</p>
+<p>The source code for this application  is available <a href="http://downloads.rayfocus.com/code-samples/aws-serverless-example.zip">here</a>. The download link is also provided at the end of this post.</p>
+<h4>Serverless Application</h4>
+<p>In this simple serverless example application, we are going to hit the API gateway from the html page. The API gateway will then trigger the Lambda function which will return the response. Then we will handle the response and display the output in html page.</p>
+<p>Yes. Probably the simplest example possible. And we are going to use the serverless framework to create the resources needed for this application.</p>
+<p><strong>serverless.yml</strong></p>
+<p>The serverless framework supports writing the configurations in YAML. So in serverless framework, we can define the resources needed for our application as a configuration. Then the framework will automate the resource creation using CloudFormation internally.</p>
+<p>Below listing shows the configuration for our application.</p><pre class="crayon-plain-tag">service: aws-serverless
+
+frameworkVersion: "&gt;=1.8.0 &lt;2.0.0"
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  versionFunctions: false
+
+functions:
+  main:
+    handler: backend/index.handler
+    environment:
+      USER_NAME: GuestUser
+    events:
+      - http:
+          path: /
+          method: get
+          cors: true</pre><p>The serverless.yml have the sections for defining the framework version, Cloud service provider, runtime environment, the Lambda function details and it&#8217;s event triggers.</p>
+<p><strong>Lambda function</strong></p>
+<p>Now we can start writing our Lambda function which will execute when the request is received from API gateway. Basically it&#8217;s a place to write our business logic for the request received from browser client.</p>
+<p>In the serverless.yml, if you notice the line <strong><code>handler: backend/index.handler</code></strong> which indicates that the framework is going to expect a <code>index.js </code>file inside a folder named <code>backend</code>. In the index.js file, there should be a function named <code>handler</code> exported as module.</p>
+<p>Below listing shows our code for Lambda function.</p><pre class="crayon-plain-tag">'use strict';
+
+const user_name = process.env['USER_NAME'];
+
+module.exports.handler = (event, context, callback) =&gt; {
+    console.log(JSON.stringify(event));
+    console.log('Input User Name Value : ' + user_name);
+    const welcomeMsg = `Hello ${user_name},
+                        Welcome to Serverless Architectures. It's AWSome!`;
+    const response = { 'message': welcomeMsg };
+    const respified = {
+        statusCode: 200,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify(response)
+    }
+    callback(
+        null,
+        respified
+    );
+}</pre><p></p>
+<h4><strong>Deploy the application</strong></h4>
+<p>To deploy the application, go to the project folder which contains the serverless.yml file. Then open the command prompt.</p>
+<p>Issue the command <code>sls deploy</code> .  Alternatively you can give <code>serverless deploy</code> , both will do the same action of deploying the resources.</p>
+<p><img fetchpriority="high" decoding="async" class="aligncenter size-full wp-image-603" src="https://static.rayfocus.com/wp-content/uploads/2017/11/04184954/sls-deploy.png" alt="" width="682" height="526" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/04184954/sls-deploy.png 682w, https://static.rayfocus.com/wp-content/uploads/2017/11/04184954/sls-deploy-300x231.png 300w" sizes="(max-width: 682px) 100vw, 682px" /></p>
+<p>The resources are now created and deployed into the AWS Cloud. The framework outputs the API gateway endpoint in the console. This is because we have mentioned API gateway as a event trigger for Lambda function in the configuration file. Make a note of the endpoint URL, which we will use in our example shortly.</p>
+<p><strong>Note: </strong>The API gateway URL listed above in the image might not be available for you for testing. However you can configure the one for you on following this example.</p>
+<p>If you notice the functions name in the console, it&#8217;s <strong><code>aws-serverless-dev-main</code></strong></p>
+<p><code>aws-serverless</code> is the service name mentioned in configuration.  <code>dev</code> is the default staging name for our application. We can configure other names such as <code>prod, pre-prod. main</code> is the function name configured in serverless.yml.</p>
+<p>In the cloud formation console, you can view the stack created by serverless framework internally. In the Events, you can also see the entries of resource creation such as Lambda function, API gateway, IAM roles.</p>
+<p><img decoding="async" class="aligncenter size-full wp-image-606" src="https://static.rayfocus.com/wp-content/uploads/2017/11/04191135/cloudformation-stack1.png" alt="" width="974" height="586" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/04191135/cloudformation-stack1.png 974w, https://static.rayfocus.com/wp-content/uploads/2017/11/04191135/cloudformation-stack1-300x180.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/11/04191135/cloudformation-stack1-768x462.png 768w" sizes="(max-width: 974px) 100vw, 974px" /></p>
+<h4><strong>A simple client</strong></h4>
+<p>We are almost done. Now to test our application, we need a simple client which will run on browser and invoke the API gateway.</p>
+<p>Below listing shows our <code>index.html</code> file.</p><pre class="crayon-plain-tag">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+	&lt;head&gt;
+        &lt;title&gt;Serverless framework&lt;/title&gt;
+        &lt;style&gt;
+            .text-style {
+                color: maroon;
+            }
+            #welcome-img{
+                display: none;
+            }
+        &lt;/style&gt;
+	&lt;/head&gt;
+    &lt;body&gt;
+        &lt;div class="container" role="main" align="center"&gt;
+            &lt;h1&gt;Serverless framework with AWS - Example&lt;/h1&gt;
+            &lt;div&gt;
+                &lt;form class="col-md-4" id="features" action=""&gt;
+                    &lt;p&gt;
+                        &lt;h2&gt;
+                            &lt;span id="welcome-message" class="text-style"&gt;Click the below button to get welcome message&lt;/span&gt;
+                        &lt;h2&gt;
+                    &lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;button type="button" id="welcomeMessageButton" onclick= "getWelcomeMessage()" class="btn btn-info"&gt;Get Welcome Message&lt;/button&gt;
+                        &lt;button type="button" id="resetButton" onclick="resetMessage()" class="btn btn-info"&gt;Reset&lt;/button&gt;
+                    &lt;/p&gt;
+                    &lt;p&gt;
+                        &lt;img id="welcome-img" src="https://static.rayfocus.com/wp-content/uploads/2017/11/04200430/serverless.png"&gt;
+                    &lt;/p&gt;
+                &lt;/form&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;script type="text/javascript"&gt;
+    
+            function getWelcomeMessage(){
+                invokeAPI(function(data){
+                    document.getElementById('welcome-message').innerHTML = data;
+                    document.getElementById('welcome-img').style.display = 'block';
+                });
+                
+            }
+    
+            function invokeAPI(callback){
+                var endpointURL = 'YOUR_API_GATEWAY_URL';
+                fetch(endpointURL, {
+                        method: 'get',
+                        mode: 'cors',
+                        headers: new Headers({
+                            'Accept': 'application/json'
+                        })
+                    }).then(response =&gt; {
+                        console.log('response untouched', response);
+                        if(response.status === 200){
+                            response.json().then(respified =&gt; {
+                                console.log('JSON response', respified)
+                                callback(respified.message);
+                            }).catch(err =&gt; {
+                                console.log('Error parsing the respone as JSON.', err);
+                                callback(err);
+                            });
+                        }
+                        else{
+                            throw `Invalid response received with status code ${response.status}`;
+                        }
+                    }).catch(err =&gt; {
+                        console.log('Error invoking API gateway endpoint.',err);
+                        callback(err);
+                    })
+                }
+    
+            function resetMessage(){
+                var defaultWelcomeMessage = 'Click the below button to get welcome message';
+                document.getElementById('welcome-message').innerHTML = defaultWelcomeMessage;
+                document.getElementById('welcome-img').style.display = 'none';
+            }
+    
+        &lt;/script&gt;
+	&lt;/body&gt;
+&lt;/html&gt;</pre><p><strong>Note:</strong> Replace the <code>YOUR_API_GATEWAY_URL</code> string with the URL that you will get when configuring the API gateway.</p>
+<h4>Test the application</h4>
+<p>Finally it&#8217;s all done. Now we can test our application. Open the index.html in a web browser. You should see the below screen rendered.</p>
+<p><img decoding="async" class="aligncenter size-full wp-image-611" src="https://static.rayfocus.com/wp-content/uploads/2017/11/05144729/index-html.png" alt="" width="804" height="275" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/05144729/index-html.png 804w, https://static.rayfocus.com/wp-content/uploads/2017/11/05144729/index-html-300x103.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/11/05144729/index-html-768x263.png 768w" sizes="(max-width: 804px) 100vw, 804px" /></p>
+<p>Click on the <code>Get Welcome Message</code> button. You should get the welcome message and the welcome image displayed as below.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-612" src="https://static.rayfocus.com/wp-content/uploads/2017/11/05144913/welcome-html.png" alt="" width="929" height="883" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/05144913/welcome-html.png 929w, https://static.rayfocus.com/wp-content/uploads/2017/11/05144913/welcome-html-300x285.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/11/05144913/welcome-html-768x730.png 768w" sizes="(max-width: 929px) 100vw, 929px" /></p>
+<h4>Clean up the resources</h4>
+<p>With serverless framework, it&#8217;s very simple to cleanup the resources we have created for the application. Just issue the command <code>sls remove</code>. The CloudFormation stack will be deleted and you are all done cleaning up.</p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-613" src="https://static.rayfocus.com/wp-content/uploads/2017/11/05150348/sls-remove.png" alt="" width="538" height="218" srcset="https://static.rayfocus.com/wp-content/uploads/2017/11/05150348/sls-remove.png 538w, https://static.rayfocus.com/wp-content/uploads/2017/11/05150348/sls-remove-300x122.png 300w" sizes="(max-width: 538px) 100vw, 538px" /></p>
+<h4>Conclusion</h4>
+<p>We have seen a simple example of using serverless framework. While developing this application, we haven&#8217;t used the AWS management console to get the things done. That is one of the key advantage of serverless framework. Because it means the creation , deployment and management of resources are automated.</p>
+<p>What&#8217;s next? We can start building the applications using serverless architectures and automate the resource management using serverless framework.</p>
+<p>Thank you for reading this post. If you have any questions, please share it in the comments section.</p>
+<hr />
+<p><strong>Download source code : </strong><span style="text-decoration: underline;"><a href="http://downloads.rayfocus.com/code-samples/aws-serverless-example.zip" rel="noopener">aws-serverless-example.zip</a></span></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/serverless-framework-with-aws-example/">Serverless framework with AWS &#8211; Example</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/serverless-framework-with-aws-example/feed/</wfw:commentRss>
+			<slash:comments>2</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>

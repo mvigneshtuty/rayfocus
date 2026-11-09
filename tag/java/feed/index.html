@@ -1,0 +1,632 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Java &#8211; Rayfocus</title>
+	<atom:link href="https://blogs.rayfocus.com/tag/java/feed/" rel="self" type="application/rss+xml" />
+	<link>https://blogs.rayfocus.com</link>
+	<description>Software Technology Blog</description>
+	<lastBuildDate>Sun, 06 Jan 2019 05:22:02 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.5.14</generator>
+	<item>
+		<title>ArrayList in Java</title>
+		<link>https://blogs.rayfocus.com/arraylist-in-java/</link>
+					<comments>https://blogs.rayfocus.com/arraylist-in-java/#respond</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Sun, 06 Jan 2019 05:22:02 +0000</pubDate>
+				<category><![CDATA[Data Structures]]></category>
+		<category><![CDATA[Programming]]></category>
+		<category><![CDATA[ArrayList]]></category>
+		<category><![CDATA[Java]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=976</guid>
+
+					<description><![CDATA[<p>ArrayList is one of the implementation of the List interface. It is internally a resizable-array under the hood. ArrayList is equivalent to Vector but the only difference is it is not synchronized. ArrayList uses Array internally to store the data. Hence as like Array, random access is possible and it<a class="moretag" href="https://blogs.rayfocus.com/arraylist-in-java/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/arraylist-in-java/">ArrayList in Java</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>ArrayList is one of the implementation of the List interface. It is internally a resizable-array under the hood. ArrayList is equivalent to Vector but the only difference is it is not synchronized.</p>
+<p><img fetchpriority="high" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2019/01/06043317/java-arraylist.png" alt="" width="284" height="177" class="aligncenter size-full wp-image-981" /></p>
+<ul>
+<li>ArrayList uses Array internally to store the data. Hence as like Array, random access is possible and it is very fast. The operation is O(1) constant time complexity.</li>
+<li>Other operations like add, remove is O(N) linear time complexity approximately.</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">List&lt;String&gt; names = new ArrayList&lt;String&gt;(3);
+
+// Add elements to list
+names.add("Kidzee");
+names.add("funKids");
+names.add("KidsPlay");</pre><p></p>
+<ul>
+<li>For remove operation, ArrayList is not so efficient since the elements has to be shifted in this case. For example, if the 1st element in the list is removed then all other elements has to be shifted by one position and this operation is O(N) complexity. Hence if there is a need for lot of remove operations, LinkedList is better suited for this purpose.</li>
+<li>ArrayList supports other operations like size(), isEmpty(), sort(), toArray().</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">package com.rayfocus.datastructures.arraylist;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ArrayListDS {
+
+	public static void main(String[] args) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+		
+		// Initializing the ArrayList; If number of elements known before then provide it during initialization
+		List&lt;String&gt; names = new ArrayList&lt;String&gt;(3);
+
+		// Add elements to list
+	    names.add("Kidzee");
+		names.add("funKids");
+		names.add("KidsPlay");
+		
+		// Iterate the values in the list
+		for(String val: names) {
+			System.out.println("name : "+val);
+		}
+		
+		// Element retrieval using random index - Very fast O(1) complexity
+		System.out.println("Element at index (0) is "+names.get(0));
+		
+		// Remove values from list
+		// Not so efficient since the elements has to shifted internally in the array.
+		// LinkedList serves better for this purpose
+		System.out.println("Remove element at index (1)");
+		names.remove(1);
+		System.out.println("After remove, now the name in index (1) is : "+names.get(1)); // will print out "KidsPlay"
+		
+		// Size of ArrayList
+		System.out.println("Size : "+names.size());
+		// Check isEmpty
+		System.out.println("List isEmpty? "+names.isEmpty());
+		
+	}
+}</pre><p></p>
+<h5><strong>Capacity re-allocation when adding elements</strong></h5>
+<p>Since ArrayList is a re-sizable array, if the capacity of the Array reaches the maximum a new Array is created and elements are copied to new Array. So in general, if the number of elements to be stored is known ahead it&#8217;s better to initialize the ArrayList using the size itself.</p>
+<p>For example, if 200 items to be stored in list, then</p>
+<p><code>List&lt;String&gt; names = new ArrayList&lt;String&gt;(200);</code><br />
+so that an Array is created with initial capacity of 200.</p>
+<h5><strong>Summary</strong></h5>
+<p>ArrayList is a good choice, when</p>
+<ul>
+<li>The elements are going to be added and retrieved using the random index value. It is O(1) complexity.</li>
+<li>The applications don&#8217;t need to remove the elements which are added.</li>
+<li>You have to avoid the hassle of creating a new Array and copy the elements into it.</li>
+</ul>
+<p>ArrayList is not so efficient, when</p>
+<ul>
+<li>There is lot of remove operations to be performed. This operation is O(N) time complexity.</li>
+<li>There is a need to synchronize the operations for concurrent access. Since ArrayList is not designed to be thread safe.</li>
+</ul>
+<p>&nbsp;</p>
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/arraylist-in-java/">ArrayList in Java</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/arraylist-in-java/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Transcode your favourite videos using AWS Lambda and Elastic Transcoder</title>
+		<link>https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/</link>
+					<comments>https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Thu, 28 Sep 2017 18:31:24 +0000</pubDate>
+				<category><![CDATA[Amazon Web Services]]></category>
+		<category><![CDATA[Amazon Elastic Transcoder]]></category>
+		<category><![CDATA[AWS Lambda]]></category>
+		<category><![CDATA[Java]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=522</guid>
+
+					<description><![CDATA[<p>Video transcoding has been made easier and effective using the Elastic Transcoder service from Amazon. In this post, we will see how to make use of Elastic Transcoder to transcode the videos we upload to Amazon S3 bucket. Also, we will make use of AWS Lambda which will invoke the<a class="moretag" href="https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/">Transcode your favourite videos using AWS Lambda and Elastic Transcoder</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>Video transcoding has been made easier and effective using the Elastic Transcoder service from Amazon. In this post, we will see how to make use of Elastic Transcoder to transcode the videos we upload to Amazon S3 bucket. Also, we will make use of AWS Lambda which will invoke the Elastic Transcoder whenever a new Object is added to S3 bucket.</p>
+<h4>Create S3 Buckets</h4>
+<p>In this example, we will use two S3 buckets say input and output bucket. The object (video file to be transcoded) will be uploaded into input bucket. The output bucket will have the transcoded videos. For this example, the input bucket is created with the name <code>input.videos-to-transcode</code> and the output bucket is <code>output.transcoded-videos</code>. Both the buckets are created in the US-EAST region(N. Virginia).</p>
+<p><img decoding="async" class="aligncenter size-full wp-image-560" src="https://static.rayfocus.com/wp-content/uploads/2017/09/26072249/create-bucket.png" alt="" width="867" height="813" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/26072249/create-bucket.png 867w, https://static.rayfocus.com/wp-content/uploads/2017/09/26072249/create-bucket-300x281.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/09/26072249/create-bucket-768x720.png 768w" sizes="(max-width: 867px) 100vw, 867px" /></p>
+<p>For detailed steps on working with S3 buckets, refer the post <a href="https://blogs.rayfocus.com/getting-started-with-amazon-s3/" target="_blank" rel="noopener">Getting started with S3</a>.</p>
+<p><strong>Note: </strong>Since the Bucket name is unique through out, you have to choose a different bucket name other than the one mentioned in this example.</p>
+<h4>Elastic Transcoder</h4>
+<p>In Elastic Transcoder, pipelines are the queues to which the transcoding jobs can be added. Elastic Transcoder process the jobs in the order in which it is placed in the pipeline. Let&#8217;s configure the pipeline using the <a href="https://console.aws.amazon.com/elastictranscoder/" target="_blank" rel="noopener">Elastic Transcoder console</a>.</p>
+<p><strong>Create a pipeline</strong></p>
+<ul>
+<li>In the Elastic Transcoder console, choose Create a new Pipeline.</li>
+<li>Configure the pipeline by providing the input and output bucket details as below.</li>
+</ul>
+<p><img decoding="async" class="aligncenter size-full wp-image-563" src="https://static.rayfocus.com/wp-content/uploads/2017/09/26101209/configure-pipeline.png" alt="" width="684" height="773" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/26101209/configure-pipeline.png 684w, https://static.rayfocus.com/wp-content/uploads/2017/09/26101209/configure-pipeline-265x300.png 265w" sizes="(max-width: 684px) 100vw, 684px" /></p>
+<ul>
+<li>For IAM role, choose <strong>Create console default role</strong>. AWS will automatically create the IAM role Elastic_Transcoder_Default_Role.</li>
+<li>You can review the IAM policy attached to the default role.</li>
+</ul>
+<p></p><pre class="crayon-plain-tag">{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Sid": "1",
+      "Effect": "Allow",
+      "Action": [
+        "s3:Put*",
+        "s3:ListBucket",
+        "s3:*MultipartUpload*",
+        "s3:Get*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "2",
+      "Effect": "Allow",
+      "Action": "sns:Publish",
+      "Resource": "*"
+    },
+    {
+      "Sid": "3",
+      "Effect": "Deny",
+      "Action": [
+        "s3:*Delete*",
+        "s3:*Policy*",
+        "sns:*Remove*",
+        "sns:*Delete*",
+        "sns:*Permission*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}</pre><p></p>
+<ul>
+<li>For Notifications and Encryption sections, leave the default values.</li>
+<li>Choose <strong>Create Pipeline</strong>.</li>
+<li>You will now have the pipeline created with status as Active. Make a note of the pipeline id.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-568" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28140310/pipeline-id.png" alt="" width="487" height="208" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28140310/pipeline-id.png 487w, https://static.rayfocus.com/wp-content/uploads/2017/09/28140310/pipeline-id-300x128.png 300w" sizes="(max-width: 487px) 100vw, 487px" /></p>
+<h4>AWS Lambda Function</h4>
+<p>To summarize the things we have done so far, we have created input and output S3 buckets for placing the video files. Then we have configured the Elastic Transcoder pipeline. Now we need to connect these two pieces i.e S3 buckets and Elastic Transcoder so that when we upload some objects(video file) in S3 bucket the transcoding needs to be done for the video files. So how can we do that?</p>
+<p>Here comes the AWS Lambda to our rescue. Yes. Lambda acts as a glue between the S3 bucket and the Elastic Transcoder. This is done by configuring the events for new object creation in S3 bucket which will trigger the Lambda function. Then the Lambda function will create the Elastic Transcoder Job and add that to the Transcoder pipeline we have created. Elastic Transcoder then process the Job and produces the transcoded videos in the output S3 bucket.</p>
+<p><strong>Creating IAM role(Execution role) for Lambda</strong></p>
+<p>Before creating the Lambda function, let&#8217;s create an IAM role which will be associated with Lambda when it executes.</p>
+<ul>
+<li>Access the <a href="https://console.aws.amazon.com/iam" target="_blank" rel="noopener">IAM console</a>.</li>
+<li>Select <strong>Roles  </strong>in the left navigation pane and choose Create role.</li>
+<li>For role type, choose AWS service and select Lambda. Then select <strong>Next: Permissions</strong>.</li>
+<li>For Attach permissions policy, search for <strong>AWSLambdaBasicExecutionRole </strong>and select it.</li>
+<li>Then search for <strong>AmazonElasticTranscoderJobsSubmitter </strong>and select it.</li>
+<li>Choose <strong>Next: Review</strong>.</li>
+<li>Then provide the name for the role. For this example, it&#8217;s lambda-exec-role_video-transcoder.</li>
+<li>Choose <strong>Create role</strong>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-571" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28154301/select-lambda-role.png" alt="" width="677" height="605" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28154301/select-lambda-role.png 677w, https://static.rayfocus.com/wp-content/uploads/2017/09/28154301/select-lambda-role-300x268.png 300w" sizes="(max-width: 677px) 100vw, 677px" /></p>
+<h4><strong>Author the Lambda Function</strong></h4>
+<p>Now it&#8217;s time to write the Lambda function itself. In this example, we will use Java language to write the function. For this, you need Java 8, Eclipse IDE, AWS Toolkit for Eclipse, Maven.</p>
+<p>You can get the source code for this example from <a href="http://downloads.rayfocus.com/code-samples/example_videos-transcoding.zip" target="_blank" rel="noopener">here</a>. Also the download link is available at the end of this post.</p>
+<p><strong>Step 1 :</strong></p>
+<p>Add the below dependencies and plugins in your <code>pom.xml</code></p><pre class="crayon-plain-tag">&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+	&lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+	&lt;groupId&gt;com.rayfocus.aws.lambda&lt;/groupId&gt;
+	&lt;artifactId&gt;videotranscoder&lt;/artifactId&gt;
+	&lt;version&gt;4.0.0&lt;/version&gt;
+	&lt;dependencies&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.amazonaws&lt;/groupId&gt;
+			&lt;artifactId&gt;aws-lambda-java-core&lt;/artifactId&gt;
+			&lt;version&gt;1.1.0&lt;/version&gt;
+			&lt;scope&gt;compile&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.amazonaws&lt;/groupId&gt;
+			&lt;artifactId&gt;aws-lambda-java-events&lt;/artifactId&gt;
+			&lt;version&gt;1.3.0&lt;/version&gt;
+			&lt;scope&gt;compile&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;junit&lt;/groupId&gt;
+			&lt;artifactId&gt;junit&lt;/artifactId&gt;
+			&lt;version&gt;4.11&lt;/version&gt;
+			&lt;scope&gt;test&lt;/scope&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;com.amazonaws&lt;/groupId&gt;
+			&lt;artifactId&gt;aws-java-sdk-elastictranscoder&lt;/artifactId&gt;
+			&lt;version&gt;1.9.1&lt;/version&gt;
+		&lt;/dependency&gt;
+	&lt;/dependencies&gt;
+	&lt;build&gt;
+		&lt;plugins&gt;
+			&lt;plugin&gt;
+				&lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+				&lt;artifactId&gt;maven-shade-plugin&lt;/artifactId&gt;
+				&lt;version&gt;3.1.0&lt;/version&gt;
+				&lt;configuration&gt;
+					&lt;!-- put your configurations here --&gt;
+				&lt;/configuration&gt;
+				&lt;executions&gt;
+					&lt;execution&gt;
+						&lt;phase&gt;package&lt;/phase&gt;
+						&lt;goals&gt;
+							&lt;goal&gt;shade&lt;/goal&gt;
+						&lt;/goals&gt;
+					&lt;/execution&gt;
+				&lt;/executions&gt;
+			&lt;/plugin&gt;
+		&lt;/plugins&gt;
+	&lt;/build&gt;
+&lt;/project&gt;</pre><p><strong>Step 2:</strong> Then create a class TranscodeJobCreator.java which will handle the requests by implementing the RequestHandler interface.</p><pre class="crayon-plain-tag">package com.rayfocus.aws.lambda.videotranscoder;
+
+import java.util.Arrays;
+import java.util.List;
+
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.elastictranscoder.AmazonElasticTranscoderClient;
+import com.amazonaws.services.elastictranscoder.model.CreateJobOutput;
+import com.amazonaws.services.elastictranscoder.model.CreateJobRequest;
+import com.amazonaws.services.elastictranscoder.model.JobInput;
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+
+import com.amazonaws.services.lambda.runtime.events.S3Event;
+
+@SuppressWarnings("deprecation")
+public class TranscodeJobCreator implements RequestHandler&lt;S3Event, Object&gt; {
+
+	private static final AmazonElasticTranscoderClient elasticTranscoder;
+
+	private static final String TRANSCODE_GENERIC_1080p_PRESET_ID = "1351620000001-000001";
+	private static final String TRANSCODE_GENERIC_720p_PRESET_ID = "1351620000001-000010";
+	private static final String TRANSCODE_WEB_720p_PRESET_ID = "1351620000001-100070";
+
+	private static final String OUTPUT_KEY_PREFIX = "output-videos/";
+	private static final String ELASTIC_TRANSCODER_PIPELINE_ID = "ELASTIC_TRANSCODER_PIPELINE_ID";
+	private static final String OUTPUT_VIDEO_FORMAT = "OUTPUT_VIDEO_FORMAT"; 
+
+	static {
+		//elasticTranscoder = new AmazonElasticTranscoderClient(AwsAuth.getProfileCredentials("aws-access"));
+		//elasticTranscoder = new AmazonElasticTranscoderClient(AwsAuth.getProfileCredentials());
+		elasticTranscoder = new AmazonElasticTranscoderClient();
+		Region usEast1 = Region.getRegion(Regions.US_EAST_1);
+		elasticTranscoder.setRegion(usEast1);
+	}
+
+	public Object handleRequest(S3Event input, Context context) {
+		context.getLogger().log("Input: " + input);
+		context.getLogger().log("PipelineId: " + System.getenv(ELASTIC_TRANSCODER_PIPELINE_ID));
+		
+		// Get the S3 input object key for Transcoder Job
+		String inputKey = input.getRecords().get(0).getS3().getObject().getKey();
+		inputKey = inputKey.replaceAll(" ", "+");
+		context.getLogger().log("Input Key: " + inputKey);
+		
+		// Create the Transcoder Job input
+		JobInput transcoderJobInput = new JobInput().withKey(inputKey);
+
+		// Create the output key for Transcoder Job
+		String outputKey = inputKey.split("\\.")[0];
+		
+		// Loggers
+		context.getLogger().log("OutputKey: " + outputKey);
+		
+		// Configure the Transcoder Job output
+		CreateJobOutput generic1080p = new CreateJobOutput().withKey(outputKey + "-1080p" + "." + System.getenv(OUTPUT_VIDEO_FORMAT))
+				.withPresetId(TRANSCODE_GENERIC_1080p_PRESET_ID);
+		CreateJobOutput generic720p = new CreateJobOutput().withKey(outputKey + "-720p" + "." + System.getenv(OUTPUT_VIDEO_FORMAT))
+				.withPresetId(TRANSCODE_GENERIC_720p_PRESET_ID);
+		CreateJobOutput web720p = new CreateJobOutput().withKey(outputKey + "-web-720p" + "." + System.getenv(OUTPUT_VIDEO_FORMAT))
+				.withPresetId(TRANSCODE_WEB_720p_PRESET_ID);
+		List&lt;CreateJobOutput&gt; transcoderJobOutputs = Arrays.asList(generic1080p, generic720p, web720p);
+
+		// Create the Transcoder Job request
+		CreateJobRequest createJobRequest = new CreateJobRequest()
+				.withPipelineId(System.getenv(ELASTIC_TRANSCODER_PIPELINE_ID)).withInput(transcoderJobInput)
+				.withOutputKeyPrefix(OUTPUT_KEY_PREFIX).withOutputs(transcoderJobOutputs);
+
+		// Create the Transcoder Job
+		elasticTranscoder.createJob(createJobRequest);
+		
+		return "{'status':'done'}";
+	}
+}</pre><p><strong>Step 3: </strong>Compile and build the project using Maven goal as <strong><code>package</code></strong>. After successful build then run the Maven build again using the goal as <strong><code>package shade:shade</code></strong>. In the target folder of the project, you should have the jar <code>videotranscoder-4.0.0.jar</code>.<img loading="lazy" decoding="async" class="aligncenter size-full wp-image-570" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28153957/transcoder-jar.png" alt="" width="321" height="232" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28153957/transcoder-jar.png 321w, https://static.rayfocus.com/wp-content/uploads/2017/09/28153957/transcoder-jar-300x217.png 300w" sizes="(max-width: 321px) 100vw, 321px" /></p>
+<h4><strong>Deploy the Lambda Function</strong></h4>
+<p>Now that we have written the Lambda function, we need to deploy it so that the function can be triggered when certain events occur.</p>
+<ul>
+<li>Access the <a href="https://console.aws.amazon.com/lambda" target="_blank" rel="noopener">Lambda console</a>. Choose region as N. Virginia.</li>
+<li>Select Create function. Choose Author from scratch.</li>
+<li>We will configure the Trigger in the following steps. For now leave it and choose Next.</li>
+<li>Give a name for the function. For this example, it&#8217;s <code>func_transcode-videos</code>.</li>
+<li>Select the Runtime as Java 8.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-573" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28161607/function-name.png" alt="" width="545" height="275" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28161607/function-name.png 545w, https://static.rayfocus.com/wp-content/uploads/2017/09/28161607/function-name-300x151.png 300w" sizes="(max-width: 545px) 100vw, 545px" /></p>
+<ul>
+<li>Now for Code entry type, upload the <code>videotranscoder-4.0.0.jar</code> available in the project&#8217;s target folder.</li>
+<li>Select Upload and choose the jar file.</li>
+<li>For Environment variables, we need two entries to be provided as we have used it in the handler code we have written.</li>
+<li>For ELASTIC_TRANSCODER_PIPELINE_ID, give the value of pipeline id.</li>
+<li>For OUTPUT_VIDEO_FORMAT, we choose <code>mp4</code> for this example.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-574" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28163330/func-upload.png" alt="" width="985" height="547" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28163330/func-upload.png 985w, https://static.rayfocus.com/wp-content/uploads/2017/09/28163330/func-upload-300x167.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/09/28163330/func-upload-768x426.png 768w" sizes="(max-width: 985px) 100vw, 985px" /></p>
+<ul>
+<li>For function handler give the value as <code>com.rayfocus.aws.lambda.videotranscoder.TranscodeJobCreator</code>.</li>
+<li>For Role, choose the existing role <code>lambda-exec-role_video-transcoder</code>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-575" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28164054/func-handler.png" alt="" width="545" height="402" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28164054/func-handler.png 545w, https://static.rayfocus.com/wp-content/uploads/2017/09/28164054/func-handler-300x221.png 300w" sizes="(max-width: 545px) 100vw, 545px" /></p>
+<ul>
+<li>In Advanced settings, change the Timeout value to 30 seconds so that Lambda function will have enough time to complete the execution. Leave the other settings unchanged.</li>
+<li>Then choose Next.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-576" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28164451/timeout-settings.png" alt="" width="422" height="301" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28164451/timeout-settings.png 422w, https://static.rayfocus.com/wp-content/uploads/2017/09/28164451/timeout-settings-300x214.png 300w" sizes="(max-width: 422px) 100vw, 422px" /></p>
+<ul>
+<li>Review the Lambda function details and select Create function.</li>
+<li>Now you should see the message for successful creation of Lambda function.</li>
+</ul>
+<h4>Configure the Triggers for AWS Lambda</h4>
+<ul>
+<li>To configure the triggers for Lambda, select the function created in previous step and choose Triggers section.</li>
+<li>Then select <strong>Add trigger</strong>.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-577" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28165325/add-triggers.png" alt="" width="593" height="336" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28165325/add-triggers.png 593w, https://static.rayfocus.com/wp-content/uploads/2017/09/28165325/add-triggers-300x170.png 300w" sizes="(max-width: 593px) 100vw, 593px" /></p>
+<ul>
+<li>Select the trigger type as S3.</li>
+<li>Then select the input S3 bucket as event source. For Event type choose Object created(All).</li>
+<li>Enable the trigger and choose Submit.</li>
+<li>Now the trigger should be added successfully to the Lambda function.</li>
+</ul>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-578" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28170040/configure-triggers.png" alt="" width="873" height="857" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28170040/configure-triggers.png 873w, https://static.rayfocus.com/wp-content/uploads/2017/09/28170040/configure-triggers-300x295.png 300w, https://static.rayfocus.com/wp-content/uploads/2017/09/28170040/configure-triggers-768x754.png 768w" sizes="(max-width: 873px) 100vw, 873px" /></p>
+<h4>Test the Lambda Function</h4>
+<p>Now finally it&#8217;s time to test the video transcoding. Upload the sample video file into the input S3 bucket. You should get the transcoded videos in the output S3 bucket.</p>
+<p><strong>Input Video File<br />
+</strong></p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-583" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28175415/input-bucket1.png" alt="" width="468" height="432" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28175415/input-bucket1.png 468w, https://static.rayfocus.com/wp-content/uploads/2017/09/28175415/input-bucket1-300x277.png 300w" sizes="(max-width: 468px) 100vw, 468px" /></p>
+<p>&nbsp;</p>
+<p><strong>Transcoded Output Video Files<br />
+</strong></p>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-584" src="https://static.rayfocus.com/wp-content/uploads/2017/09/28175451/transcoded-output-in-bucket1.png" alt="" width="510" height="525" srcset="https://static.rayfocus.com/wp-content/uploads/2017/09/28175451/transcoded-output-in-bucket1.png 510w, https://static.rayfocus.com/wp-content/uploads/2017/09/28175451/transcoded-output-in-bucket1-291x300.png 291w" sizes="(max-width: 510px) 100vw, 510px" /></p>
+<p>&nbsp;</p>
+<h4>Conclusion and What&#8217;s Next?</h4>
+<p>Congratulations! You have now done the video transcoding using Elastic Transcoder and AWS Lambda. We have seen how the Lambda function can be leveraged to achieve the transcoding functionality without configuring any servers by ourselves. This gives us the way to go ahead and explore more about the serverless architectures.</p>
+<p>We can have a thick client now talking to NoSQL database directly or by calling the API Gateway endpoint which will invoke Lambda function. The Lambda function will then do the database operations. There are plenty of options available to design the applications using serverless way in the Cloud.</p>
+<p>Let&#8217;s go serverless!</p>
+<p>That&#8217;s it for this post. If you face any errors in the example explained in this post, check the Cloud watch logs which will have the error details captured during Lambda invocations.</p>
+<p>If you have any questions or issues, please share it in the comments section.</p>
+<p>Thank you!</p>
+<hr />
+<p><strong>Download source code : </strong><a href="http://downloads.rayfocus.com/code-samples/example_videos-transcoding.zip">example_videos-transcoding.zip</a></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/">Transcode your favourite videos using AWS Lambda and Elastic Transcoder</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/transcoding-videos-using-aws-lambda-and-elastic-transcoder/feed/</wfw:commentRss>
+			<slash:comments>4</slash:comments>
+		
+		
+			</item>
+		<item>
+		<title>Getting started with Spring Integration</title>
+		<link>https://blogs.rayfocus.com/getting-started-with-spring-integration/</link>
+					<comments>https://blogs.rayfocus.com/getting-started-with-spring-integration/#comments</comments>
+		
+		<dc:creator><![CDATA[Vignesh M]]></dc:creator>
+		<pubDate>Thu, 08 Jun 2017 06:00:27 +0000</pubDate>
+				<category><![CDATA[Spring framework]]></category>
+		<category><![CDATA[Java]]></category>
+		<category><![CDATA[Spring Integration]]></category>
+		<guid isPermaLink="false">https://blogs.rayfocus.com/?p=4</guid>
+
+					<description><![CDATA[<p>In this post, we will see what Spring Integration is about and how to get started with it. What is Spring Integration? Spring Integration is an open source framework for enterprise application integration. It is built on top of Spring framework. Hence it is very easy to adopt Spring Integration<a class="moretag" href="https://blogs.rayfocus.com/getting-started-with-spring-integration/"> Read more&#8230;</a></p>
+<p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/getting-started-with-spring-integration/">Getting started with Spring Integration</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[<p>In this post, we will see what Spring Integration is about and how to get started with it.</p>
+<h4><strong>What is Spring Integration?</strong></h4>
+<p><img loading="lazy" decoding="async" class="aligncenter size-full wp-image-764" src="https://static.rayfocus.com/wp-content/uploads/2017/06/30032459/spring-integration.png" alt="" width="298" height="169" /></p>
+<p>Spring Integration is an open source framework for enterprise application integration. It is built on top of Spring framework. Hence it is very easy to adopt Spring Integration in the projects which are already using the Spring framework.</p>
+<p>Spring Integration facilitates asynchronous, message driven behavior within a Spring based application. Spring Integration components are loosely coupled for modularity and testability.</p>
+<h4><strong>Main components of Spring Integration</strong></h4>
+<p>We will see some of the main components of Spring Integration which is the core of the framework.</p>
+<p><strong>Message</strong></p>
+<p>In Spring Integration, Message is a generic wrapper for any java object combined with metadata used by the framework while handling that object. It consists of payload and headers. Payload can be of any type and the headers hold commonly required information such as id, timestamp, correlation id and return address.</p>
+<p><strong><img loading="lazy" decoding="async" class="size-full wp-image-38 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/01_MessagePayload.png" alt="" width="238" height="191" /></strong></p>
+<p><strong>Message Channel</strong></p>
+<p>A Message Channel represents the pipe of the pipe-and-filters architecture. Producers send message to a channel and consumers receive message from a channel. The Message Channel therefore decouples the messaging components and also provides a convenient point for interception and monitoring of Messages.</p>
+<p><img loading="lazy" decoding="async" class="size-medium wp-image-49 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/023_MessageChannel.png" alt="" width="400" height="45" /></p>
+<p><strong>Message Endpoint</strong></p>
+<p>A Message Endpoint represents the filter of a pipes-and-filters architecture. The endpoint&#8217;s primary role is to connect application code to messaging framework and to do so in a non-invasive manner. Some of the endpoints are Transformer, Router, Splitter, Aggregator, Service Activator, Gateways.</p>
+<h4><strong>Getting started</strong></h4>
+<p>We will now create a simple Hello World application using Spring Integration.</p>
+<h4><strong>Prerequisite tools and libraries</strong></h4>
+<p style="padding-left: 30px;">1. Maven 3<br />
+2. Eclipse IDE 4.4.2<br />
+3. JDK 1.6 or higher<br />
+4. Spring Integration Core 4.3.9.RELEASE<br />
+5. Spring Integration Stream 4.3.9.RELEASE</p>
+<p><strong>Step 1 :</strong> Create a simple maven project in Eclipse IDE. Add the following dependencies to pom.xml</p><pre class="crayon-plain-tag">&lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.integration&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-integration-core&lt;/artifactId&gt;
+            &lt;version&gt;4.3.9.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.integration&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-integration-stream&lt;/artifactId&gt;
+            &lt;version&gt;4.3.9.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;junit&lt;/groupId&gt;
+            &lt;artifactId&gt;junit&lt;/artifactId&gt;
+            &lt;version&gt;4.12&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-test&lt;/artifactId&gt;
+            &lt;version&gt;4.3.8.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+  &lt;/dependencies&gt;</pre><p><strong>Step 2 :</strong> Now add the Spring configuration file spring-integration-config.xml in src/main/resources. This should have enabled  the Spring project nature as well in the Eclipse IDE.</p><pre class="crayon-plain-tag">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:int="http://www.springframework.org/schema/integration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:stream="http://www.springframework.org/schema/integration/stream"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd 
+                        http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+                        http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd"&gt;
+
+    &lt;!-- Simple Message Processing --&gt;
+    &lt;int:channel id="inputChannel" /&gt;
+
+    &lt;int:service-activator input-channel="inputChannel"
+        output-channel="printChannel" ref="messageProcessor" /&gt;
+
+    &lt;!-- Stream output --&gt;
+
+    &lt;int:channel id="printChannel" /&gt;
+
+    &lt;stream:stdout-channel-adapter
+        append-newline="true" channel="printChannel" /&gt;
+
+    &lt;!-- Bean definitions --&gt;
+    &lt;bean id="messageProcessor"
+        class="com.rayfocus.spring.integration.SimpleMessageProcessor" /&gt;
+&lt;/beans&gt;</pre><p><strong>Spring Integration graph :</strong></p>
+<p><img loading="lazy" decoding="async" class="size-medium wp-image-194 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/integ-graph-01.PNG" alt="" width="400" height="100" /></p>
+<p style="text-align: left;"><strong>Note :</strong> In order to see the Spring Integration graph in Eclipse IDE, make sure that the spring plugin for eclipse is installed.</p>
+<p><strong>Step 3 :</strong>  Declare the Interface to have methods for processing the message.</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration;
+
+import org.springframework.messaging.Message;
+
+public interface MessageProcessor
+{
+    Message&lt;String&gt; addMessageGreetings(Message&lt;String&gt; inputMessage);
+}</pre><p><strong>Step 4 :</strong>  Now, lets code the Simple message processor implementation.</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration;
+
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+
+public class SimpleMessageProcessor implements MessageProcessor
+{
+    @ServiceActivator
+    public Message&lt;String&gt; addMessageGreetings( Message&lt;String&gt; inputMessage )
+    {
+        String payloadMessage = inputMessage.getPayload();
+        String greetingsMessage = "Welcome " + payloadMessage
+                + ", Greetings from Spring Integration! ";
+        return MessageBuilder.withPayload( greetingsMessage ).build();
+    }
+}</pre><p>If you have noticed the service-activator declaration, it will pass on the message to printChannel.</p>
+<p>From printChannel, the message will be passed on to stdout-channel-adapter. So the message returned from addMessageGreetings method will be directed to the standard output console.</p>
+<p>Lets see this in action</p>
+<p><strong>Step 5 :</strong>  Create a GreetingsApp.java class as below</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration.app;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+
+public class GreetingsApp
+{
+
+    public static void main( String[] args )
+    {
+        String config = "spring-integration-config.xml";
+        ApplicationContext context = new ClassPathXmlApplicationContext( config );
+        MessageChannel inputChannel = context.getBean( "inputChannel",
+                MessageChannel.class );
+        Message&lt;String&gt; inputMessage = MessageBuilder.withPayload( "UserName" )
+                .build();
+        inputChannel.send( inputMessage );
+        ( ( ClassPathXmlApplicationContext ) context ).close();
+    }
+
+}</pre><p>Execute the GreetingsApp.java and you should see the below output printed to console.</p><pre class="crayon-plain-tag">Welcome UserName, Greetings from Spring Integration!</pre><p>So, how this works?</p>
+<p>When we send the String message to channel component inputChannel, the message is then passed on to service activator.</p>
+<p>In the service activator, we can write the business related code. In our case, we just referred to the SimpleMessageProcessor instance where we created the greetings message.<br />
+The returned message from service activator is then passed on the printChannel.</p>
+<p>The printChannel forms the input for stdout-channel-adapter as per our configuration. Hence the greeting message will get printed to the console.</p>
+<p>If we take a look in to the GreetingsApp.java, which is the client class from where we send the spring integration message, we are dealing with the spring integration components directly. We are depending on the use of the channel component inputChannel to send the message.</p>
+<p>We can remove those direct dependencies using the component gateway proxy to our configuration.</p>
+<p><strong>Step 6 : </strong>Integrating using Gateway Proxy</p>
+<p>Add the below component entry to configuration xml.</p><pre class="crayon-plain-tag">&lt;!-- Messaging Gateway --&gt;
+    &lt;int:gateway id="gatewayProxy"
+        service-interface="com.rayfocus.spring.integration.MessageProcessor"
+        default-request-channel="gatewayInputChannel"
+        default-reply-channel="gatewayOutputChannel" /&gt;
+
+    &lt;int:channel id="gatewayInputChannel" /&gt;
+
+    &lt;int:service-activator input-channel="gatewayInputChannel"
+        ref="gatewayMessageProcessor" output-channel="gatewayOutputChannel" /&gt;
+
+    &lt;int:channel id="gatewayOutputChannel" /&gt;
+
+    &lt;bean id="gatewayMessageProcessor"
+        class="com.rayfocus.spring.integration.GatewayMessageProcessor" /&gt;</pre><p><strong>Spring Integration graph :</strong></p>
+<p><img loading="lazy" decoding="async" class="size-medium wp-image-199 aligncenter" src="https://static.rayfocus.com/wp-content/uploads/2017/06/integ-graph-02.PNG" alt="" width="600" height="300" /></p>
+<p>You should now see the additional gateway components in the Spring Integration graph.</p>
+<p>For the service-activator component, GatewayMessageProcessor.java will implement the MessageProcessor interface and do the same work of creating the greeting message. In this case, its a different greeting message.</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration;
+
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+
+public class GatewayMessageProcessor implements MessageProcessor
+{
+
+    @ServiceActivator
+    public Message&lt;String&gt; addMessageGreetings( Message&lt;String&gt; inputMessage )
+    {
+        String payloadMessage = inputMessage.getPayload();
+        String greetingsMessage = "Welcome " + payloadMessage
+                + ", Greetings from Spring Integration Gateway Proxy! ";
+        return MessageBuilder.withPayload( greetingsMessage ).build();
+    }
+}</pre><p><strong>Step 7 :</strong> Now create a client class GatewayGreetingsApp.java</p><pre class="crayon-plain-tag">package com.rayfocus.spring.integration.app;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import com.rayfocus.spring.integration.MessageProcessor;
+
+public class GatewayGreetingsApp
+{
+
+    public static void main( String[] args )
+    {
+        String config = "spring-integration-config.xml";
+        ApplicationContext context = new ClassPathXmlApplicationContext( config );
+        MessageProcessor messageProcessor = context.getBean( "gatewayProxy",
+                MessageProcessor.class );
+        Message&lt;String&gt; greetingsMessage = messageProcessor.addMessageGreetings( MessageBuilder.withPayload(
+                "GatewayUser" ).build() );
+        System.out.println(greetingsMessage.getPayload());
+        ( ( ClassPathXmlApplicationContext ) context ).close();
+
+    }
+}</pre><p>When the GatewayGreetingsApp.java is executed you should see the below output printed to console.</p><pre class="crayon-plain-tag">Welcome GatewayUser, Greetings from Spring Integration Gateway Proxy!</pre><p>If you note the configuration for gateway proxy, we are not directing the output of service activator to stdout-channel-adapter. Instead the message is passed on to the gatewayOutputChannel from which the gateway will listen to and receive the response.</p>
+<p>Then in GatewayGreetingsApp.java, response message is received of type Message&lt;String&gt;. The output is then printed using System.out.</p>
+<p>In real time cases, the response can be used for performing any other activities like passing to another spring integration component, logging to database.<br />
+In our example, we just printed it to console using System.out.</p>
+<h4><strong>Conclusion</strong></h4>
+<p>This ends our tutorial on getting started with spring integration. You can refer the Spring Integration API <a href="http://docs.spring.io/spring-integration/reference/html/" target="_blank" rel="noopener">documentation</a> to dig deep and find out what the Spring Integration offers to solve the integration problems.</p>
+<p>Hope this post helped you in getting started with spring integration. If you have any questions or concerns please post it in the comments section.</p>
+<p>Thank you!</p>
+<hr />
+<p><strong>Download source code : </strong><a href="http://downloads.rayfocus.com/code-samples/spring-integration-sample.zip">spring-integration-sample.zip</a></p>
+<hr />
+<div class="swp-content-locator"></div><p>The post <a rel="nofollow" href="https://blogs.rayfocus.com/getting-started-with-spring-integration/">Getting started with Spring Integration</a> appeared first on <a rel="nofollow" href="https://blogs.rayfocus.com">Rayfocus</a>.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://blogs.rayfocus.com/getting-started-with-spring-integration/feed/</wfw:commentRss>
+			<slash:comments>8</slash:comments>
+		
+		
+			</item>
+	</channel>
+</rss>
