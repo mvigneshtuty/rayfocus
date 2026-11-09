@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+	<meta charset='UTF-8'>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="profile" href="http://gmpg.org/xfn/11">
+			<link rel="pingback" href="https://blogs.rayfocus.com/xmlrpc.php">
+		<meta name='robots' content='max-image-preview:large' />
+
+<!-- Social Warfare v4.0.2 https://warfareplugins.com - BEGINNING OF OUTPUT -->
+<style>
+	@font-face {
+		font-family: "sw-icon-font";
+		src:url("wp-content/plugins/social-warfare/assets/fonts/sw-icon-font.eot@ver=4.0.2");
+		src:url("wp-content/plugins/social-warfare/assets/fonts/sw-icon-font.eot@ver=4.0.2") format("embedded-opentype"),
+		url("wp-content/plugins/social-warfare/assets/fonts/sw-icon-font.woff@ver=4.0.2") format("woff"),
+		url("wp-content/plugins/social-warfare/assets/fonts/sw-icon-font.ttf@ver=4.0.2") format("truetype"),
+		url("wp-content/plugins/social-warfare/assets/fonts/sw-icon-font.svg@ver=4.0.2") format("svg");
+		font-weight: normal;
+		font-style: normal;
+		font-display:block;
+	}
+</style>
+<!-- Social Warfare v4.0.2 https://warfareplugins.com - END OF OUTPUT -->
+
+
+	<!-- This site is optimized with the Yoast SEO plugin v14.7 - https://yoast.com/wordpress/plugins/seo/ -->
+	<title>Read CSV files from S3 using Spring Batch - Rayfocus</title>
+	<meta name="description" content="Quick tutorial on reading the CSV files from S3 using Spring Batch. We will read the files as stream without loading entire data in memory" />
+	<meta name="robots" content="index, follow" />
+	<meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+	<meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+	<link rel="canonical" href="index.html@p=1047.html" />
+	<meta property="og:locale" content="en_US" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="Read CSV files from S3 using Spring Batch - Rayfocus" />
+	<meta property="og:description" content="Quick tutorial on reading the CSV files from S3 using Spring Batch. We will read the files as stream without loading entire data in memory" />
+	<meta property="og:url" content="https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/" />
+	<meta property="og:site_name" content="Rayfocus" />
+	<meta property="article:published_time" content="2021-11-26T11:25:30+00:00" />
+	<meta property="article:modified_time" content="2021-11-26T11:43:01+00:00" />
+	<meta property="og:image" content="https://blogs.rayfocus.com/wp-content/uploads/2021/11/spring-batch.png" />
+	<meta name="twitter:card" content="summary" />
+	<script type="application/ld+json" class="yoast-schema-graph">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://blogs.rayfocus.com/#website","url":"https://blogs.rayfocus.com/","name":"Rayfocus","description":"Software Technology Blog","potentialAction":[{"@type":"SearchAction","target":"https://blogs.rayfocus.com/?s={search_term_string}","query-input":"required name=search_term_string"}],"inLanguage":"en-US"},{"@type":"ImageObject","@id":"https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/#primaryimage","inLanguage":"en-US","url":"https://static.rayfocus.com/wp-content/uploads/2021/11/05103102/spring-batch.png","width":200,"height":200},{"@type":"WebPage","@id":"https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/#webpage","url":"https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/","name":"Read CSV files from S3 using Spring Batch - Rayfocus","isPartOf":{"@id":"https://blogs.rayfocus.com/#website"},"primaryImageOfPage":{"@id":"https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/#primaryimage"},"datePublished":"2021-11-26T11:25:30+00:00","dateModified":"2021-11-26T11:43:01+00:00","author":{"@id":"https://blogs.rayfocus.com/#/schema/person/c01363377f31fff4615567dc344ef826"},"description":"Quick tutorial on reading the CSV files from S3 using Spring Batch. We will read the files as stream without loading entire data in memory","inLanguage":"en-US","potentialAction":[{"@type":"ReadAction","target":["https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/"]}]},{"@type":["Person"],"@id":"https://blogs.rayfocus.com/#/schema/person/c01363377f31fff4615567dc344ef826","name":"Vignesh M","image":{"@type":"ImageObject","@id":"https://blogs.rayfocus.com/#personlogo","inLanguage":"en-US","url":"https://secure.gravatar.com/avatar/685c1865a686ff28615194beb6ac1574?s=96&d=mm&r=g","caption":"Vignesh M"},"description":"Java developer , AWS Certified Solutions Architect Associate and Cloud technology enthusiast. Currently working for Clarivate. He believes that knowledge increases by sharing not by saving."}]}</script>
+	<!-- / Yoast SEO plugin. -->
+
+
+<link rel="alternate" type="application/rss+xml" title="Rayfocus &raquo; Feed" href="feed/index.html" />
+<link rel="alternate" type="application/rss+xml" title="Rayfocus &raquo; Comments Feed" href="comments/feed/index.html" />
+<link rel="alternate" type="application/rss+xml" title="Rayfocus &raquo; Read CSV files from S3 using Spring Batch Comments Feed" href="read-files-from-s3-using-spring-batch/feed/index.html" />
+<script type="text/javascript">
+/* <![CDATA[ */
+window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/15.0.3\/72x72\/","ext":".png","svgUrl":"https:\/\/s.w.org\/images\/core\/emoji\/15.0.3\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/blogs.rayfocus.com\/wp-includes\/js\/wp-emoji-release.min.js?ver=6.5.14"}};
+/*! This file is auto-generated */
+!function(i,n){var o,s,e;function c(e){try{var t={supportTests:e,timestamp:(new Date).valueOf()};sessionStorage.setItem(o,JSON.stringify(t))}catch(e){}}function p(e,t,n){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);var t=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data),r=(e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(n,0,0),new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data));return t.every(function(e,t){return e===r[t]})}function u(e,t,n){switch(t){case"flag":return n(e,"\ud83c\udff3\ufe0f\u200d\u26a7\ufe0f","\ud83c\udff3\ufe0f\u200b\u26a7\ufe0f")?!1:!n(e,"\ud83c\uddfa\ud83c\uddf3","\ud83c\uddfa\u200b\ud83c\uddf3")&&!n(e,"\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f","\ud83c\udff4\u200b\udb40\udc67\u200b\udb40\udc62\u200b\udb40\udc65\u200b\udb40\udc6e\u200b\udb40\udc67\u200b\udb40\udc7f");case"emoji":return!n(e,"\ud83d\udc26\u200d\u2b1b","\ud83d\udc26\u200b\u2b1b")}return!1}function f(e,t,n){var r="undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?new OffscreenCanvas(300,150):i.createElement("canvas"),a=r.getContext("2d",{willReadFrequently:!0}),o=(a.textBaseline="top",a.font="600 32px Arial",{});return e.forEach(function(e){o[e]=t(a,e,n)}),o}function t(e){var t=i.createElement("script");t.src=e,t.defer=!0,i.head.appendChild(t)}"undefined"!=typeof Promise&&(o="wpEmojiSettingsSupports",s=["flag","emoji"],n.supports={everything:!0,everythingExceptFlag:!0},e=new Promise(function(e){i.addEventListener("DOMContentLoaded",e,{once:!0})}),new Promise(function(t){var n=function(){try{var e=JSON.parse(sessionStorage.getItem(o));if("object"==typeof e&&"number"==typeof e.timestamp&&(new Date).valueOf()<e.timestamp+604800&&"object"==typeof e.supportTests)return e.supportTests}catch(e){}return null}();if(!n){if("undefined"!=typeof Worker&&"undefined"!=typeof OffscreenCanvas&&"undefined"!=typeof URL&&URL.createObjectURL&&"undefined"!=typeof Blob)try{var e="postMessage("+f.toString()+"("+[JSON.stringify(s),u.toString(),p.toString()].join(",")+"));",r=new Blob([e],{type:"text/javascript"}),a=new Worker(URL.createObjectURL(r),{name:"wpTestEmojiSupports"});return void(a.onmessage=function(e){c(n=e.data),a.terminate(),t(n)})}catch(e){}c(n=f(s,u,p))}t(n)}).then(function(e){for(var t in e)n.supports[t]=e[t],n.supports.everything=n.supports.everything&&n.supports[t],"flag"!==t&&(n.supports.everythingExceptFlag=n.supports.everythingExceptFlag&&n.supports[t]);n.supports.everythingExceptFlag=n.supports.everythingExceptFlag&&!n.supports.flag,n.DOMReady=!1,n.readyCallback=function(){n.DOMReady=!0}}).then(function(){return e}).then(function(){var e;n.supports.everything||(n.readyCallback(),(e=n.source||{}).concatemoji?t(e.concatemoji):e.wpemoji&&e.twemoji&&(t(e.twemoji),t(e.wpemoji)))}))}((window,document),window._wpemojiSettings);
+/* ]]> */
+</script>
+<link rel='stylesheet' id='social-warfare-block-css-css' href='wp-content/plugins/social-warfare/assets/js/post-editor/dist/blocks.style.build.css@ver=6.5.14.css' type='text/css' media='all' />
+<link rel='stylesheet' id='crayon-theme-visual-assist-css' href='wp-content/plugins/crayon-syntax-highlighter/themes/visual-assist/visual-assist.css@ver=_2.7.2_beta.css' type='text/css' media='all' />
+<link rel='stylesheet' id='crayon-font-monaco-css' href='wp-content/plugins/crayon-syntax-highlighter/fonts/monaco.css@ver=_2.7.2_beta.css' type='text/css' media='all' />
+<style id='wp-emoji-styles-inline-css' type='text/css'>
+
+	img.wp-smiley, img.emoji {
+		display: inline !important;
+		border: none !important;
+		box-shadow: none !important;
+		height: 1em !important;
+		width: 1em !important;
+		margin: 0 0.07em !important;
+		vertical-align: -0.1em !important;
+		background: none !important;
+		padding: 0 !important;
+	}
+</style>
+<link rel='stylesheet' id='font-awesome-5-css' href='wp-content/plugins/themeisle-companion/obfx_modules/gutenberg-blocks/assets/fontawesome/css/all.min.css@ver=2.9.16.css' type='text/css' media='all' />
+<link rel='stylesheet' id='font-awesome-4-shims-css' href='wp-content/plugins/themeisle-companion/obfx_modules/gutenberg-blocks/assets/fontawesome/css/v4-shims.min.css@ver=2.9.16.css' type='text/css' media='all' />
+<link rel='stylesheet' id='themeisle-block_styles-css' href='wp-content/plugins/themeisle-companion/vendor/codeinwp/gutenberg-blocks/build/style.css@ver=1.5.6.css' type='text/css' media='all' />
+<style id='classic-theme-styles-inline-css' type='text/css'>
+/*! This file is auto-generated */
+.wp-block-button__link{color:#fff;background-color:#32373c;border-radius:9999px;box-shadow:none;text-decoration:none;padding:calc(.667em + 2px) calc(1.333em + 2px);font-size:1.125em}.wp-block-file__button{background:#32373c;color:#fff;text-decoration:none}
+</style>
+<style id='global-styles-inline-css' type='text/css'>
+body{--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--accent: #e91e63;--wp--preset--color--background-color: #E5E5E5;--wp--preset--color--header-gradient: #a81d84;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgba(255, 255, 255, 1), 6px 6px rgba(0, 0, 0, 1);--wp--preset--shadow--crisp: 6px 6px 0px rgba(0, 0, 0, 1);}:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}body .is-layout-grid{display: grid;}body .is-layout-grid > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+</style>
+<link rel='stylesheet' id='likebtn_style-css' href='wp-content/plugins/likebtn-like-button/public/css/style.css@ver=6.5.14.css' type='text/css' media='all' />
+<link rel='stylesheet' id='hestia-clients-bar-css' href='wp-content/plugins/themeisle-companion/obfx_modules/companion-legacy/assets/css/hestia/clients-bar.css@ver=6.5.14.css' type='text/css' media='all' />
+<link rel='stylesheet' id='obfx-module-pub-css-social-sharing-module-0-css' href='wp-content/plugins/themeisle-companion/obfx_modules/social-sharing/css/public.css@ver=2.9.16.css' type='text/css' media='all' />
+<link rel='stylesheet' id='obfx-module-pub-css-social-sharing-module-1-css' href='wp-content/plugins/themeisle-companion/obfx_modules/social-sharing/css/vendor/socicon/socicon.css@ver=2.9.16.css' type='text/css' media='all' />
+<link rel='stylesheet' id='social_warfare-css' href='wp-content/plugins/social-warfare/assets/css/style.min.css@ver=4.0.2.css' type='text/css' media='all' />
+<link rel='stylesheet' id='bootstrap-css' href='wp-content/themes/hestia/assets/bootstrap/css/bootstrap.min.css@ver=1.0.2.css' type='text/css' media='all' />
+<link rel='stylesheet' id='hestia-font-sizes-css' href='wp-content/themes/hestia/assets/css/font-sizes.min.css@ver=3.0.4.css' type='text/css' media='all' />
+<link rel='stylesheet' id='hestia_style-css' href='wp-content/themes/hestia/style.min.css@ver=3.0.4.css' type='text/css' media='all' />
+<style id='hestia_style-inline-css' type='text/css'>
+
+			div.wpforms-container-full .wpforms-form div.wpforms-field input.wpforms-error {
+				border: none;
+			}
+			div.wpforms-container .wpforms-form input[type=date],
+			div.wpforms-container .wpforms-form input[type=datetime],
+			div.wpforms-container .wpforms-form input[type=datetime-local],
+			div.wpforms-container .wpforms-form input[type=email],
+			div.wpforms-container .wpforms-form input[type=month],
+			div.wpforms-container .wpforms-form input[type=number],
+			div.wpforms-container .wpforms-form input[type=password],
+			div.wpforms-container .wpforms-form input[type=range],
+			div.wpforms-container .wpforms-form input[type=search],
+			div.wpforms-container .wpforms-form input[type=tel],
+			div.wpforms-container .wpforms-form input[type=text],
+			div.wpforms-container .wpforms-form input[type=time],
+			div.wpforms-container .wpforms-form input[type=url],
+			div.wpforms-container .wpforms-form input[type=week],
+			div.wpforms-container .wpforms-form select,
+			div.wpforms-container .wpforms-form textarea, .nf-form-cont input:not([type=button]),
+			div.wpforms-container .wpforms-form .form-group.is-focused .form-control {
+			  box-shadow: none;
+			}
+			
+			div.wpforms-container .wpforms-form input[type=date],
+			div.wpforms-container .wpforms-form input[type=datetime],
+			div.wpforms-container .wpforms-form input[type=datetime-local],
+			div.wpforms-container .wpforms-form input[type=email],
+			div.wpforms-container .wpforms-form input[type=month],
+			div.wpforms-container .wpforms-form input[type=number],
+			div.wpforms-container .wpforms-form input[type=password],
+			div.wpforms-container .wpforms-form input[type=range],
+			div.wpforms-container .wpforms-form input[type=search],
+			div.wpforms-container .wpforms-form input[type=tel],
+			div.wpforms-container .wpforms-form input[type=text],
+			div.wpforms-container .wpforms-form input[type=time],
+			div.wpforms-container .wpforms-form input[type=url],
+			div.wpforms-container .wpforms-form input[type=week],
+			div.wpforms-container .wpforms-form select,
+			div.wpforms-container .wpforms-form textarea, .nf-form-cont input:not([type=button]){
+				background-image: linear-gradient(#9c27b0, #9c27b0), linear-gradient(#d2d2d2, #d2d2d2);
+				float: none;
+				border: 0;
+				border-radius: 0;
+				background-color: transparent;
+				background-repeat: no-repeat;
+				background-position: center bottom, center calc(100% - 1px);
+				background-size: 0 2px, 100% 1px;
+				font-weight: 400;
+				transition: background 0s ease-out;
+			}
+			
+			div.wpforms-container .wpforms-form .form-group.is-focused .form-control{
+				outline: none;
+				background-size: 100% 2px,100% 1px;
+				transition-duration: 0.3s;
+			}
+			
+			/* Compatibility with WPForms */
+			div.wpforms-container .wpforms-form input[type=date].form-control,
+			div.wpforms-container .wpforms-form input[type=datetime].form-control,
+			div.wpforms-container .wpforms-form input[type=datetime-local].form-control,
+			div.wpforms-container .wpforms-form input[type=email].form-control,
+			div.wpforms-container .wpforms-form input[type=month].form-control,
+			div.wpforms-container .wpforms-form input[type=number].form-control,
+			div.wpforms-container .wpforms-form input[type=password].form-control,
+			div.wpforms-container .wpforms-form input[type=range].form-control,
+			div.wpforms-container .wpforms-form input[type=search].form-control,
+			div.wpforms-container .wpforms-form input[type=tel].form-control,
+			div.wpforms-container .wpforms-form input[type=text].form-control,
+			div.wpforms-container .wpforms-form input[type=time].form-control,
+			div.wpforms-container .wpforms-form input[type=url].form-control,
+			div.wpforms-container .wpforms-form input[type=week].form-control,
+			div.wpforms-container .wpforms-form select.form-control,
+			div.wpforms-container .wpforms-form textarea.form-control {
+			  border: none;
+			  padding: 7px 0;
+			  font-size: 14px;
+			}
+			div.wpforms-container .wpforms-form .wpforms-field-select select {
+			  border-radius: 3px;
+			}
+			div.wpforms-container .wpforms-form .wpforms-field-number input[type=number] {
+			  background-image: none;
+			  border-radius: 3px;
+			}
+			div.wpforms-container .wpforms-form button[type=submit].wpforms-submit,
+			div.wpforms-container .wpforms-form button[type=submit].wpforms-submit:hover {
+			  color: #ffffff;
+			  border: none;
+			}
+			
+			.home div.wpforms-container-full .wpforms-form {
+			  margin-left: 15px;
+			  margin-right: 15px;
+			}
+			
+			div.wpforms-container-full .wpforms-form .wpforms-field {
+			  padding: 0 0 24px 0 !important;
+			}
+			div.wpforms-container-full .wpforms-form .wpforms-submit-container {
+			  text-align: right;
+			}
+			div.wpforms-container-full .wpforms-form .wpforms-submit-container button {
+			  text-transform: uppercase;
+			}
+			div.wpforms-container-full .wpforms-form textarea {
+			  border: none !important;
+			}
+			div.wpforms-container-full .wpforms-form textarea:focus {
+			  border-width: 0 0 0 0 !important;
+			}
+			
+			.home div.wpforms-container .wpforms-form textarea {
+			  background-image: linear-gradient(#9c27b0, #9c27b0), linear-gradient(#d2d2d2, #d2d2d2);
+			  background-color: transparent;
+			  background-repeat: no-repeat;
+			  background-position: center bottom, center calc(100% - 1px);
+			  background-size: 0 2px, 100% 1px;
+			}
+			
+			/* WPForms media queries for front page and mobile*/
+			@media only screen and (max-width: 768px) {
+			  .wpforms-container-full .wpforms-form .wpforms-one-half, .wpforms-container-full .wpforms-form button {
+			    width: 100% !important;
+			    margin-left: 0 !important;
+			  }
+			  .wpforms-container-full .wpforms-form .wpforms-submit-container {
+			    text-align: center;
+			  }
+			}
+			
+			div.wpforms-container .wpforms-form input:focus,
+			div.wpforms-container .wpforms-form select:focus {
+			  border: none;
+			}
+		
+.hestia-top-bar, .hestia-top-bar .widget.widget_shopping_cart .cart_list {
+			background-color: #363537
+		}
+		.hestia-top-bar .widget .label-floating input[type=search]:-webkit-autofill {
+			-webkit-box-shadow: inset 0 0 0px 9999px #363537
+		}.hestia-top-bar, .hestia-top-bar .widget .label-floating input[type=search], .hestia-top-bar .widget.widget_search form.form-group:before, .hestia-top-bar .widget.widget_product_search form.form-group:before, .hestia-top-bar .widget.widget_shopping_cart:before {
+			color: #ffffff
+		} 
+		.hestia-top-bar .widget .label-floating input[type=search]{
+			-webkit-text-fill-color:#ffffff !important 
+		}
+		.hestia-top-bar div.widget.widget_shopping_cart:before, .hestia-top-bar .widget.widget_product_search form.form-group:before, .hestia-top-bar .widget.widget_search form.form-group:before{
+			background-color: #ffffff
+		}.hestia-top-bar a, .hestia-top-bar .top-bar-nav li a {
+			color: #ffffff
+		}
+		.hestia-top-bar ul li a[href*="mailto:"]:before, .hestia-top-bar ul li a[href*="tel:"]:before{
+			background-color: #ffffff
+		}
+		.hestia-top-bar a:hover, .hestia-top-bar .top-bar-nav li a:hover {
+			color: #eeeeee
+		}
+		.hestia-top-bar ul li:hover a[href*="mailto:"]:before, .hestia-top-bar ul li:hover a[href*="tel:"]:before{
+			background-color: #eeeeee
+		}
+		
+	
+		a, 
+		.navbar .dropdown-menu li:hover > a,
+		.navbar .dropdown-menu li:focus > a,
+		.navbar .dropdown-menu li:active > a,
+		.navbar .navbar-nav > li .dropdown-menu li:hover > a,
+		body:not(.home) .navbar-default .navbar-nav > .active:not(.btn) > a,
+		body:not(.home) .navbar-default .navbar-nav > .active:not(.btn) > a:hover,
+		body:not(.home) .navbar-default .navbar-nav > .active:not(.btn) > a:focus,
+		a:hover, 
+		.card-blog a.moretag:hover, 
+		.card-blog a.more-link:hover, 
+		.widget a:hover,
+		.has-text-color.has-accent-color,
+		p.has-text-color a {
+		    color:#e91e63;
+		}
+		
+		.svg-text-color{
+			fill:#e91e63;
+		}
+		
+		.pagination span.current, .pagination span.current:focus, .pagination span.current:hover {
+			border-color:#e91e63
+		}
+		
+		button,
+		button:hover,
+		.woocommerce .track_order button[type="submit"],
+		.woocommerce .track_order button[type="submit"]:hover,
+		div.wpforms-container .wpforms-form button[type=submit].wpforms-submit,
+		div.wpforms-container .wpforms-form button[type=submit].wpforms-submit:hover,
+		input[type="button"],
+		input[type="button"]:hover,
+		input[type="submit"],
+		input[type="submit"]:hover,
+		input#searchsubmit, 
+		.pagination span.current, 
+		.pagination span.current:focus, 
+		.pagination span.current:hover,
+		.btn.btn-primary,
+		.btn.btn-primary:link,
+		.btn.btn-primary:hover, 
+		.btn.btn-primary:focus, 
+		.btn.btn-primary:active, 
+		.btn.btn-primary.active, 
+		.btn.btn-primary.active:focus, 
+		.btn.btn-primary.active:hover,
+		.btn.btn-primary:active:hover, 
+		.btn.btn-primary:active:focus, 
+		.btn.btn-primary:active:hover,
+		.hestia-sidebar-open.btn.btn-rose,
+		.hestia-sidebar-close.btn.btn-rose,
+		.hestia-sidebar-open.btn.btn-rose:hover,
+		.hestia-sidebar-close.btn.btn-rose:hover,
+		.hestia-sidebar-open.btn.btn-rose:focus,
+		.hestia-sidebar-close.btn.btn-rose:focus,
+		.label.label-primary,
+		.hestia-work .portfolio-item:nth-child(6n+1) .label,
+		.nav-cart .nav-cart-content .widget .buttons .button,
+		.has-accent-background-color[class*="has-background"] {
+		    background-color: #e91e63;
+		}
+		
+		@media (max-width: 768px) { 
+	
+			.navbar-default .navbar-nav>li>a:hover,
+			.navbar-default .navbar-nav>li>a:focus,
+			.navbar .navbar-nav .dropdown .dropdown-menu li a:hover,
+			.navbar .navbar-nav .dropdown .dropdown-menu li a:focus,
+			.navbar button.navbar-toggle:hover,
+			.navbar .navbar-nav li:hover > a i {
+			    color: #e91e63;
+			}
+		}
+		
+		body:not(.woocommerce-page) button:not([class^="fl-"]):not(.hestia-scroll-to-top):not(.navbar-toggle):not(.close),
+		body:not(.woocommerce-page) .button:not([class^="fl-"]):not(hestia-scroll-to-top):not(.navbar-toggle):not(.add_to_cart_button),
+		div.wpforms-container .wpforms-form button[type=submit].wpforms-submit,
+		input[type="submit"], 
+		input[type="button"], 
+		.btn.btn-primary,
+		.widget_product_search button[type="submit"],
+		.hestia-sidebar-open.btn.btn-rose,
+		.hestia-sidebar-close.btn.btn-rose,
+		.everest-forms button[type=submit].everest-forms-submit-button {
+		    -webkit-box-shadow: 0 2px 2px 0 rgba(233,30,99,0.14),0 3px 1px -2px rgba(233,30,99,0.2),0 1px 5px 0 rgba(233,30,99,0.12);
+		    box-shadow: 0 2px 2px 0 rgba(233,30,99,0.14),0 3px 1px -2px rgba(233,30,99,0.2),0 1px 5px 0 rgba(233,30,99,0.12);
+		}
+		
+		.card .header-primary, .card .content-primary,
+		.everest-forms button[type=submit].everest-forms-submit-button {
+		    background: #e91e63;
+		}
+		
+		body:not(.woocommerce-page) .button:not([class^="fl-"]):not(.hestia-scroll-to-top):not(.navbar-toggle):not(.add_to_cart_button):hover,
+		body:not(.woocommerce-page) button:not([class^="fl-"]):not(.hestia-scroll-to-top):not(.navbar-toggle):not(.close):hover,
+		div.wpforms-container .wpforms-form button[type=submit].wpforms-submit:hover,
+		input[type="submit"]:hover,
+		input[type="button"]:hover,
+		input#searchsubmit:hover, 
+		.widget_product_search button[type="submit"]:hover,
+		.pagination span.current, 
+		.btn.btn-primary:hover, 
+		.btn.btn-primary:focus, 
+		.btn.btn-primary:active, 
+		.btn.btn-primary.active, 
+		.btn.btn-primary:active:focus, 
+		.btn.btn-primary:active:hover, 
+		.hestia-sidebar-open.btn.btn-rose:hover,
+		.hestia-sidebar-close.btn.btn-rose:hover,
+		.pagination span.current:hover,
+		.everest-forms button[type=submit].everest-forms-submit-button:hover,
+ 		.everest-forms button[type=submit].everest-forms-submit-button:focus,
+ 		.everest-forms button[type=submit].everest-forms-submit-button:active {
+			-webkit-box-shadow: 0 14px 26px -12px rgba(233,30,99,0.42),0 4px 23px 0 rgba(0,0,0,0.12),0 8px 10px -5px rgba(233,30,99,0.2);
+		    box-shadow: 0 14px 26px -12px rgba(233,30,99,0.42),0 4px 23px 0 rgba(0,0,0,0.12),0 8px 10px -5px rgba(233,30,99,0.2);
+			color: #fff;
+		}
+		
+		.form-group.is-focused .form-control {
+			background-image: -webkit-gradient(linear,left top, left bottom,from(#e91e63),to(#e91e63)),-webkit-gradient(linear,left top, left bottom,from(#d2d2d2),to(#d2d2d2));
+			background-image: -webkit-linear-gradient(linear,left top, left bottom,from(#e91e63),to(#e91e63)),-webkit-linear-gradient(linear,left top, left bottom,from(#d2d2d2),to(#d2d2d2));
+			background-image: linear-gradient(linear,left top, left bottom,from(#e91e63),to(#e91e63)),linear-gradient(linear,left top, left bottom,from(#d2d2d2),to(#d2d2d2));
+		}
+		
+		.navbar:not(.navbar-transparent) li:not(.btn):hover > a,
+		.navbar li.on-section:not(.btn) > a, 
+		.navbar.full-screen-menu.navbar-transparent li:not(.btn):hover > a,
+		.navbar.full-screen-menu .navbar-toggle:hover,
+		.navbar:not(.navbar-transparent) .nav-cart:hover, 
+		.navbar:not(.navbar-transparent) .hestia-toggle-search:hover {
+				color:#e91e63
+		}
+		
+			.header-filter-gradient { 
+				background: linear-gradient(45deg, rgba(168,29,132,1) 0%, rgb(234,57,111) 100%); 
+			}
+			.has-text-color.has-header-gradient-color { color: #a81d84; }
+			.has-header-gradient-background-color[class*="has-background"] { background-color: #a81d84; }
+			
+		.has-text-color.has-background-color-color { color: #E5E5E5; }
+		.has-background-color-background-color[class*="has-background"] { background-color: #E5E5E5; }
+		
+.btn.btn-primary:not(.colored-button):not(.btn-left):not(.btn-right):not(.btn-just-icon):not(.menu-item), input[type="submit"]:not(.search-submit), body:not(.woocommerce-account) .woocommerce .button.woocommerce-Button, .woocommerce .product button.button, .woocommerce .product button.button.alt, .woocommerce .product #respond input#submit, .woocommerce-cart .blog-post .woocommerce .cart-collaterals .cart_totals .checkout-button, .woocommerce-checkout #payment #place_order, .woocommerce-account.woocommerce-page button.button, .woocommerce .track_order button[type="submit"], .nav-cart .nav-cart-content .widget .buttons .button, .woocommerce a.button.wc-backward, body.woocommerce .wccm-catalog-item a.button, body.woocommerce a.wccm-button.button, form.woocommerce-form-coupon button.button, div.wpforms-container .wpforms-form button[type=submit].wpforms-submit, div.woocommerce a.button.alt, div.woocommerce table.my_account_orders .button, .btn.colored-button, .btn.btn-left, .btn.btn-right, .btn:not(.colored-button):not(.btn-left):not(.btn-right):not(.btn-just-icon):not(.menu-item):not(.hestia-sidebar-open):not(.hestia-sidebar-close){ padding-top:15px;  padding-bottom:15px;  padding-left:33px;  padding-right:33px; }
+.btn.btn-primary:not(.colored-button):not(.btn-left):not(.btn-right):not(.btn-just-icon):not(.menu-item), input[type="submit"]:not(.search-submit), body:not(.woocommerce-account) .woocommerce .button.woocommerce-Button, .woocommerce .product button.button, .woocommerce .product button.button.alt, .woocommerce .product #respond input#submit, .woocommerce-cart .blog-post .woocommerce .cart-collaterals .cart_totals .checkout-button, .woocommerce-checkout #payment #place_order, .woocommerce-account.woocommerce-page button.button, .woocommerce .track_order button[type="submit"], .nav-cart .nav-cart-content .widget .buttons .button, .woocommerce a.button.wc-backward, body.woocommerce .wccm-catalog-item a.button, body.woocommerce a.wccm-button.button, form.woocommerce-form-coupon button.button, div.wpforms-container .wpforms-form button[type=submit].wpforms-submit, div.woocommerce a.button.alt, div.woocommerce table.my_account_orders .button, input[type="submit"].search-submit, .hestia-view-cart-wrapper .added_to_cart.wc-forward, .woocommerce-product-search button, .woocommerce-cart .actions .button, #secondary div[id^=woocommerce_price_filter] .button, .woocommerce div[id^=woocommerce_widget_cart].widget .buttons .button, .searchform input[type=submit], .searchform button, .search-form:not(.media-toolbar-primary) input[type=submit], .search-form:not(.media-toolbar-primary) button, .woocommerce-product-search input[type=submit], .btn.colored-button, .btn.btn-left, .btn.btn-right, .btn:not(.colored-button):not(.btn-left):not(.btn-right):not(.btn-just-icon):not(.menu-item):not(.hestia-sidebar-open):not(.hestia-sidebar-close){border-radius:3px;}
+h1, h2, h3, h4, h5, h6, .hestia-title, .hestia-title.title-in-content, p.meta-in-content , .info-title, .card-title,
+		.page-header.header-small .hestia-title, .page-header.header-small .title, .widget h5, .hestia-title, 
+		.title, .footer-brand, .footer-big h4, .footer-big h5, .media .media-heading, 
+		.carousel h1.hestia-title, .carousel h2.title, 
+		.carousel span.sub-title, .hestia-about h1, .hestia-about h2, .hestia-about h3, .hestia-about h4, .hestia-about h5 {
+			font-family: Tahoma, Geneva, sans-serif;
+		}
+		body, ul, .tooltip-inner {
+			font-family: Tahoma, Geneva, sans-serif;
+		}
+@media (min-width: 769px){
+			.page-header.header-small .hestia-title,
+			.page-header.header-small .title,
+			h1.hestia-title.title-in-content,
+			.main article.section .has-title-font-size {
+				font-size: 42px;
+			}}
+
+		.page-template-builder-fullwidth-std .header > .elementor {
+			padding-top: 70px;
+		}
+
+</style>
+<script type="text/javascript" id="likebtn_frontend-js-extra">
+/* <![CDATA[ */
+var likebtn_eh_data = {"ajaxurl":"https:\/\/blogs.rayfocus.com\/wp-admin\/admin-ajax.php","security":"e823bfb3ae"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="wp-content/plugins/likebtn-like-button/public/js/frontend.js@ver=6.5.14" id="likebtn_frontend-js"></script>
+<script type="text/javascript" src="wp-includes/js/jquery/jquery.min.js@ver=3.7.1" id="jquery-core-js"></script>
+<script type="text/javascript" src="wp-includes/js/jquery/jquery-migrate.min.js@ver=3.4.1" id="jquery-migrate-js"></script>
+<script type="text/javascript" id="pirate-forms-custom-spam-js-extra">
+/* <![CDATA[ */
+var pf = {"spam":{"label":"I'm human!","value":"cb5cd107e1"}};
+/* ]]> */
+</script>
+<script type="text/javascript" src="wp-content/plugins/pirate-forms/public/js/custom-spam.js@ver=6.5.14" id="pirate-forms-custom-spam-js"></script>
+<link rel="https://api.w.org/" href="wp-json/index.html" /><link rel="alternate" type="application/json" href="https://blogs.rayfocus.com/wp-json/wp/v2/posts/1047" /><link rel="EditURI" type="application/rsd+xml" title="RSD" href="xmlrpc.php@rsd" />
+<meta name="generator" content="WordPress 6.5.14" />
+<link rel='shortlink' href='index.html@p=1047.html' />
+<link rel="alternate" type="application/json+oembed" href="wp-json/oembed/1.0/embed@url=https%253A%252F%252Fblogs.rayfocus.com%252Fread-files-from-s3-using-spring-batch%252F" />
+<link rel="alternate" type="text/xml+oembed" href="wp-json/oembed/1.0/embed@url=https%253A%252F%252Fblogs.rayfocus.com%252Fread-files-from-s3-using-spring-batch%252F&amp;format=xml" />
+<!-- Enter your scripts here --><script type="text/javascript">
+(function(url){
+	if(/(?:Chrome\/26\.0\.1410\.63 Safari\/537\.31|WordfenceTestMonBot)/.test(navigator.userAgent)){ return; }
+	var addEvent = function(evt, handler) {
+		if (window.addEventListener) {
+			document.addEventListener(evt, handler, false);
+		} else if (window.attachEvent) {
+			document.attachEvent('on' + evt, handler);
+		}
+	};
+	var removeEvent = function(evt, handler) {
+		if (window.removeEventListener) {
+			document.removeEventListener(evt, handler, false);
+		} else if (window.detachEvent) {
+			document.detachEvent('on' + evt, handler);
+		}
+	};
+	var evts = 'contextmenu dblclick drag dragend dragenter dragleave dragover dragstart drop keydown keypress keyup mousedown mousemove mouseout mouseover mouseup mousewheel scroll'.split(' ');
+	var logHuman = function() {
+		if (window.wfLogHumanRan) { return; }
+		window.wfLogHumanRan = true;
+		var wfscr = document.createElement('script');
+		wfscr.type = 'text/javascript';
+		wfscr.async = true;
+		wfscr.src = url + '&r=' + Math.random();
+		(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(wfscr);
+		for (var i = 0; i < evts.length; i++) {
+			removeEvent(evts[i], logHuman);
+		}
+	};
+	for (var i = 0; i < evts.length; i++) {
+		addEvent(evts[i], logHuman);
+	}
+})('//blogs.rayfocus.com/?wordfence_lh=1&hid=126F4F23BAEFC93EDACE1A580D6614A5');
+</script><!-- Analytics by WP-Statistics v12.6.13 - https://wp-statistics.com/ -->
+</head>
+
+<body class="post-template-default single single-post postid-1047 single-format-standard blog-post header-layout-no-content">
+		<div class="wrapper post-1047 post type-post status-publish format-standard hentry category-spring-batch category-spring-framework no-content ">
+		<header class="header ">
+			<div style="display: none"></div>		<nav class="navbar navbar-default navbar-fixed-top  hestia_left navbar-not-transparent">
+						<div class="container">
+						<div class="navbar-header">
+			<div class="title-logo-wrapper">
+				<a class="navbar-brand" href="index.html"
+						title="Rayfocus">
+					<p>Rayfocus</p></a>
+			</div>
+								<div class="navbar-toggle-wrapper">
+						<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navigation">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="sr-only">Toggle Navigation</span>
+			</button>
+					</div>
+				</div>
+		<div id="main-navigation" class="collapse navbar-collapse"><ul id="menu-headermenu" class="nav navbar-nav"><li id="menu-item-136" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-136"><a title="Home" href="index.html">Home</a></li>
+<li id="menu-item-422" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-422 dropdown"><a title="Cloud" href="index.html@p=1047.html#" class="dropdown-toggle">Cloud <span class="caret-wrap"><span class="caret"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="chevron-down" class="svg-inline--fa fa-chevron-down fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M207.029 381.476L12.686 187.132c-9.373-9.373-9.373-24.569 0-33.941l22.667-22.667c9.357-9.357 24.522-9.375 33.901-.04L224 284.505l154.745-154.021c9.379-9.335 24.544-9.317 33.901.04l22.667 22.667c9.373 9.373 9.373 24.569 0 33.941L240.971 381.476c-9.373 9.372-24.569 9.372-33.942 0z"></path></svg></span></span></a>
+<ul role="menu" class="dropdown-menu">
+	<li id="menu-item-420" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-420"><a title="Amazon Web Services" href="category/amazon-web-services/index.html">Amazon Web Services</a></li>
+</ul>
+</li>
+<li id="menu-item-423" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-423 dropdown"><a title="Java" href="index.html@p=1047.html#" class="dropdown-toggle">Java <span class="caret-wrap"><span class="caret"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="chevron-down" class="svg-inline--fa fa-chevron-down fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M207.029 381.476L12.686 187.132c-9.373-9.373-9.373-24.569 0-33.941l22.667-22.667c9.357-9.357 24.522-9.375 33.901-.04L224 284.505l154.745-154.021c9.379-9.335 24.544-9.317 33.901.04l22.667 22.667c9.373 9.373 9.373 24.569 0 33.941L240.971 381.476c-9.373 9.372-24.569 9.372-33.942 0z"></path></svg></span></span></a>
+<ul role="menu" class="dropdown-menu">
+	<li id="menu-item-723" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-723"><a title="Core Java" href="category/core-java/index.html">Core Java</a></li>
+	<li id="menu-item-421" class="menu-item menu-item-type-taxonomy menu-item-object-category current-post-ancestor current-menu-parent current-post-parent menu-item-421"><a title="Spring framework" href="category/spring-framework/index.html">Spring framework</a></li>
+</ul>
+</li>
+<li id="menu-item-971" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-971 dropdown"><a title="Programming" href="category/programming/index.html" class="dropdown-toggle">Programming <span class="caret-wrap"><span class="caret"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="chevron-down" class="svg-inline--fa fa-chevron-down fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M207.029 381.476L12.686 187.132c-9.373-9.373-9.373-24.569 0-33.941l22.667-22.667c9.357-9.357 24.522-9.375 33.901-.04L224 284.505l154.745-154.021c9.379-9.335 24.544-9.317 33.901.04l22.667 22.667c9.373 9.373 9.373 24.569 0 33.941L240.971 381.476c-9.373 9.372-24.569 9.372-33.942 0z"></path></svg></span></span></a>
+<ul role="menu" class="dropdown-menu">
+	<li id="menu-item-972" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-972"><a title="Data Structures" href="category/programming/data-structures/index.html">Data Structures</a></li>
+</ul>
+</li>
+<li id="menu-item-645" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-645 dropdown"><a title="Web Dev" href="index.html@p=1047.html#" class="dropdown-toggle">Web Dev <span class="caret-wrap"><span class="caret"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="chevron-down" class="svg-inline--fa fa-chevron-down fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M207.029 381.476L12.686 187.132c-9.373-9.373-9.373-24.569 0-33.941l22.667-22.667c9.357-9.357 24.522-9.375 33.901-.04L224 284.505l154.745-154.021c9.379-9.335 24.544-9.317 33.901.04l22.667 22.667c9.373 9.373 9.373 24.569 0 33.941L240.971 381.476c-9.373 9.372-24.569 9.372-33.942 0z"></path></svg></span></span></a>
+<ul role="menu" class="dropdown-menu">
+	<li id="menu-item-647" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-647"><a title="Angular" href="category/angular/index.html">Angular</a></li>
+</ul>
+</li>
+<li id="menu-item-912" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-has-children menu-item-912 dropdown"><a title="Database" href="category/database/index.html" class="dropdown-toggle">Database <span class="caret-wrap"><span class="caret"><svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="chevron-down" class="svg-inline--fa fa-chevron-down fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M207.029 381.476L12.686 187.132c-9.373-9.373-9.373-24.569 0-33.941l22.667-22.667c9.357-9.357 24.522-9.375 33.901-.04L224 284.505l154.745-154.021c9.379-9.335 24.544-9.317 33.901.04l22.667 22.667c9.373 9.373 9.373 24.569 0 33.941L240.971 381.476c-9.373 9.372-24.569 9.372-33.942 0z"></path></svg></span></span></a>
+<ul role="menu" class="dropdown-menu">
+	<li id="menu-item-913" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-913"><a title="Oracle" href="category/database/oracle/index.html">Oracle</a></li>
+</ul>
+</li>
+<li id="menu-item-137" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-137"><a title="About" href="index.html@p=2.html">About</a></li>
+<li class="hestia-search-in-menu"><div class="hestia-nav-search"><form role="search" method="get" class="search-form" action="index.html">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search &hellip;" value="" name="s" />
+				</label>
+				<input type="submit" class="search-submit" value="Search" />
+			</form></div><a class="hestia-toggle-search"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16"><path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z"></path></svg></a></li></ul></div>			</div>
+					</nav>
+				</header>
+<div id="primary" class="boxed-layout-header page-header header-small" data-parallax="active" ><div class="header-filter header-filter-gradient"></div></div>
+<div class="main  main-raised ">
+	<div class="blog-post blog-post-wrapper">
+		<div class="container">
+			<article id="post-1047" class="section section-text">
+	<div class="row">
+				<div class="col-md-8 single-post-container" data-layout="sidebar-right">
+
+			<div class="single-post-wrap entry-content">	<div class="row"><div class="col-md-12"><h1 class="hestia-title title-in-content entry-title">Read CSV files from S3 using Spring Batch</h1><p class="author meta-in-content">Published by <a href="author/user-blogs-rayfocus/index.html" class="vcard author"><strong class="fn">Vignesh M</strong></a> on <time class="entry-date published" datetime="2021-11-26T11:25:30+00:00" content="2021-11-26">November 26, 2021</time><time class="updated hestia-hidden" datetime="2021-11-26T11:43:01+00:00">November 26, 2021</time></p></div></div><div class="likebtn_container" style="clear:both;"><!-- LikeBtn.com BEGIN --><span class="likebtn-wrapper"  data-identifier="post_1047"  data-site_id="5967afb86fd08b2878ae22e3"  data-theme="github"  data-icon_l="thmb6"  data-dislike_enabled="false"  data-icon_dislike_show="false"  data-share_enabled="false"  data-counter_type="subtract_dislikes"  data-counter_frmt="km"  data-voting_frequency="1"  data-addthis_service_codes="facebook,twitter,preferred_1,preferred_2,preferred_3,preferred_4,preferred_5,more"  data-share_size="large"  data-white_label="true"  data-rich_snippet="true"  data-popup_disabled="true"  data-style=""  data-unlike_allowed=""  data-show_copyright=""  data-item_url="https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/"  data-item_title="Read CSV files from S3 using Spring Batch"  data-item_date="2021-11-26T11:25:30+00:00"  data-engine="WordPress"  data-plugin_v="2.6.28"  data-prx="https://blogs.rayfocus.com/wp-admin/admin-ajax.php?action=likebtn_prx"  data-event_handler="likebtn_eh" ></span><!-- LikeBtn.com END --></div><p>In this post, let&#8217;s see how to read files from S3 using spring batch.<br />
+We will read CSV files as stream without loading the entire data in memory and process each item. For Item writer, we&#8217;ll use just the no operation item writer since we will not write the items to file or any database tables.</p>
+<p><img decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2021/11/05103102/spring-batch.png" alt="" class="aligncenter size-full wp-image-1048" width="200" height="200" srcset="https://static.rayfocus.com/wp-content/uploads/2021/11/05103102/spring-batch.png 200w, https://static.rayfocus.com/wp-content/uploads/2021/11/05103102/spring-batch-150x150.png 150w" sizes="(max-width: 200px) 100vw, 200px" /></p>
+<h3>Job configuration</h3>
+<p>Let&#8217;s start with the Job configuration.<flow><flow> </flow></flow></p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-6af17fc1de277714612692" class="crayon-syntax crayon-theme-visual-assist crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style=" margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important;">
+		
+			<div class="crayon-toolbar" data-settings=" show" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><span class="crayon-title">Job bean config</span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Java</span></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 12px !important; line-height: 15px !important;">
+    @Bean
+    public Job processMovieDataFromS3Job() throws Exception {
+        FlowBuilder&lt;Flow&gt; dataProcessFlowBuilder = new FlowBuilder&lt;Flow&gt;("dataProcess-flow");
+        Flow dataProcessFlow = dataProcessFlowBuilder
+                .start(movieDataProcessStep())
+                    .on(ExitStatus.COMPLETED.getExitCode()).end()
+                .from(movieDataProcessStep())
+                    .on(ANY_OTHER_EXIT_STATUS).fail()
+                .end();
+        return jobBuilderFactory.get("movieDataProcess-job")
+                .incrementer(new RunIdIncrementer())
+                .start(dataProcessFlow)
+                .end()
+                .listener(movieJobExecutionListener())
+                .build();
+    }</textarea></div>
+			<div class="crayon-main" style="">
+				<table class="crayon-table">
+					<tr class="crayon-row">
+				<td class="crayon-nums " data-settings="hide">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-1">1</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-2">2</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-3">3</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-4">4</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-5">5</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-6">6</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-7">7</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-8">8</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-9">9</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-10">10</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-11">11</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-12">12</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-13">13</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-14">14</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-15">15</div><div class="crayon-num" data-line="crayon-6af17fc1de277714612692-16">16</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-6af17fc1de277714612692-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-n">@Bean</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-e">Job </span><span class="crayon-e">processMovieDataFromS3Job</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-m">throws</span><span class="crayon-h"> </span><span class="crayon-e">Exception</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">FlowBuilder</span><span class="crayon-e ">&lt;Flow&gt;</span><span class="crayon-h"> </span><span class="crayon-v">dataProcessFlowBuilder</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-v">FlowBuilder</span><span class="crayon-e ">&lt;Flow&gt;</span><span class="crayon-sy">(</span><span class="crayon-s">"dataProcess-flow"</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">Flow </span><span class="crayon-v">dataProcessFlow</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-i">dataProcessFlowBuilder</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">start</span><span class="crayon-sy">(</span><span class="crayon-e">movieDataProcessStep</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">on</span><span class="crayon-sy">(</span><span class="crayon-v">ExitStatus</span><span class="crayon-sy">.</span><span class="crayon-v">COMPLETED</span><span class="crayon-sy">.</span><span class="crayon-e">getExitCode</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-st">end</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">from</span><span class="crayon-sy">(</span><span class="crayon-e">movieDataProcessStep</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">on</span><span class="crayon-sy">(</span><span class="crayon-v">ANY_OTHER_EXIT_STATUS</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">fail</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-st">end</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">return</span><span class="crayon-h"> </span><span class="crayon-v">jobBuilderFactory</span><span class="crayon-sy">.</span><span class="crayon-e">get</span><span class="crayon-sy">(</span><span class="crayon-s">"movieDataProcess-job"</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">incrementer</span><span class="crayon-sy">(</span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">RunIdIncrementer</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">start</span><span class="crayon-sy">(</span><span class="crayon-v">dataProcessFlow</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-13"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-st">end</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-14"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">listener</span><span class="crayon-sy">(</span><span class="crayon-e">movieJobExecutionListener</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-15"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">build</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de277714612692-16"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0005 seconds] -->
+<p>Next, we will define a step to read and process data from CSV present in S3</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-6af17fc1de27e448277957" class="crayon-syntax crayon-theme-visual-assist crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style=" margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important;">
+		
+			<div class="crayon-toolbar" data-settings=" show" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><span class="crayon-title">Step config</span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Java</span></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 12px !important; line-height: 15px !important;">
+    @Bean
+    public Step movieDataProcessStep() throws Exception {
+        Step step = this.stepBuilderFactory.get("dataProcess-step")
+                .&lt;Movie, Movie&gt;chunk(chunkSize)
+                .reader(movieDataReader())
+                .processor(asyncMovieDataProcessor())
+                .writer(asyncMovieItemWriter())
+                .build();
+        ((TaskletStep) step).setStepExecutionListeners(new StepExecutionListener[]{
+                movieStepExecutionListener()
+        });
+        return step;
+    }</textarea></div>
+			<div class="crayon-main" style="">
+				<table class="crayon-table">
+					<tr class="crayon-row">
+				<td class="crayon-nums " data-settings="hide">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-1">1</div><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-2">2</div><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-3">3</div><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-4">4</div><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-5">5</div><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-6">6</div><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-7">7</div><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-8">8</div><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-9">9</div><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-10">10</div><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-11">11</div><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-12">12</div><div class="crayon-num" data-line="crayon-6af17fc1de27e448277957-13">13</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-6af17fc1de27e448277957-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-n">@Bean</span></div><div class="crayon-line" id="crayon-6af17fc1de27e448277957-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-e">Step </span><span class="crayon-e">movieDataProcessStep</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-m">throws</span><span class="crayon-h"> </span><span class="crayon-e">Exception</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de27e448277957-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">Step </span><span class="crayon-v">step</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">this</span><span class="crayon-sy">.</span><span class="crayon-v">stepBuilderFactory</span><span class="crayon-sy">.</span><span class="crayon-e">get</span><span class="crayon-sy">(</span><span class="crayon-s">"dataProcess-step"</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de27e448277957-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-o">&lt;</span><span class="crayon-v">Movie</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">Movie</span><span class="crayon-o">&gt;</span><span class="crayon-e">chunk</span><span class="crayon-sy">(</span><span class="crayon-v">chunkSize</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de27e448277957-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">reader</span><span class="crayon-sy">(</span><span class="crayon-e">movieDataReader</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de27e448277957-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">processor</span><span class="crayon-sy">(</span><span class="crayon-e">asyncMovieDataProcessor</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de27e448277957-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">writer</span><span class="crayon-sy">(</span><span class="crayon-e">asyncMovieItemWriter</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de27e448277957-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">build</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de27e448277957-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">(</span><span class="crayon-sy">(</span><span class="crayon-v">TaskletStep</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-v">step</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">setStepExecutionListeners</span><span class="crayon-sy">(</span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">StepExecutionListener</span><span class="crayon-sy">[</span><span class="crayon-sy">]</span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de27e448277957-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">movieStepExecutionListener</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de27e448277957-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de27e448277957-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">return</span><span class="crayon-h"> </span><span class="crayon-v">step</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de27e448277957-13"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0004 seconds] -->
+<p>In the step, we will use <code>read-process-write</code> pattern.</p>
+<h5>Item reader</h5>
+<p>For Reader config, we will use SynchronizedItemReader delegating to MultiResourceItemReader. To the MultiResourceItemReader, we will add list of resources. Resources in this case is the files in S3.</p>
+<p>Update the value of <code>sourceBucket</code> and <code>sourceObjectPrefix</code> based on the S3 bucket details of your use case.</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-6af17fc1de281388236299" class="crayon-syntax crayon-theme-visual-assist crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style=" margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important;">
+		
+			<div class="crayon-toolbar" data-settings=" show" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><span class="crayon-title">Item reader</span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Java</span></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 12px !important; line-height: 15px !important;">
+    @Bean(destroyMethod="")
+    @StepScope
+    public SynchronizedItemStreamReader&lt;Movie&gt; movieDataReader() {
+        SynchronizedItemStreamReader synchronizedItemStreamReader = new SynchronizedItemStreamReader();
+        List&lt;Resource&gt; resourceList = new ArrayList&lt;&gt;();
+        String sourceBucket = rawDataS3Bucket;
+        String sourceObjectPrefix = rawDataS3ObjectPrefix
+                .concat("MOVIES")
+                .concat(FORWARD_SLASH);
+        log.info("sourceObjectPrefix::"+sourceObjectPrefix);
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+                .withBucketName(sourceBucket)
+                .withPrefix(sourceObjectPrefix);
+        ObjectListing sourceObjectsListing;
+        do{
+            sourceObjectsListing = amazonS3Client.listObjects(listObjectsRequest);
+            for (S3ObjectSummary sourceFile : sourceObjectsListing.getObjectSummaries()){
+
+                if(!(sourceFile.getSize() &gt; 0)
+                        || (!sourceFile.getKey().endsWith(DOT.concat(inputDataFileExtension)))
+                ){
+                    // Skip if file is empty (or) file extension is not "csv"
+                    continue;
+                }
+                log.info("Reading "+sourceFile.getKey());
+                resourceList.add(resourceLoader.getResource(S3_PROTOCOL_PREFIX.concat(sourceBucket).concat(FORWARD_SLASH)
+                        .concat(sourceFile.getKey())));
+            }
+            listObjectsRequest.setMarker(sourceObjectsListing.getNextMarker());
+        }while(sourceObjectsListing.isTruncated());
+
+        Resource[] resources = resourceList.toArray(new Resource[resourceList.size()]);
+        MultiResourceItemReader&lt;Movie&gt; multiResourceItemReader = new MultiResourceItemReader&lt;&gt;();
+        multiResourceItemReader.setName("movie-multiResource-Reader");
+        multiResourceItemReader.setResources(resources);
+        multiResourceItemReader.setDelegate(movieFileItemReader());
+        synchronizedItemStreamReader.setDelegate(multiResourceItemReader);
+        return synchronizedItemStreamReader;
+    }</textarea></div>
+			<div class="crayon-main" style="">
+				<table class="crayon-table">
+					<tr class="crayon-row">
+				<td class="crayon-nums " data-settings="hide">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-1">1</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-2">2</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-3">3</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-4">4</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-5">5</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-6">6</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-7">7</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-8">8</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-9">9</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-10">10</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-11">11</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-12">12</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-13">13</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-14">14</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-15">15</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-16">16</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-17">17</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-18">18</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-19">19</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-20">20</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-21">21</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-22">22</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-23">23</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-24">24</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-25">25</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-26">26</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-27">27</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-28">28</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-29">29</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-30">30</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-31">31</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-32">32</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-33">33</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-34">34</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-35">35</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-36">36</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-37">37</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-38">38</div><div class="crayon-num" data-line="crayon-6af17fc1de281388236299-39">39</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-6af17fc1de281388236299-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-n">@Bean</span><span class="crayon-sy">(</span><span class="crayon-v">destroyMethod</span><span class="crayon-o">=</span><span class="crayon-s">""</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-n">@StepScope</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-v">SynchronizedItemStreamReader</span><span class="crayon-e ">&lt;Movie&gt;</span><span class="crayon-h"> </span><span class="crayon-e">movieDataReader</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">SynchronizedItemStreamReader </span><span class="crayon-v">synchronizedItemStreamReader</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">SynchronizedItemStreamReader</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">List</span><span class="crayon-e ">&lt;Resource&gt;</span><span class="crayon-h"> </span><span class="crayon-v">resourceList</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-v">ArrayList</span><span class="crayon-o">&lt;&gt;</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-t">String</span><span class="crayon-h"> </span><span class="crayon-v">sourceBucket</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">rawDataS3Bucket</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-t">String</span><span class="crayon-h"> </span><span class="crayon-v">sourceObjectPrefix</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-i">rawDataS3ObjectPrefix</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">concat</span><span class="crayon-sy">(</span><span class="crayon-s">"MOVIES"</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">concat</span><span class="crayon-sy">(</span><span class="crayon-v">FORWARD_SLASH</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">log</span><span class="crayon-sy">.</span><span class="crayon-e">info</span><span class="crayon-sy">(</span><span class="crayon-s">"sourceObjectPrefix::"</span><span class="crayon-o">+</span><span class="crayon-v">sourceObjectPrefix</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">ListObjectsRequest </span><span class="crayon-v">listObjectsRequest</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">ListObjectsRequest</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">withBucketName</span><span class="crayon-sy">(</span><span class="crayon-v">sourceBucket</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-13"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">withPrefix</span><span class="crayon-sy">(</span><span class="crayon-v">sourceObjectPrefix</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-14"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">ObjectListing </span><span class="crayon-v">sourceObjectsListing</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-15"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">do</span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-16"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">sourceObjectsListing</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">amazonS3Client</span><span class="crayon-sy">.</span><span class="crayon-e">listObjects</span><span class="crayon-sy">(</span><span class="crayon-v">listObjectsRequest</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-17"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">for</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-e">S3ObjectSummary </span><span class="crayon-v">sourceFile</span><span class="crayon-h"> </span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-v">sourceObjectsListing</span><span class="crayon-sy">.</span><span class="crayon-e">getObjectSummaries</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-18">&nbsp;</div><div class="crayon-line" id="crayon-6af17fc1de281388236299-19"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">if</span><span class="crayon-sy">(</span><span class="crayon-o">!</span><span class="crayon-sy">(</span><span class="crayon-v">sourceFile</span><span class="crayon-sy">.</span><span class="crayon-e">getSize</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-o">&gt;</span><span class="crayon-h"> </span><span class="crayon-cn">0</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-20"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-o">||</span><span class="crayon-h"> </span><span class="crayon-sy">(</span><span class="crayon-o">!</span><span class="crayon-v">sourceFile</span><span class="crayon-sy">.</span><span class="crayon-e">getKey</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">endsWith</span><span class="crayon-sy">(</span><span class="crayon-v">DOT</span><span class="crayon-sy">.</span><span class="crayon-e">concat</span><span class="crayon-sy">(</span><span class="crayon-v">inputDataFileExtension</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-21"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">)</span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-22"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c">// Skip if file is empty (or) file extension is not "csv"</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-23"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">continue</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-24"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-25"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">log</span><span class="crayon-sy">.</span><span class="crayon-e">info</span><span class="crayon-sy">(</span><span class="crayon-s">"Reading "</span><span class="crayon-o">+</span><span class="crayon-v">sourceFile</span><span class="crayon-sy">.</span><span class="crayon-e">getKey</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-26"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">resourceList</span><span class="crayon-sy">.</span><span class="crayon-e">add</span><span class="crayon-sy">(</span><span class="crayon-v">resourceLoader</span><span class="crayon-sy">.</span><span class="crayon-e">getResource</span><span class="crayon-sy">(</span><span class="crayon-v">S3_PROTOCOL_PREFIX</span><span class="crayon-sy">.</span><span class="crayon-e">concat</span><span class="crayon-sy">(</span><span class="crayon-v">sourceBucket</span><span class="crayon-sy">)</span><span class="crayon-sy">.</span><span class="crayon-e">concat</span><span class="crayon-sy">(</span><span class="crayon-v">FORWARD_SLASH</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-27"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">.</span><span class="crayon-e">concat</span><span class="crayon-sy">(</span><span class="crayon-v">sourceFile</span><span class="crayon-sy">.</span><span class="crayon-e">getKey</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-28"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-29"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">listObjectsRequest</span><span class="crayon-sy">.</span><span class="crayon-e">setMarker</span><span class="crayon-sy">(</span><span class="crayon-v">sourceObjectsListing</span><span class="crayon-sy">.</span><span class="crayon-e">getNextMarker</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-30"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span><span class="crayon-st">while</span><span class="crayon-sy">(</span><span class="crayon-v">sourceObjectsListing</span><span class="crayon-sy">.</span><span class="crayon-e">isTruncated</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-31">&nbsp;</div><div class="crayon-line" id="crayon-6af17fc1de281388236299-32"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">Resource</span><span class="crayon-sy">[</span><span class="crayon-sy">]</span><span class="crayon-h"> </span><span class="crayon-v">resources</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-v">resourceList</span><span class="crayon-sy">.</span><span class="crayon-e">toArray</span><span class="crayon-sy">(</span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-v">Resource</span><span class="crayon-sy">[</span><span class="crayon-v">resourceList</span><span class="crayon-sy">.</span><span class="crayon-e">size</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">]</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-33"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">MultiResourceItemReader</span><span class="crayon-e ">&lt;Movie&gt;</span><span class="crayon-h"> </span><span class="crayon-v">multiResourceItemReader</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-v">MultiResourceItemReader</span><span class="crayon-o">&lt;&gt;</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-34"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">multiResourceItemReader</span><span class="crayon-sy">.</span><span class="crayon-e">setName</span><span class="crayon-sy">(</span><span class="crayon-s">"movie-multiResource-Reader"</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-35"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">multiResourceItemReader</span><span class="crayon-sy">.</span><span class="crayon-e">setResources</span><span class="crayon-sy">(</span><span class="crayon-v">resources</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-36"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">multiResourceItemReader</span><span class="crayon-sy">.</span><span class="crayon-e">setDelegate</span><span class="crayon-sy">(</span><span class="crayon-e">movieFileItemReader</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-37"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">synchronizedItemStreamReader</span><span class="crayon-sy">.</span><span class="crayon-e">setDelegate</span><span class="crayon-sy">(</span><span class="crayon-v">multiResourceItemReader</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-38"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">return</span><span class="crayon-h"> </span><span class="crayon-v">synchronizedItemStreamReader</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de281388236299-39"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0011 seconds] -->
+<p>For this example, I have created a sample movie data set. Flat file item reader config to parse CSV file as below</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-6af17fc1de284742425089" class="crayon-syntax crayon-theme-visual-assist crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style=" margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important;">
+		
+			<div class="crayon-toolbar" data-settings=" show" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><span class="crayon-title">Flat file item reader</span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Java</span></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 12px !important; line-height: 15px !important;">
+    @Bean
+    @StepScope
+    public FlatFileItemReader&lt;Movie&gt; movieFileItemReader()
+    {
+        FlatFileItemReader&lt;Movie&gt; reader = new FlatFileItemReader&lt;&gt;();
+        reader.setLinesToSkip(1);
+        DefaultLineMapper&lt;Movie&gt; movieDataLineMapper = new DefaultLineMapper();
+        DelimitedLineTokenizer tokenizer = new DelimitedLineTokenizer();
+        tokenizer.setNames(new String[] {
+                "name","genre","releaseYear","releasePlatform"
+        });
+        movieDataLineMapper.setFieldSetMapper(movieFieldSetMapper());
+        movieDataLineMapper.setLineTokenizer(tokenizer);
+        reader.setLineMapper(movieDataLineMapper);
+        reader.setRecordSeparatorPolicy(new DefaultRecordSeparatorPolicy());
+        return reader;
+    }
+
+    @Bean
+    public FieldSetMapper&lt;Movie&gt; movieFieldSetMapper(){
+        return new MovieFieldSetMapper();
+    }</textarea></div>
+			<div class="crayon-main" style="">
+				<table class="crayon-table">
+					<tr class="crayon-row">
+				<td class="crayon-nums " data-settings="hide">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-1">1</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-2">2</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-3">3</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-4">4</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-5">5</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-6">6</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-7">7</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-8">8</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-9">9</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-10">10</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-11">11</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-12">12</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-13">13</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-14">14</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-15">15</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-16">16</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-17">17</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-18">18</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-19">19</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-20">20</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-21">21</div><div class="crayon-num" data-line="crayon-6af17fc1de284742425089-22">22</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-6af17fc1de284742425089-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-n">@Bean</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-n">@StepScope</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-v">FlatFileItemReader</span><span class="crayon-e ">&lt;Movie&gt;</span><span class="crayon-h"> </span><span class="crayon-e">movieFileItemReader</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">FlatFileItemReader</span><span class="crayon-e ">&lt;Movie&gt;</span><span class="crayon-h"> </span><span class="crayon-v">reader</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-v">FlatFileItemReader</span><span class="crayon-o">&lt;&gt;</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">reader</span><span class="crayon-sy">.</span><span class="crayon-e">setLinesToSkip</span><span class="crayon-sy">(</span><span class="crayon-cn">1</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">DefaultLineMapper</span><span class="crayon-e ">&lt;Movie&gt;</span><span class="crayon-h"> </span><span class="crayon-v">movieDataLineMapper</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">DefaultLineMapper</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">DelimitedLineTokenizer </span><span class="crayon-v">tokenizer</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">DelimitedLineTokenizer</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">tokenizer</span><span class="crayon-sy">.</span><span class="crayon-e">setNames</span><span class="crayon-sy">(</span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-t">String</span><span class="crayon-sy">[</span><span class="crayon-sy">]</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-s">"name"</span><span class="crayon-sy">,</span><span class="crayon-s">"genre"</span><span class="crayon-sy">,</span><span class="crayon-s">"releaseYear"</span><span class="crayon-sy">,</span><span class="crayon-s">"releasePlatform"</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">movieDataLineMapper</span><span class="crayon-sy">.</span><span class="crayon-e">setFieldSetMapper</span><span class="crayon-sy">(</span><span class="crayon-e">movieFieldSetMapper</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-13"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">movieDataLineMapper</span><span class="crayon-sy">.</span><span class="crayon-e">setLineTokenizer</span><span class="crayon-sy">(</span><span class="crayon-v">tokenizer</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-14"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">reader</span><span class="crayon-sy">.</span><span class="crayon-e">setLineMapper</span><span class="crayon-sy">(</span><span class="crayon-v">movieDataLineMapper</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-15"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">reader</span><span class="crayon-sy">.</span><span class="crayon-e">setRecordSeparatorPolicy</span><span class="crayon-sy">(</span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">DefaultRecordSeparatorPolicy</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-16"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">return</span><span class="crayon-h"> </span><span class="crayon-v">reader</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-17"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-18">&nbsp;</div><div class="crayon-line" id="crayon-6af17fc1de284742425089-19"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-n">@Bean</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-20"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-v">FieldSetMapper</span><span class="crayon-e ">&lt;Movie&gt;</span><span class="crayon-h"> </span><span class="crayon-e">movieFieldSetMapper</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-21"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">return</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">MovieFieldSetMapper</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de284742425089-22"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0005 seconds] -->
+<p></p>
+<h5>Item processor</h5>
+<p>For item processor, we will configure with async capabilities.  This is not needed for the sample data set for the example in this post. However, when you want to process a huge data set async processing will be very helpful.</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-6af17fc1de287406633340" class="crayon-syntax crayon-theme-visual-assist crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style=" margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important;">
+		
+			<div class="crayon-toolbar" data-settings=" show" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><span class="crayon-title">Async item processor</span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 12px !important; line-height: 15px !important;">
+    // ASYNC ITEM PROCESSOR
+    @Bean
+    @StepScope
+    public ItemProcessor asyncMovieDataProcessor(){
+        AsyncItemProcessor&lt;Movie, Movie&gt; asyncItemProcessor = new AsyncItemProcessor&lt;&gt;();
+        asyncItemProcessor.setDelegate(movieDataProcessor(null));
+        asyncItemProcessor.setTaskExecutor(asyncMovieTaskExecutor());
+        return asyncItemProcessor;
+    }
+
+    // DELEGATE ITEM PROCESSOR
+    @Bean
+    @StepScope
+    public ItemProcessor&lt;Movie, Movie&gt; movieDataProcessor(@Value("#{stepExecution}") StepExecution stepExecution) {
+        MovieDataProcessor movieDataProcessor = new MovieDataProcessor();
+        return movieDataProcessor;
+    }
+
+    // TASK EXECUTOR
+
+    @Bean
+    public TaskExecutor asyncMovieTaskExecutor()
+    {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(threadPoolSize);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.setThreadNamePrefix("movieExec-");
+        return executor;
+    }</textarea></div>
+			<div class="crayon-main" style="">
+				<table class="crayon-table">
+					<tr class="crayon-row">
+				<td class="crayon-nums " data-settings="hide">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-1">1</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-2">2</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-3">3</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-4">4</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-5">5</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-6">6</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-7">7</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-8">8</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-9">9</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-10">10</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-11">11</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-12">12</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-13">13</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-14">14</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-15">15</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-16">16</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-17">17</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-18">18</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-19">19</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-20">20</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-21">21</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-22">22</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-23">23</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-24">24</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-25">25</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-26">26</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-27">27</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-28">28</div><div class="crayon-num" data-line="crayon-6af17fc1de287406633340-29">29</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-6af17fc1de287406633340-1"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c">// ASYNC ITEM PROCESSOR</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">@</span><span class="crayon-i">Bean</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">@</span><span class="crayon-e">StepScope</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-4"><span class="crayon-e">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-e">ItemProcessor </span><span class="crayon-e">asyncMovieDataProcessor</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">AsyncItemProcessor</span><span class="crayon-o">&lt;</span><span class="crayon-v">Movie</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">Movie</span><span class="crayon-o">&gt;</span><span class="crayon-h"> </span><span class="crayon-v">asyncItemProcessor</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-v">AsyncItemProcessor</span><span class="crayon-o">&lt;&gt;</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">asyncItemProcessor</span><span class="crayon-sy">.</span><span class="crayon-e">setDelegate</span><span class="crayon-sy">(</span><span class="crayon-e">movieDataProcessor</span><span class="crayon-sy">(</span><span class="crayon-t">null</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">asyncItemProcessor</span><span class="crayon-sy">.</span><span class="crayon-e">setTaskExecutor</span><span class="crayon-sy">(</span><span class="crayon-e">asyncMovieTaskExecutor</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">return</span><span class="crayon-h"> </span><span class="crayon-v">asyncItemProcessor</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-9"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-10">&nbsp;</div><div class="crayon-line" id="crayon-6af17fc1de287406633340-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c">// DELEGATE ITEM PROCESSOR</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">@</span><span class="crayon-i">Bean</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-13"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">@</span><span class="crayon-e">StepScope</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-14"><span class="crayon-e">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-v">ItemProcessor</span><span class="crayon-o">&lt;</span><span class="crayon-v">Movie</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">Movie</span><span class="crayon-o">&gt;</span><span class="crayon-h"> </span><span class="crayon-e">movieDataProcessor</span><span class="crayon-sy">(</span><span class="crayon-sy">@</span><span class="crayon-e">Value</span><span class="crayon-sy">(</span><span class="crayon-s">"#{stepExecution}"</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-e">StepExecution </span><span class="crayon-v">stepExecution</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-15"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">MovieDataProcessor </span><span class="crayon-v">movieDataProcessor</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">MovieDataProcessor</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-16"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">return</span><span class="crayon-h"> </span><span class="crayon-v">movieDataProcessor</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-17"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-18">&nbsp;</div><div class="crayon-line" id="crayon-6af17fc1de287406633340-19"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-c">// TASK EXECUTOR</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-20">&nbsp;</div><div class="crayon-line" id="crayon-6af17fc1de287406633340-21"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">@</span><span class="crayon-e">Bean</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-22"><span class="crayon-e">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-e">TaskExecutor </span><span class="crayon-e">asyncMovieTaskExecutor</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-23"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-24"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-e">ThreadPoolTaskExecutor </span><span class="crayon-v">executor</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">ThreadPoolTaskExecutor</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-25"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">executor</span><span class="crayon-sy">.</span><span class="crayon-e">setCorePoolSize</span><span class="crayon-sy">(</span><span class="crayon-v">threadPoolSize</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-26"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">executor</span><span class="crayon-sy">.</span><span class="crayon-e">setRejectedExecutionHandler</span><span class="crayon-sy">(</span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-v">ThreadPoolExecutor</span><span class="crayon-sy">.</span><span class="crayon-e">CallerRunsPolicy</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-27"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">executor</span><span class="crayon-sy">.</span><span class="crayon-e">setThreadNamePrefix</span><span class="crayon-sy">(</span><span class="crayon-s">"movieExec-"</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-28"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">return</span><span class="crayon-h"> </span><span class="crayon-v">executor</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de287406633340-29"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0006 seconds] -->
+<p></p>
+<h5>Item writer</h5>
+<p>Then, for item writer we configure it with async. This is to support the item processor which process the items in multiple threads and we need to handle the Future which gets returned.</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-6af17fc1de28a584224499" class="crayon-syntax crayon-theme-visual-assist crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style=" margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important;">
+		
+			<div class="crayon-toolbar" data-settings=" show" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><span class="crayon-title">Item writer</span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div><span class="crayon-language">Java</span></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 12px !important; line-height: 15px !important;">
+   // WRITER
+    @Bean
+    @StepScope
+    public ItemWriter asyncMovieItemWriter() throws Exception{
+        SimpleAsyncItemWriter&lt;Movie&gt; simpleAsyncItemWriter = new SimpleAsyncItemWriter&lt;&gt;();
+        simpleAsyncItemWriter.setDelegate(movieNoOpItemWriter());
+        return simpleAsyncItemWriter;
+    }
+
+    @Bean
+    @StepScope
+    public ItemWriter movieNoOpItemWriter() {
+        return new NoOpItemWriter();
+    }</textarea></div>
+			<div class="crayon-main" style="">
+				<table class="crayon-table">
+					<tr class="crayon-row">
+				<td class="crayon-nums " data-settings="hide">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-1">1</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-2">2</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-3">3</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-4">4</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-5">5</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-6">6</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-7">7</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-8">8</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-9">9</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-10">10</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-11">11</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-12">12</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-13">13</div><div class="crayon-num" data-line="crayon-6af17fc1de28a584224499-14">14</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-6af17fc1de28a584224499-1"><span class="crayon-h">&nbsp;&nbsp; </span><span class="crayon-c">// WRITER</span></div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-2"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-n">@Bean</span></div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-3"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-n">@StepScope</span></div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-4"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-e">ItemWriter </span><span class="crayon-e">asyncMovieItemWriter</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-m">throws</span><span class="crayon-h"> </span><span class="crayon-e">Exception</span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-5"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">SimpleAsyncItemWriter</span><span class="crayon-e ">&lt;Movie&gt;</span><span class="crayon-h"> </span><span class="crayon-v">simpleAsyncItemWriter</span><span class="crayon-h"> </span><span class="crayon-o">=</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-v">SimpleAsyncItemWriter</span><span class="crayon-o">&lt;&gt;</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-6"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-v">simpleAsyncItemWriter</span><span class="crayon-sy">.</span><span class="crayon-e">setDelegate</span><span class="crayon-sy">(</span><span class="crayon-e">movieNoOpItemWriter</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-7"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">return</span><span class="crayon-h"> </span><span class="crayon-v">simpleAsyncItemWriter</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-8"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-9">&nbsp;</div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-10"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-n">@Bean</span></div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-11"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-n">@StepScope</span></div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-12"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-m">public</span><span class="crayon-h"> </span><span class="crayon-e">ItemWriter </span><span class="crayon-e">movieNoOpItemWriter</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-h"> </span><span class="crayon-sy">{</span></div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-13"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-st">return</span><span class="crayon-h"> </span><span class="crayon-r">new</span><span class="crayon-h"> </span><span class="crayon-e">NoOpItemWriter</span><span class="crayon-sy">(</span><span class="crayon-sy">)</span><span class="crayon-sy">;</span></div><div class="crayon-line" id="crayon-6af17fc1de28a584224499-14"><span class="crayon-h">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="crayon-sy">}</span></div></div></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0003 seconds] -->
+<p></p>
+<h5>Database</h5>
+<p>We will use H2 in memory database.</p><!-- Crayon Syntax Highlighter v_2.7.2_beta -->
+
+		<div id="crayon-6af17fc1de28b064765325" class="crayon-syntax crayon-theme-visual-assist crayon-font-monaco crayon-os-pc print-yes notranslate" data-settings=" minimize scroll-mouseover" style=" margin-top: 12px; margin-bottom: 12px; font-size: 12px !important; line-height: 15px !important;">
+		
+			<div class="crayon-toolbar" data-settings=" show" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><span class="crayon-title">H2 database config</span>
+			<div class="crayon-tools" style="font-size: 12px !important;height: 18px !important; line-height: 18px !important;"><div class="crayon-button crayon-plain-button" title="Toggle Plain Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-wrap-button" title="Toggle Line Wrap"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-expand-button" title="Expand Code"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-copy-button" title="Copy"><div class="crayon-button-icon"></div></div><div class="crayon-button crayon-popup-button" title="Open Code In New Window"><div class="crayon-button-icon"></div></div></div></div>
+			<div class="crayon-info" style="min-height: 16.8px !important; line-height: 16.8px !important;"></div>
+			<div class="crayon-plain-wrap"><textarea wrap="soft" class="crayon-plain print-no" data-settings="dblclick" readonly style="-moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4; font-size: 12px !important; line-height: 15px !important;">
+// H2 dependency
+implementation group: 'com.h2database', name: 'h2', version: '1.4.193'
+
+// Data source config
+spring.batch.datasource.jdbc-url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+spring.batch.datasource.driverClassName=org.h2.Driver
+spring.batch.datasource.username=sa
+spring.batch.datasource.password=</textarea></div>
+			<div class="crayon-main" style="">
+				<table class="crayon-table">
+					<tr class="crayon-row">
+				<td class="crayon-nums " data-settings="hide">
+					<div class="crayon-nums-content" style="font-size: 12px !important; line-height: 15px !important;"><div class="crayon-num" data-line="crayon-6af17fc1de28b064765325-1">1</div><div class="crayon-num" data-line="crayon-6af17fc1de28b064765325-2">2</div><div class="crayon-num" data-line="crayon-6af17fc1de28b064765325-3">3</div><div class="crayon-num" data-line="crayon-6af17fc1de28b064765325-4">4</div><div class="crayon-num" data-line="crayon-6af17fc1de28b064765325-5">5</div><div class="crayon-num" data-line="crayon-6af17fc1de28b064765325-6">6</div><div class="crayon-num" data-line="crayon-6af17fc1de28b064765325-7">7</div><div class="crayon-num" data-line="crayon-6af17fc1de28b064765325-8">8</div></div>
+				</td>
+						<td class="crayon-code"><div class="crayon-pre" style="font-size: 12px !important; line-height: 15px !important; -moz-tab-size:4; -o-tab-size:4; -webkit-tab-size:4; tab-size:4;"><div class="crayon-line" id="crayon-6af17fc1de28b064765325-1"><span class="crayon-c">// H2 dependency</span></div><div class="crayon-line" id="crayon-6af17fc1de28b064765325-2"><span class="crayon-e">implementation </span><span class="crayon-v">group</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-s">'com.h2database'</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">name</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-s">'h2'</span><span class="crayon-sy">,</span><span class="crayon-h"> </span><span class="crayon-v">version</span><span class="crayon-o">:</span><span class="crayon-h"> </span><span class="crayon-s">'1.4.193'</span></div><div class="crayon-line" id="crayon-6af17fc1de28b064765325-3">&nbsp;</div><div class="crayon-line" id="crayon-6af17fc1de28b064765325-4"><span class="crayon-c">// Data source config</span></div><div class="crayon-line" id="crayon-6af17fc1de28b064765325-5"><span class="crayon-v">spring</span><span class="crayon-sy">.</span><span class="crayon-v">batch</span><span class="crayon-sy">.</span><span class="crayon-v">datasource</span><span class="crayon-sy">.</span><span class="crayon-v">jdbc</span><span class="crayon-o">-</span><span class="crayon-v">url</span><span class="crayon-o">=</span><span class="crayon-v">jdbc</span><span class="crayon-o">:</span><span class="crayon-v">h2</span><span class="crayon-o">:</span><span class="crayon-v">mem</span><span class="crayon-o">:</span><span class="crayon-v">testdb</span><span class="crayon-sy">;</span><span class="crayon-v">DB_CLOSE_DELAY</span><span class="crayon-o">=</span><span class="crayon-o">-</span><span class="crayon-cn">1</span></div><div class="crayon-line" id="crayon-6af17fc1de28b064765325-6"><span class="crayon-v">spring</span><span class="crayon-sy">.</span><span class="crayon-v">batch</span><span class="crayon-sy">.</span><span class="crayon-v">datasource</span><span class="crayon-sy">.</span><span class="crayon-v">driverClassName</span><span class="crayon-o">=</span><span class="crayon-v">org</span><span class="crayon-sy">.</span><span class="crayon-v">h2</span><span class="crayon-sy">.</span><span class="crayon-e">Driver</span></div><div class="crayon-line" id="crayon-6af17fc1de28b064765325-7"><span class="crayon-v">spring</span><span class="crayon-sy">.</span><span class="crayon-v">batch</span><span class="crayon-sy">.</span><span class="crayon-v">datasource</span><span class="crayon-sy">.</span><span class="crayon-v">username</span><span class="crayon-o">=</span><span class="crayon-e">sa</span></div><div class="crayon-line" id="crayon-6af17fc1de28b064765325-8"><span class="crayon-v">spring</span><span class="crayon-sy">.</span><span class="crayon-v">batch</span><span class="crayon-sy">.</span><span class="crayon-v">datasource</span><span class="crayon-sy">.</span><span class="crayon-v">password</span><span class="crayon-o">=</span></div></div></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+<!-- [Format Time: 0.0003 seconds] -->
+<p></p>
+<h3>Running the application</h3>
+<p>To run the application, just execute <code>Run</code> from ReadFileFromS3BatchApplication.java file.</p>
+<p>I have created two movie data set CSV files for this example. The data set files are available under resources folder in the project for reference. The execution logs are as below</p>
+<p><img fetchpriority="high" decoding="async" src="https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-1024x335.png" alt="" class="aligncenter size-large wp-image-1062" width="750" height="245" srcset="https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-1024x335.png 1024w, https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-300x98.png 300w, https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-768x251.png 768w, https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs-1536x503.png 1536w, https://static.rayfocus.com/wp-content/uploads/2021/11/26103416/read_file_from_S3_logs.png 1632w" sizes="(max-width: 750px) 100vw, 750px" /></p>
+<p>&nbsp;</p>
+<h3>Conclusion</h3>
+<p>In this article, we have explored how to read files from S3 bucket using spring batch. The key note is we have processed the files as stream without loading them in memory.<br />
+The complete source code is available over on <a href="https://bitbucket.org/rayfocus-blogs/spring-batch.code-samples/src/develop/read-files-fromS3/" target="_blank" rel="noopener">Git</a></p>
+<div class="swp-content-locator"></div></div>
+		<div class="section section-blog-info">
+			<div class="row">
+				<div class="col-md-6">
+					<div class="entry-categories">Categories:						<span class="label label-primary"><a href="category/spring-framework/spring-batch/index.html">Spring Batch</a></span><span class="label label-primary"><a href="category/spring-framework/index.html">Spring framework</a></span>					</div>
+									</div>
+				
+        <div class="col-md-6">
+            <div class="entry-social">
+                <a target="_blank" rel="tooltip"
+                   data-original-title="Share on Facebook"
+                   class="btn btn-just-icon btn-round btn-facebook"
+                   href="https://www.facebook.com/sharer.php?u=https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/">
+                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="20" height="17"><path fill="currentColor" d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"></path></svg>
+                </a>
+                
+                <a target="_blank" rel="tooltip"
+                   data-original-title="Share on Twitter"
+                   class="btn btn-just-icon btn-round btn-twitter"
+                   href="http://twitter.com/share?url=https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/&#038;text=Read%20CSV%20files%20from%20S3%20using%20Spring%20Batch">
+                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20" height="17"><path fill="currentColor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path></svg>
+                </a>
+                
+                <a rel="tooltip"
+                   data-original-title=" Share on Email"
+                   class="btn btn-just-icon btn-round"
+                   href="mailto:?subject=Read%20CSV%20files%20from%20S3%20using%20Spring%20Batch&#038;body=https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20" height="17"><path fill="currentColor" d="M502.3 190.8c3.9-3.1 9.7-.2 9.7 4.7V400c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V195.6c0-5 5.7-7.8 9.7-4.7 22.4 17.4 52.1 39.5 154.1 113.6 21.1 15.4 56.7 47.8 92.2 47.6 35.7.3 72-32.8 92.3-47.6 102-74.1 131.6-96.3 154-113.7zM256 320c23.2.4 56.6-29.2 73.4-41.4 132.7-96.3 142.8-104.7 173.4-128.7 5.8-4.5 9.2-11.5 9.2-18.9v-19c0-26.5-21.5-48-48-48H48C21.5 64 0 85.5 0 112v19c0 7.4 3.4 14.3 9.2 18.9 30.6 23.9 40.7 32.4 173.4 128.7 16.8 12.2 50.2 41.8 73.4 41.4z"></path></svg>
+               </a>
+            </div>
+		</div>			</div>
+			<hr>
+					<div class="card card-profile card-plain">
+			<div class="row">
+				<div class="col-md-2">
+					<div class="card-avatar">
+						<a href="author/user-blogs-rayfocus/index.html"
+								title="Vignesh M"><img src="https://secure.gravatar.com/avatar/685c1865a686ff28615194beb6ac1574?s=100&#038;d=mm&#038;r=g" width="100" height="100" alt="Avatar" class="avatar avatar-100 wp-user-avatar wp-user-avatar-100 photo avatar-default" /></a>
+					</div>
+				</div>
+				<div class="col-md-10">
+					<h4 class="card-title">Vignesh M</h4>
+					<p class="description">Java developer , AWS Certified Solutions Architect Associate and Cloud technology enthusiast. Currently working for Clarivate. He believes that knowledge increases by sharing not by saving.</p>
+				</div>
+			</div>
+		</div>
+		
+<div id="comments" class="section section-comments">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="media-area">
+				<h3 class="hestia-title text-center">
+					0 Comments				</h3>
+							</div>
+			<div class="media-body">
+					<div id="respond" class="comment-respond">
+		<h3 class="hestia-title text-center">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="index.html@p=1047.html#respond" style="display:none;">Cancel reply</a></small></h3> <span class="pull-left author"> <div class="avatar"><img src="wp-content/themes/hestia/assets/img/placeholder.jpg" height="64" width="64"/></div> </span><form action="https://blogs.rayfocus.com/wp-comments-post.php" method="post" id="commentform" class="form media-body"><p class="comment-notes"><span id="email-notes">Your email address will not be published.</span> <span class="required-field-message">Required fields are marked <span class="required">*</span></span></p><div class="row"> <div class="col-md-4"> <div class="form-group label-floating is-empty"> <label class="control-label">Name <span class="required">*</span></label><input id="author" name="author" class="form-control" type="text" aria-required='true' /> <span class="hestia-input"></span> </div> </div>
+<div class="col-md-4"> <div class="form-group label-floating is-empty"> <label class="control-label">Email <span class="required">*</span></label><input id="email" name="email" class="form-control" type="email" aria-required='true' /> <span class="hestia-input"></span> </div> </div>
+<div class="col-md-4"> <div class="form-group label-floating is-empty"> <label class="control-label">Website</label><input id="url" name="url" class="form-control" type="url" aria-required='true' /> <span class="hestia-input"></span> </div> </div> </div>
+<div class="form-group label-floating is-empty"> <label class="control-label">What&#039;s on your mind?</label><textarea id="comment" name="comment" class="form-control" rows="6" aria-required="true"></textarea><span class="hestia-input"></span> </div><p class="form-submit"><input name="submit" type="submit" id="submit" class="btn btn-primary pull-right" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='1047' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="d9af4d5877" /></p><p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="109"/></p></form>	</div><!-- #respond -->
+	<p class="akismet_comment_form_privacy_notice">This site uses Akismet to reduce spam. <a href="https://akismet.com/privacy/" target="_blank" rel="nofollow noopener">Learn how your comment data is processed</a>.</p>							</div>
+		</div>
+	</div>
+</div>
+		</div>
+		</div>	<div class="col-md-3 blog-sidebar-wrapper col-md-offset-1">
+		<aside id="secondary" class="blog-sidebar" role="complementary">
+						
+		<div id="recent-posts-13" class="widget widget_recent_entries">
+		<h5>Recent Posts</h5>
+		<ul>
+											<li>
+					<a href="index.html@p=1071.html">Scaling with Spring Batch &#8211; Multi threaded step</a>
+									</li>
+											<li>
+					<a href="index.html@p=1047.html" aria-current="page">Read CSV files from S3 using Spring Batch</a>
+									</li>
+											<li>
+					<a href="index.html@p=991.html">Asynchronous pattern using Amazon SQS</a>
+									</li>
+											<li>
+					<a href="index.html@p=993.html">Introduction to Stack Data Structure in Java</a>
+									</li>
+											<li>
+					<a href="index.html@p=976.html">ArrayList in Java</a>
+									</li>
+					</ul>
+
+		</div><div id="categories-9" class="widget widget_categories"><h5>Categories</h5>
+			<ul>
+					<li class="cat-item cat-item-10"><a href="category/amazon-web-services/index.html">Amazon Web Services</a> (9)
+<ul class='children'>
+	<li class="cat-item cat-item-40"><a href="category/amazon-web-services/amazon-ebs/index.html">Amazon EBS</a> (1)
+</li>
+	<li class="cat-item cat-item-44"><a href="category/amazon-web-services/amazon-sqs/index.html">Amazon SQS</a> (1)
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-27"><a href="category/angular/index.html">Angular</a> (1)
+</li>
+	<li class="cat-item cat-item-33"><a href="category/core-java/index.html">Core Java</a> (1)
+<ul class='children'>
+	<li class="cat-item cat-item-34"><a href="category/core-java/java-9/index.html">Java 9</a> (1)
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-38"><a href="category/database/index.html">Database</a> (1)
+<ul class='children'>
+	<li class="cat-item cat-item-39"><a href="category/database/oracle/index.html">Oracle</a> (1)
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-16"><a href="category/misc/index.html">Misc</a> (1)
+</li>
+	<li class="cat-item cat-item-41"><a href="category/programming/index.html">Programming</a> (3)
+<ul class='children'>
+	<li class="cat-item cat-item-42"><a href="category/programming/data-structures/index.html">Data Structures</a> (3)
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-17"><a href="category/spring-framework/index.html">Spring framework</a> (6)
+<ul class='children'>
+	<li class="cat-item cat-item-45"><a href="category/spring-framework/spring-batch/index.html">Spring Batch</a> (2)
+	<ul class='children'>
+	<li class="cat-item cat-item-46"><a href="category/spring-framework/spring-batch/parallel-processing/index.html">Parallel Processing</a> (1)
+</li>
+	</ul>
+</li>
+	<li class="cat-item cat-item-37"><a href="category/spring-framework/spring-security/index.html">Spring Security</a> (1)
+</li>
+</ul>
+</li>
+			</ul>
+
+			</div>
+		<div id="recent-posts-11" class="widget widget_recent_entries">
+		<h5>Recent Posts</h5>
+		<ul>
+											<li>
+					<a href="index.html@p=1071.html">Scaling with Spring Batch &#8211; Multi threaded step</a>
+									</li>
+											<li>
+					<a href="index.html@p=1047.html" aria-current="page">Read CSV files from S3 using Spring Batch</a>
+									</li>
+											<li>
+					<a href="index.html@p=991.html">Asynchronous pattern using Amazon SQS</a>
+									</li>
+											<li>
+					<a href="index.html@p=993.html">Introduction to Stack Data Structure in Java</a>
+									</li>
+											<li>
+					<a href="index.html@p=976.html">ArrayList in Java</a>
+									</li>
+					</ul>
+
+		</div><div id="categories-7" class="widget widget_categories"><h5>Categories</h5>
+			<ul>
+					<li class="cat-item cat-item-10"><a href="category/amazon-web-services/index.html">Amazon Web Services</a> (9)
+<ul class='children'>
+	<li class="cat-item cat-item-40"><a href="category/amazon-web-services/amazon-ebs/index.html">Amazon EBS</a> (1)
+</li>
+	<li class="cat-item cat-item-44"><a href="category/amazon-web-services/amazon-sqs/index.html">Amazon SQS</a> (1)
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-27"><a href="category/angular/index.html">Angular</a> (1)
+</li>
+	<li class="cat-item cat-item-33"><a href="category/core-java/index.html">Core Java</a> (1)
+<ul class='children'>
+	<li class="cat-item cat-item-34"><a href="category/core-java/java-9/index.html">Java 9</a> (1)
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-38"><a href="category/database/index.html">Database</a> (1)
+<ul class='children'>
+	<li class="cat-item cat-item-39"><a href="category/database/oracle/index.html">Oracle</a> (1)
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-16"><a href="category/misc/index.html">Misc</a> (1)
+</li>
+	<li class="cat-item cat-item-41"><a href="category/programming/index.html">Programming</a> (3)
+<ul class='children'>
+	<li class="cat-item cat-item-42"><a href="category/programming/data-structures/index.html">Data Structures</a> (3)
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-17"><a href="category/spring-framework/index.html">Spring framework</a> (6)
+<ul class='children'>
+	<li class="cat-item cat-item-45"><a href="category/spring-framework/spring-batch/index.html">Spring Batch</a> (2)
+	<ul class='children'>
+	<li class="cat-item cat-item-46"><a href="category/spring-framework/spring-batch/parallel-processing/index.html">Parallel Processing</a> (1)
+</li>
+	</ul>
+</li>
+	<li class="cat-item cat-item-37"><a href="category/spring-framework/spring-security/index.html">Spring Security</a> (1)
+</li>
+</ul>
+</li>
+			</ul>
+
+			</div><div id="archives-12" class="widget widget_archive"><h5>Archives</h5>
+			<ul>
+					<li><a href='2022/10/index.html'>October 2022</a>&nbsp;(1)</li>
+	<li><a href='2021/11/index.html'>November 2021</a>&nbsp;(1)</li>
+	<li><a href='2020/11/index.html'>November 2020</a>&nbsp;(1)</li>
+	<li><a href='2019/02/index.html'>February 2019</a>&nbsp;(1)</li>
+	<li><a href='2019/01/index.html'>January 2019</a>&nbsp;(1)</li>
+	<li><a href='2018/12/index.html'>December 2018</a>&nbsp;(2)</li>
+	<li><a href='2018/10/index.html'>October 2018</a>&nbsp;(1)</li>
+	<li><a href='2018/09/index.html'>September 2018</a>&nbsp;(1)</li>
+	<li><a href='2018/06/index.html'>June 2018</a>&nbsp;(1)</li>
+	<li><a href='2018/04/index.html'>April 2018</a>&nbsp;(1)</li>
+	<li><a href='2018/01/index.html'>January 2018</a>&nbsp;(1)</li>
+	<li><a href='2017/12/index.html'>December 2017</a>&nbsp;(1)</li>
+	<li><a href='2017/11/index.html'>November 2017</a>&nbsp;(1)</li>
+	<li><a href='2017/09/index.html'>September 2017</a>&nbsp;(1)</li>
+	<li><a href='2017/08/index.html'>August 2017</a>&nbsp;(1)</li>
+	<li><a href='2017/07/index.html'>July 2017</a>&nbsp;(2)</li>
+	<li><a href='2017/06/index.html'>June 2017</a>&nbsp;(3)</li>
+			</ul>
+
+			</div>					</aside><!-- .sidebar .widget-area -->
+	</div>
+			</div>
+</article>
+
+		</div>
+	</div>
+</div>
+
+			<div class="section related-posts">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-12">
+							<h2 class="hestia-title text-center">Related Posts</h2>
+							<div class="row">
+																	<div class="col-md-4">
+										<div class="card card-blog">
+																						<div class="content">
+												<h6 class="category text-info"><a href="category/spring-framework/spring-batch/parallel-processing/index.html" title="View all posts in Parallel Processing" >Parallel Processing</a> </h6>
+												<h4 class="card-title">
+													<a class="blog-item-title-link" href="index.html@p=1071.html" title="Scaling with Spring Batch &#8211; Multi threaded step" rel="bookmark">
+														Scaling with Spring Batch &#8211; Multi threaded step													</a>
+												</h4>
+												<p class="card-description">In this post, we will go through the scaling options available in the Spring Batch framework. For introduction on how to write a Spring Batch job, you can refer the previous post which provides details<a class="moretag" href="index.html@p=1071.html"> Read more&hellip;</a></p>
+											</div>
+										</div>
+									</div>
+																	<div class="col-md-4">
+										<div class="card card-blog">
+																						<div class="content">
+												<h6 class="category text-info"><a href="category/spring-framework/index.html" title="View all posts in Spring framework" >Spring framework</a> </h6>
+												<h4 class="card-title">
+													<a class="blog-item-title-link" href="index.html@p=821.html" title="Secure your Spring REST API using OAuth2" rel="bookmark">
+														Secure your Spring REST API using OAuth2													</a>
+												</h4>
+												<p class="card-description">In this post, let&#8217;s see the techniques about securing the Spring REST API using OAuth2. We will start by building an Authorization server to generate OAuth2 tokens. Then we will build our REST API which<a class="moretag" href="index.html@p=821.html"> Read more&hellip;</a></p>
+											</div>
+										</div>
+									</div>
+																	<div class="col-md-4">
+										<div class="card card-blog">
+																						<div class="content">
+												<h6 class="category text-info"><a href="category/amazon-web-services/index.html" title="View all posts in Amazon Web Services" >Amazon Web Services</a> </h6>
+												<h4 class="card-title">
+													<a class="blog-item-title-link" href="index.html@p=770.html" title="Integrate Spring Boot With Amazon DynamoDB" rel="bookmark">
+														Integrate Spring Boot With Amazon DynamoDB													</a>
+												</h4>
+												<p class="card-description">In this post, let&#8217;s see how to integrate Spring Boot with Amazon DynamoDB. I have been exploring the option of creating the REST API using Spring Boot backed by DynamoDB. I will share the information<a class="moretag" href="index.html@p=770.html"> Read more&hellip;</a></p>
+											</div>
+										</div>
+									</div>
+																							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="footer-wrapper">
+						<footer class="footer footer-black footer-big">
+						<div class="container">
+																<div class="hestia-bottom-footer-content"><ul class="footer-menu pull-left"><li class="page_item page-item-2"><a href="index.html@p=2.html">About</a></li>
+</ul>
+					<div class="copyright pull-right">
+				Hestia | Developed by <a href="https://themeisle.com" rel="nofollow">ThemeIsle</a>			</div>
+			</div>			</div>
+					</footer>
+				</div>
+	</div>
+    <!-- LikeBtn.com BEGIN -->
+    <script type="text/javascript">var likebtn_wl = 1; (function(d, e, s) {a = d.createElement(e);m = d.getElementsByTagName(e)[0];a.async = 1;a.src = s;m.parentNode.insertBefore(a, m)})(document, 'script', '//w.likebtn.com/js/w/widget.js'); if (typeof(LikeBtn) != "undefined") { LikeBtn.init(); }</script>
+    <!-- LikeBtn.com END -->
+                <!-- LikeBtn.com Custom CSS BEGIN -->
+        <style type="text/css">
+            .likebtn-wrapper{
+ padding-bottom: 15px;
+}        </style>
+        <!-- LikeBtn.com Custom CSS END -->
+        	<ul class="obfx-sharing
+	obfx-sharing-left obfx-sharing-bottom	">
+					<li class="">
+				<a class = "facebook"
+										 href="https://www.facebook.com/sharer.php?u=https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/">
+					<i class="socicon-facebook"></i>
+									</a>
+			</li>
+					<li class="">
+				<a class = "twitter"
+										 href="https://twitter.com/intent/tweet?url=https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/&#038;text=Read%20CSV%20files%20from%20S3%20using%20Spring%20Batch&#038;hashtags=Spring%20Batch,Spring%20framework">
+					<i class="socicon-twitter"></i>
+									</a>
+			</li>
+					<li class="obfx-hide-mobile-socials ">
+				<a class = "googleplus"
+										 href="https://plus.google.com/share?url=https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/">
+					<i class="socicon-googleplus"></i>
+									</a>
+			</li>
+					<li class="">
+				<a class = "linkedin"
+										 href="https://www.linkedin.com/shareArticle?url=https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/&#038;title=Read%20CSV%20files%20from%20S3%20using%20Spring%20Batch">
+					<i class="socicon-linkedin"></i>
+									</a>
+			</li>
+					<li class="obfx-hide-desktop-socials ">
+				<a class = "whatsapp"
+										 href="whatsapp://send?text=https://blogs.rayfocus.com/read-files-from-s3-using-spring-batch/">
+					<i class="socicon-whatsapp"></i>
+									</a>
+			</li>
+			</ul>
+	<!-- Enter your scripts here -->
+		<button class="hestia-scroll-to-top">
+			<svg  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="12.5px" height="20px"><path d="M177 255.7l136 136c9.4 9.4 9.4 24.6 0 33.9l-22.6 22.6c-9.4 9.4-24.6 9.4-33.9 0L160 351.9l-96.4 96.4c-9.4 9.4-24.6 9.4-33.9 0L7 425.7c-9.4-9.4-9.4-24.6 0-33.9l136-136c9.4-9.5 24.6-9.5 34-.1zm-34-192L7 199.7c-9.4 9.4-9.4 24.6 0 33.9l22.6 22.6c9.4 9.4 24.6 9.4 33.9 0l96.4-96.4 96.4 96.4c9.4 9.4 24.6 9.4 33.9 0l22.6-22.6c9.4-9.4 9.4-24.6 0-33.9l-136-136c-9.2-9.4-24.4-9.4-33.8 0z"></path></svg>
+		</button>
+		<link rel='stylesheet' id='crayon-css' href='wp-content/plugins/crayon-syntax-highlighter/css/min/crayon.min.css@ver=_2.7.2_beta.css' type='text/css' media='all' />
+<script type="text/javascript" src="wp-content/plugins/themeisle-companion/obfx_modules/social-sharing/js/public.js@ver=2.9.16" id="obfx-module-pub-js-social-sharing-0-js"></script>
+<script type="text/javascript" id="social_warfare_script-js-extra">
+/* <![CDATA[ */
+var socialWarfare = {"addons":[],"post_id":"1047","variables":{"emphasizeIcons":false,"powered_by_toggle":false,"affiliate_link":"https:\/\/warfareplugins.com"},"floatBeforeContent":""};
+/* ]]> */
+</script>
+<script type="text/javascript" src="wp-content/plugins/social-warfare/assets/js/script.min.js@ver=4.0.2" id="social_warfare_script-js"></script>
+<script type="text/javascript" src="wp-includes/js/comment-reply.min.js@ver=6.5.14" id="comment-reply-js" async="async" data-wp-strategy="async"></script>
+<script type="text/javascript" src="wp-content/themes/hestia/assets/bootstrap/js/bootstrap.min.js@ver=1.0.2" id="jquery-bootstrap-js"></script>
+<script type="text/javascript" src="wp-includes/js/jquery/ui/core.min.js@ver=1.13.2" id="jquery-ui-core-js"></script>
+<script type="text/javascript" id="hestia_scripts-js-extra">
+/* <![CDATA[ */
+var requestpost = {"ajaxurl":"https:\/\/blogs.rayfocus.com\/wp-admin\/admin-ajax.php","disable_autoslide":"","masonry":""};
+/* ]]> */
+</script>
+<script type="text/javascript" src="wp-content/themes/hestia/assets/js/script.min.js@ver=3.0.4" id="hestia_scripts-js"></script>
+<script type="text/javascript" id="crayon_js-js-extra">
+/* <![CDATA[ */
+var CrayonSyntaxSettings = {"version":"_2.7.2_beta","is_admin":"0","ajaxurl":"https:\/\/blogs.rayfocus.com\/wp-admin\/admin-ajax.php","prefix":"crayon-","setting":"crayon-setting","selected":"crayon-setting-selected","changed":"crayon-setting-changed","special":"crayon-setting-special","orig_value":"data-orig-value","debug":""};
+var CrayonSyntaxStrings = {"copy":"Press %s to Copy, %s to Paste","minimize":"Click To Expand Code"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="wp-content/plugins/crayon-syntax-highlighter/js/min/crayon.min.js@ver=_2.7.2_beta" id="crayon_js-js"></script>
+<script async="async" type="text/javascript" src="wp-content/plugins/akismet/_inc/form.js@ver=4.1.6" id="akismet-form-js"></script>
+<script type="text/javascript"> var swp_nonce = "4bb033820c";var swpFloatBeforeContent = false; var swp_ajax_url = "https://blogs.rayfocus.com/wp-admin/admin-ajax.php"; var swp_post_id = "1047";var swpClickTracking = false;</script></body>
+</html>
